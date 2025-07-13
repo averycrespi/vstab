@@ -9,6 +9,15 @@ export interface VSCodeWindow {
     width: number;
     height: number;
   };
+  // Yabai-specific metadata (optional for AppleScript fallback)
+  yabaiMetadata?: {
+    space: number;
+    display: number;
+    pid: number;
+    isVisible: boolean;
+    isMinimized: boolean;
+    isFloating?: boolean;
+  };
 }
 
 export interface TabOrder {
