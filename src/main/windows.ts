@@ -190,25 +190,49 @@ export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
     
     debugLog(`Found ${vscodeWindows.length} VS Code windows to resize`);
     
+    // Get display bounds to ensure proper positioning
+    const { stdout: displaysOutput } = await execAsync('yabai -m query --displays');
+    const displays = JSON.parse(displaysOutput);
+    
     // Resize each VS Code window to account for tab bar
     for (const window of vscodeWindows) {
-      const newY = window.frame.y + tabBarHeight;
-      const newHeight = window.frame.h - tabBarHeight;
+      // Find the display this window is on
+      const display = displays.find((d: any) => d.index === window.display);
+      if (!display) continue;
       
-      // Only resize if the window would still have reasonable height
-      if (newHeight > 100) {
-        const resizeCommand = `yabai -m window ${window.id} --resize abs:${window.frame.w}:${newHeight}`;
-        const moveCommand = `yabai -m window ${window.id} --move abs:${window.frame.x}:${newY}`;
+      // Calculate new position and size
+      const newY = display.frame.y + tabBarHeight;
+      const newHeight = display.frame.h - tabBarHeight;
+      const newX = window.frame.x; // Keep current X position
+      const newWidth = window.frame.w; // Keep current width
+      
+      try {
+        // Use grid positioning for more reliable results
+        debugLog(`Setting window ${window.id} grid position and size`);
         
-        debugLog(`Resizing window ${window.id}: ${resizeCommand}`);
-        debugLog(`Moving window ${window.id}: ${moveCommand}`);
+        // First, move the window to the correct position
+        await execAsync(`yabai -m window ${window.id} --move abs:${newX}:${newY}`);
         
-        await execAsync(resizeCommand);
-        await execAsync(moveCommand);
+        // Then resize to correct dimensions
+        await execAsync(`yabai -m window ${window.id} --resize abs:${newWidth}:${newHeight}`);
+        
+        debugLog(`Window ${window.id} positioned at (${newX}, ${newY}) with size ${newWidth}x${newHeight}`);
+      } catch (windowError) {
+        debugLog(`Error resizing individual window ${window.id}:`, windowError);
+        
+        // Fallback: try using grid system
+        try {
+          debugLog(`Trying grid fallback for window ${window.id}`);
+          await execAsync(`yabai -m window ${window.id} --grid 1:1:0:0:1:1`);
+          await execAsync(`yabai -m window ${window.id} --move abs:${newX}:${newY}`);
+          await execAsync(`yabai -m window ${window.id} --resize abs:${newWidth}:${newHeight}`);
+        } catch (gridError) {
+          debugLog(`Grid fallback also failed for window ${window.id}:`, gridError);
+        }
       }
     }
     
-    debugLog('All VS Code windows resized successfully via yabai');
+    debugLog('VS Code window resize process completed');
   } catch (error) {
     debugLog('Error resizing windows via yabai:', error);
     console.error('Error resizing windows via yabai:', error);
