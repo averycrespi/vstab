@@ -9,7 +9,9 @@ export function useWindowVisibility() {
     const checkVisibility = async () => {
       try {
         const frontmostApp = await window.vstab.getFrontmostApp();
-        const shouldShow = frontmostApp.includes('Code') || frontmostApp.includes('vstab');
+        console.log('Frontmost app:', frontmostApp);
+        const shouldShow = frontmostApp.includes('Code') || frontmostApp.includes('vstab') || frontmostApp.includes('Electron');
+        console.log('Should show:', shouldShow);
         setIsVisible(shouldShow);
       } catch (error) {
         console.error('Error checking visibility:', error);
