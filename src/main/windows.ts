@@ -201,8 +201,11 @@ export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
       if (!display) continue;
       
       // Calculate new position and size
-      const newY = display.frame.y + tabBarHeight;
-      const newHeight = display.frame.h - tabBarHeight;
+      // VS Code windows should start below the tab bar with extra buffer to avoid overlap
+      const BUFFER_PIXELS = 10; // Additional buffer to ensure no overlap
+      const totalOffset = tabBarHeight + BUFFER_PIXELS;
+      const newY = display.frame.y + totalOffset; // Start below tab bar with buffer
+      const newHeight = display.frame.h - totalOffset; // Available height minus tab bar and buffer
       const newX = window.frame.x; // Keep current X position
       const newWidth = window.frame.w; // Keep current width
       
