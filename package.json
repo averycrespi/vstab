@@ -1,7 +1,7 @@
 {
   "name": "vstab",
   "version": "1.0.0",
-  "description": "",
+  "description": "A macOS workspace tab switcher for VS Code",
   "main": "dist/main.js",
   "scripts": {
     "dev": "npm run build && electron .",
@@ -10,6 +10,9 @@
     "start": "electron .",
     "compile": "tsc -p tsconfig.main.json && tsc -p tsconfig.renderer.json",
     "clean": "rm -rf dist",
+    "pack": "npm run build:prod && electron-builder --dir",
+    "dist": "npm run build:prod && electron-builder",
+    "dist:mac": "npm run build:prod && electron-builder --mac",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -17,7 +20,7 @@
     "url": "git+https://github.com/averycrespi/vstab.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Avery Crespi",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
@@ -48,5 +51,43 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "tailwindcss": "^4.1.11"
+  },
+  "build": {
+    "appId": "com.averycrespi.vstab",
+    "productName": "VS Tab",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "entitlements": "assets/entitlements.plist",
+      "entitlementsInherit": "assets/entitlements.plist",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "title": "VS Tab Installer"
+    },
+    "publish": null
   }
 }

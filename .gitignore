@@ -30,6 +30,8 @@ Thumbs.db
 electron-builder.yml
 dist_electron/
 release/
+*.dmg
+*.zip
 
 # Environment
 .env
