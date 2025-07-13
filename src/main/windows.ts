@@ -138,20 +138,9 @@ export async function focusWindow(windowId: string): Promise<void> {
 export async function hideWindow(windowId: string): Promise<void> {
   debugLog('Hiding window:', windowId);
   
-  if (!windowIdMap.has(windowId)) {
-    throw new Error(`Window ID ${windowId} not found in current window map`);
-  }
-  
-  const yabaiWindowId = windowIdMap.get(windowId)!;
-  try {
-    debugLog('Hiding window via yabai:', yabaiWindowId);
-    // Use yabai to minimize the specific window
-    await execAsync(`yabai -m window ${yabaiWindowId} --minimize`);
-    debugLog('Window hidden successfully via yabai');
-  } catch (error) {
-    debugLog('Error hiding window via yabai:', error);
-    throw new Error(`Failed to hide window ${windowId} via yabai: ${error}`);
-  }
+  // Don't actually hide/minimize windows - just log the action
+  // Windows will stay visible and can be switched between via the tab bar
+  debugLog('Window hide requested but not minimizing - keeping windows visible for tab switching');
 }
 
 export async function getFrontmostApp(): Promise<string> {
@@ -206,8 +195,8 @@ export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
       const totalOffset = tabBarHeight + BUFFER_PIXELS;
       const newY = display.frame.y + totalOffset; // Start below tab bar with buffer
       const newHeight = display.frame.h - totalOffset; // Available height minus tab bar and buffer
-      const newX = window.frame.x; // Keep current X position
-      const newWidth = window.frame.w; // Keep current width
+      const newX = display.frame.x; // Start at left edge of display
+      const newWidth = display.frame.w; // Use full width of display
       
       try {
         // Use grid positioning for more reliable results
