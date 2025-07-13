@@ -8,24 +8,31 @@ export async function discoverVSCodeWindows(): Promise<VSCodeWindow[]> {
   const script = `
     tell application "System Events"
       set vscodeWindows to {}
-      set vscodeProcesses to every process whose name contains "Code"
+      set vscodeProcesses to every process whose bundle identifier is "com.microsoft.VSCode"
       
       repeat with proc in vscodeProcesses
         set procName to name of proc
         set windowList to windows of proc
         
         repeat with win in windowList
-          set winTitle to name of win
-          set winPosition to position of win
-          set winSize to size of win
-          set winId to id of win as string
-          
-          set windowInfo to {id:winId, title:winTitle, processName:procName, x:item 1 of winPosition, y:item 2 of winPosition, width:item 1 of winSize, height:item 2 of winSize}
-          set end of vscodeWindows to windowInfo
+          try
+            set winTitle to name of win
+            set winPosition to position of win
+            set winSize to size of win
+            set winId to id of win as string
+            
+            -- Format as delimited string for easier parsing
+            set windowInfo to winId & "|" & winTitle & "|" & procName & "|" & (item 1 of winPosition) & "|" & (item 2 of winPosition) & "|" & (item 1 of winSize) & "|" & (item 2 of winSize)
+            set end of vscodeWindows to windowInfo
+          end try
         end repeat
       end repeat
       
-      return vscodeWindows
+      set AppleScript's text item delimiters to linefeed
+      set windowsText to vscodeWindows as string
+      set AppleScript's text item delimiters to ""
+      
+      return windowsText
     end tell
   `;
 
@@ -39,32 +46,48 @@ export async function discoverVSCodeWindows(): Promise<VSCodeWindow[]> {
 }
 
 function parseAppleScriptOutput(output: string): VSCodeWindow[] {
-  // Parse the AppleScript record format
-  // Example: {id:"12345", title:"project-name", processName:"Code", x:100, y:100, width:1200, height:800}
+  // Parse the delimited format: id|title|processName|x|y|width|height
   const windows: VSCodeWindow[] = [];
   
-  // Split by window records
-  const windowMatches = output.matchAll(/\{id:"([^"]+)", title:"([^"]+)", processName:"([^"]+)", x:(\d+), y:(\d+), width:(\d+), height:(\d+)\}/g);
+  if (!output.trim()) {
+    return windows;
+  }
   
-  for (const match of windowMatches) {
-    const [_, id, title, _processName, x, y, width, height] = match;
+  const lines = output.trim().split('\n');
+  
+  for (const line of lines) {
+    if (!line.trim()) continue;
     
-    // Extract workspace path from title (VS Code usually shows "filename - folder - Visual Studio Code")
-    const pathMatch = title.match(/^.*? - (.*?) - Visual Studio Code$/);
-    const path = pathMatch ? pathMatch[1] : title;
-    
-    windows.push({
-      id,
-      title,
-      path,
-      isActive: false, // Will be determined separately
-      position: {
-        x: parseInt(x),
-        y: parseInt(y),
-        width: parseInt(width),
-        height: parseInt(height)
+    const parts = line.split('|');
+    if (parts.length >= 7) {
+      const [id, title, , x, y, width, height] = parts;
+      
+      // Bundle identifier already filters for VS Code processes, no need for additional filtering
+      
+      // Extract workspace path from title
+      // VS Code patterns: "filename - folder - Visual Studio Code" or just "folder - Visual Studio Code"
+      let path = title;
+      const vscodeMatch = title.match(/^(.*?) - Visual Studio Code$/);
+      if (vscodeMatch) {
+        const titlePart = vscodeMatch[1];
+        // If it has " - " in it, take the last part as the workspace
+        const dashIndex = titlePart.lastIndexOf(' - ');
+        path = dashIndex !== -1 ? titlePart.substring(dashIndex + 3) : titlePart;
       }
-    });
+      
+      windows.push({
+        id,
+        title,
+        path,
+        isActive: false, // Will be determined separately
+        position: {
+          x: parseInt(x) || 0,
+          y: parseInt(y) || 0,
+          width: parseInt(width) || 1200,
+          height: parseInt(height) || 800
+        }
+      });
+    }
   }
   
   return windows;
@@ -73,7 +96,7 @@ function parseAppleScriptOutput(output: string): VSCodeWindow[] {
 export async function focusWindow(windowId: string): Promise<void> {
   const script = `
     tell application "System Events"
-      set vscodeProcesses to every process whose name contains "Code"
+      set vscodeProcesses to every process whose bundle identifier is "com.microsoft.VSCode"
       
       repeat with proc in vscodeProcesses
         set windowList to windows of proc
@@ -98,7 +121,7 @@ export async function focusWindow(windowId: string): Promise<void> {
 export async function hideWindow(windowId: string): Promise<void> {
   const script = `
     tell application "System Events"
-      set vscodeProcesses to every process whose name contains "Code"
+      set vscodeProcesses to every process whose bundle identifier is "com.microsoft.VSCode"
       
       repeat with proc in vscodeProcesses
         set windowList to windows of proc
@@ -138,7 +161,7 @@ export async function getFrontmostApp(): Promise<string> {
 export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
   const script = `
     tell application "System Events"
-      set vscodeProcesses to every process whose name contains "Code"
+      set vscodeProcesses to every process whose bundle identifier is "com.microsoft.VSCode"
       
       repeat with proc in vscodeProcesses
         set windowList to windows of proc
