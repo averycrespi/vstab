@@ -4,7 +4,7 @@ This file provides context for AI assistants working on the vstab project.
 
 ## Project Overview
 
-**vstab** is a macOS workspace tab switcher for VS Code built with Electron, TypeScript, and React. It creates a persistent tab bar at the top of the screen that shows all VS Code workspaces and allows quick switching between them.
+**vstab** is a macOS workspace tab switcher for VS Code built with Electron, TypeScript, React, and yabai. It creates a persistent tab bar at the top of the screen that shows all VS Code workspaces and allows quick switching between them with stable window identification and full-screen management.
 
 ## Key Technologies
 
@@ -13,7 +13,7 @@ This file provides context for AI assistants working on the vstab project.
 - **React 19** - UI framework for renderer process
 - **Tailwind CSS v4** - Styling (using CSS custom properties)
 - **Webpack** - Build system
-- **AppleScript** - macOS window management
+- **yabai** - macOS window management via JSON API
 - **Node.js/npm** - Package management
 
 ## Project Structure
@@ -23,7 +23,7 @@ vstab/
 ├── src/
 │   ├── main/           # Electron main process (Node.js)
 │   │   ├── index.ts    # App entry point
-│   │   ├── windows.ts  # AppleScript window discovery
+│   │   ├── windows.ts  # yabai window discovery and management
 │   │   ├── ipc.ts      # IPC handlers
 │   │   └── persistence.ts # Tab order storage
 │   ├── renderer/       # React UI (browser environment)
@@ -41,22 +41,26 @@ vstab/
 ## Core Concepts
 
 ### Window Discovery
-- Uses AppleScript to find VS Code windows every 1 second
-- Parses window titles to extract workspace paths
-- Tracks window IDs for focusing/hiding
+- Uses yabai JSON API to find VS Code windows every 1 second
+- Generates stable hash-based window IDs from workspace paths + PID
+- Tracks all VS Code instances with rich metadata (space, display, focus state)
+- Maintains window ID mapping for reliable operations
 
 ### Tab Management
 - React components render tabs based on discovered windows
 - Drag-and-drop reordering with HTML5 API
+- Stable tab order maintained across window switches and closures
 - Tab order persisted to `userData/tab-order.json`
+- No automatic reordering on tab switches or window focus changes
 
 ### Auto-Hide Behavior
-- Polls frontmost app every 500ms
+- Polls frontmost app every 500ms via yabai window focus detection
 - Shows tab bar only when VS Code is active
 - Hides when switching to other applications
+- Windows remain visible (no minimizing) for fast tab switching
 
 ### IPC Communication
-- Main process handles AppleScript and file operations
+- Main process handles yabai operations and file persistence
 - Renderer process handles UI and user interactions
 - Preload script provides secure IPC bridge
 
@@ -81,13 +85,15 @@ vstab/
 
 ## Key Implementation Details
 
-### AppleScript Integration
-```applescript
+### yabai Integration
+```bash
 # Window discovery pattern
-tell application "System Events"
-    set vscodeProcesses to every process whose name contains "Code"
-    # Extract window details...
-end tell
+yabai -m query --windows | jq '.[] | select(.app | contains("Code"))'
+
+# Window operations
+yabai -m window --focus 12345
+yabai -m window 12345 --move abs:0:45
+yabai -m window 12345 --resize abs:1920:1035
 ```
 
 ### Styling Approach
@@ -101,8 +107,9 @@ end tell
 - Handles window management, tab reordering, settings
 
 ### Error Handling
-- AppleScript errors logged to console
-- Graceful degradation when VS Code not found
+- yabai connection errors logged to console
+- Graceful error handling for individual window operations
+- Fallback mechanisms for failed yabai commands
 - TypeScript strict mode for compile-time safety
 
 ## Development Workflow
@@ -124,6 +131,8 @@ end tell
 - Manual testing with multiple VS Code workspaces
 - Check auto-hide behavior by switching apps
 - Test drag-and-drop reordering
+- Verify tab order stability during window switches
+- Test full-screen window resizing
 - Verify persistence across app restarts
 
 ## Common Issues & Solutions
@@ -134,28 +143,30 @@ end tell
 - **Webpack errors**: Verify loader configuration
 
 ### Runtime Issues
-- **No tab bar**: Check VS Code is running and focused
-- **AppleScript errors**: Verify Accessibility permissions
+- **No tab bar**: Check VS Code is running and yabai service is active
+- **yabai errors**: Verify yabai installation and Accessibility permissions
+- **Window operations fail**: Check yabai can query and control windows
 - **IPC errors**: Check channel names match between main/renderer
 
 ### Platform Requirements
-- **macOS only**: AppleScript is macOS-specific
+- **macOS only**: yabai is macOS-specific
+- **yabai required**: Must be installed and running
 - **Accessibility permissions**: Required for window control
 - **VS Code**: Must be installed and running
 
 ## Future Enhancements
 
 ### Planned Features (Low Priority)
-- yabai integration for advanced window management
 - UI polish and animations
-- Electron Builder packaging
-- Settings UI for configuration
+- Settings UI for configuration options
+- Multi-monitor optimization
+- Custom themes and styling options
 
 ### Potential Improvements
-- Better error handling and user feedback
-- Multi-monitor support optimization
 - Performance optimizations for many windows
-- Custom themes and styling options
+- Enhanced yabai configuration options
+- Keyboard shortcuts for tab switching
+- Better window state persistence
 
 ## Dependencies Notes
 
@@ -165,6 +176,7 @@ end tell
 - `typescript` - Type safety
 - `webpack` + loaders - Build system
 - `tailwindcss` + `@tailwindcss/postcss` - Styling
+- `yabai` - External dependency for window management
 
 ### Dev Dependencies
 - `@types/*` - TypeScript definitions
@@ -180,7 +192,9 @@ end tell
 4. **Respect the architecture**: Keep main/renderer separation clear
 5. **Update types first**: When adding features, update shared types
 6. **Follow existing patterns**: Use established IPC channels and hooks
-7. **Consider macOS specifics**: AppleScript syntax and behaviors
-8. **Maintain security**: Keep contextIsolation enabled in preload
+7. **Consider yabai requirements**: Ensure yabai service is running
+8. **Test window operations**: Verify yabai commands work as expected
+9. **Maintain tab order stability**: Don't reorder on focus changes
+10. **Maintain security**: Keep contextIsolation enabled in preload
 
 This context should help AI assistants understand the project structure, make appropriate changes, and troubleshoot common issues effectively.

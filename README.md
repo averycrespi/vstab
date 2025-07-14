@@ -8,19 +8,20 @@ A macOS workspace tab switcher for VS Code that provides a persistent tab bar fo
 
 - **Persistent Tab Bar**: Always-on-top tab bar showing all VS Code workspaces
 - **Smart Auto-Hide**: Only appears when VS Code is active, automatically hides when switching to other apps
-- **Window Management**: Click tabs to focus windows, automatically hides inactive VS Code windows
+- **Window Management**: Click tabs to focus windows, keeps all windows visible for fast switching
 - **Drag-and-Drop**: Reorder tabs by dragging, with persistent tab order between sessions
-- **Space-Aware**: Automatically resizes VS Code windows to avoid overlap with the tab bar
-- **AppleScript Integration**: Native macOS window discovery and control
-- **Optional yabai Support**: Enhanced window management for multi-monitor setups
+- **Space-Aware**: Automatically resizes VS Code windows to use full screen below the tab bar
+- **yabai Integration**: Native window management using yabai's JSON API for stable, multi-window support
+- **Stable Window IDs**: Hash-based identification for consistent window tracking across restarts
 
 ## Installation
 
 ### Prerequisites
 
-- macOS (required for AppleScript)
+- macOS (required for yabai)
 - Node.js 18+ and npm
 - VS Code
+- yabai (`brew install koekeishiya/formulae/yabai`)
 
 ### Build from Source
 
@@ -31,6 +32,10 @@ cd vstab
 
 # Install dependencies
 npm install
+
+# Install and start yabai
+brew install koekeishiya/formulae/yabai
+yabai --start-service
 
 # Build the application
 npm run build
@@ -65,7 +70,7 @@ npm clean
 - **TypeScript**: Type-safe development
 - **React**: UI components and state management
 - **Tailwind CSS**: Styling and responsive design
-- **AppleScript**: macOS window discovery and control
+- **yabai**: Advanced macOS window management
 - **Webpack**: Build system and bundling
 
 ### Project Structure
@@ -102,36 +107,36 @@ The application uses sensible defaults but can be customized:
 - **Polling Interval**: 1 second for window discovery
 - **Visibility Check**: 500ms for frontmost app detection
 
-## AppleScript Integration
+## yabai Integration
 
-vstab uses AppleScript to:
-- Discover running VS Code windows
-- Extract workspace information from window titles
-- Focus and hide windows
-- Resize windows to avoid tab bar overlap
+vstab uses yabai's JSON API for robust window management:
 
-### Example AppleScript Commands
+- **Window Discovery**: Query all VS Code windows via `yabai -m query --windows`
+- **Stable Identification**: Hash-based window IDs from workspace paths
+- **Precise Control**: Direct window focusing, resizing, and positioning
+- **Multi-Window Support**: Track multiple VS Code instances simultaneously
 
-```applescript
--- Discover VS Code windows
-tell application "System Events"
-    set vscodeProcesses to every process whose name contains "Code"
-    -- Process each window...
-end tell
+### Example yabai Commands
 
--- Focus a specific window
-tell application "System Events"
-    perform action "AXRaise" of window id "12345"
-end tell
+```bash
+# Discover VS Code windows
+yabai -m query --windows | jq '.[] | select(.app | contains("Code"))'
+
+# Focus a specific window
+yabai -m window --focus 12345
+
+# Resize window to full screen below tab bar
+yabai -m window 12345 --move abs:0:45
+yabai -m window 12345 --resize abs:1920:1035
 ```
 
-## Optional: yabai Integration
+### Requirements
 
-For advanced window management, vstab can integrate with [yabai](https://github.com/koekeishiya/yabai):
+yabai must be installed and running:
 
-1. Install yabai: `brew install koekeishiya/formulae/yabai`
-2. Enable yabai integration in settings
-3. Enjoy enhanced multi-monitor support and precise window control
+1. Install: `brew install koekeishiya/formulae/yabai`
+2. Start service: `yabai --start-service`
+3. Grant Accessibility permissions when prompted
 
 ## Troubleshooting
 
@@ -139,13 +144,13 @@ For advanced window management, vstab can integrate with [yabai](https://github.
 
 **Tab bar not appearing:**
 - Ensure VS Code is running and focused
-- Check that Accessibility permissions are granted to Terminal/iTerm
-- Verify AppleScript execution permissions
+- Check that yabai service is running: `yabai --start-service`
+- Verify yabai can query windows: `yabai -m query --windows`
 
 **Windows not switching:**
-- Grant Accessibility permissions to the vstab application
-- Ensure VS Code windows are not minimized
-- Check Console.app for AppleScript errors
+- Grant Accessibility permissions to yabai and vstab
+- Ensure yabai has window management permissions
+- Check Console.app for yabai connection errors
 
 **Build errors:**
 - Ensure Node.js 18+ is installed
@@ -154,12 +159,13 @@ For advanced window management, vstab can integrate with [yabai](https://github.
 
 ### Permissions
 
-vstab requires Accessibility permissions to control VS Code windows:
+vstab requires yabai and Accessibility permissions:
 
-1. Open System Preferences → Security & Privacy → Privacy
-2. Select "Accessibility" from the left sidebar
-3. Add Terminal/iTerm (or your terminal application)
-4. Add the vstab application when prompted
+1. Install yabai: `brew install koekeishiya/formulae/yabai`
+2. Start yabai service: `yabai --start-service`
+3. Open System Preferences → Security & Privacy → Privacy
+4. Select "Accessibility" from the left sidebar
+5. Add yabai and vstab when prompted
 
 ## Contributing
 
@@ -185,8 +191,7 @@ ISC License - see LICENSE file for details.
 
 - [Electron](https://electronjs.org/) - Desktop app framework
 - [VS Code](https://code.visualstudio.com/) - The editor this enhances
-- [yabai](https://github.com/koekeishiya/yabai) - Advanced window management
-- macOS AppleScript - Native window control APIs
+- [yabai](https://github.com/koekeishiya/yabai) - macOS window management system
 
 ---
 
