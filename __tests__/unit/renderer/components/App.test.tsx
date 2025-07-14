@@ -177,19 +177,6 @@ describe('App Component', () => {
       expect(mockVstab.focusWindow).toHaveBeenCalledWith('window2');
     });
 
-    it('should handle focus window error gracefully', async () => {
-      const user = userEvent.setup();
-      mockVstab.focusWindow.mockRejectedValue(new Error('Focus failed'));
-      
-      render(<App />);
-      
-      const tab = screen.getByText('vstab').closest('.tab')!;
-      
-      // Should not throw
-      await user.click(tab);
-      
-      expect(mockVstab.focusWindow).toHaveBeenCalledWith('window1');
-    });
   });
 
   describe('Drag and drop', () => {
@@ -251,6 +238,36 @@ describe('App Component', () => {
   });
 
   describe('Error handling', () => {
+    let consoleErrorSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      // Set up console.error spy for all error handling tests
+      consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      // Restore console.error after each test
+      if (consoleErrorSpy) {
+        consoleErrorSpy.mockRestore();
+      }
+    });
+
+    it('should handle focus window error gracefully', async () => {
+      const user = userEvent.setup();
+      mockVstab.focusWindow.mockRejectedValue(new Error('Focus failed'));
+      
+      render(<App />);
+      
+      const tab = screen.getByText('vstab').closest('.tab')!;
+      
+      // Should not throw
+      await user.click(tab);
+      
+      expect(mockVstab.focusWindow).toHaveBeenCalledWith('window1');
+      // Verify console.error was called with expected message
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error focusing window:', expect.any(Error));
+    });
+
     it.skip('should handle missing dataTransfer in drag events', () => {
       // Skipping drag tests due to JSDOM limitations
     });
@@ -265,8 +282,11 @@ describe('App Component', () => {
       
       // Wait for the promise rejection to be handled
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise(resolve => setTimeout(resolve, 10));
       });
+      
+      // Verify console.error was called with expected message
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error resizing windows:', expect.any(Error));
     });
 
     it('should handle onWindowsUpdate callback errors', () => {

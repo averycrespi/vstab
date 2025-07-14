@@ -38,7 +38,7 @@ function App() {
       debugLog('Error resizing windows:', error);
       console.error('Error resizing windows:', error);
     });
-  }, [activeWindowId]);
+  }, []);
 
   const handleTabClick = useCallback(async (windowId: string) => {
     debugLog('Tab clicked:', windowId);
