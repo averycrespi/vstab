@@ -52,91 +52,44 @@ npm start
 4. **Reorder Tabs**: Drag tabs to reorder them (order is saved automatically)
 5. **Auto-Hide**: The tab bar automatically hides when you switch to other applications
 
-### Development Mode
+### Running the App
 
 ```bash
-# Run in development mode with hot reload
+# Start the application
+npm start
+
+# Run in development mode
 npm run dev
-
-# Clean build artifacts
-npm clean
 ```
 
-## Architecture
+## How It Works
 
-### Technology Stack
+vstab integrates with macOS's yabai window manager to provide seamless workspace switching:
 
-- **Electron**: Cross-platform desktop framework
-- **TypeScript**: Type-safe development
-- **React**: UI components and state management
-- **Tailwind CSS**: Styling and responsive design
-- **yabai**: Advanced macOS window management
-- **Webpack**: Build system and bundling
-
-### Project Structure
-
-```
-vstab/
-├── src/
-│   ├── main/                 # Electron main process
-│   │   ├── index.ts         # Application entry point
-│   │   ├── windows.ts       # VS Code window discovery
-│   │   ├── ipc.ts           # IPC message handlers
-│   │   └── persistence.ts   # Tab order storage
-│   ├── renderer/            # React UI
-│   │   ├── App.tsx          # Main application component
-│   │   ├── components/      # Reusable components
-│   │   ├── hooks/           # Custom React hooks
-│   │   └── styles/          # CSS and styling
-│   ├── shared/              # Shared types and constants
-│   │   ├── types.ts         # TypeScript interfaces
-│   │   └── ipc-channels.ts  # IPC channel definitions
-│   └── preload.ts           # Secure IPC bridge
-├── dist/                    # Built application files
-├── package.json             # Dependencies and scripts
-├── tsconfig.json           # TypeScript configuration
-├── webpack.config.js       # Build configuration
-└── tailwind.config.js      # Styling configuration
-```
+- **Window Discovery**: Automatically detects all VS Code windows and workspaces
+- **Smart Visibility**: Tab bar appears only when VS Code is active
+- **Stable Identification**: Uses workspace paths to maintain consistent tab order
+- **Native Integration**: Leverages yabai for precise window management
 
 ## Configuration
 
-The application uses sensible defaults but can be customized:
+The application uses sensible defaults:
 
-- **Tab Bar Height**: 35px (configurable in `src/main/index.ts`)
-- **Polling Interval**: 1 second for window discovery
-- **Visibility Check**: 500ms for frontmost app detection
+- **Tab Bar Height**: 35px
+- **Polling Interval**: 1 second for window discovery  
+- **Auto-Hide**: 500ms for frontmost app detection
 
-## yabai Integration
+For advanced configuration options, see [DEVELOPERS.md](DEVELOPERS.md).
 
-vstab uses yabai's JSON API for robust window management:
+## yabai Setup
 
-- **Window Discovery**: Query all VS Code windows via `yabai -m query --windows`
-- **Stable Identification**: Hash-based window IDs from workspace paths
-- **Precise Control**: Direct window focusing, resizing, and positioning
-- **Multi-Window Support**: Track multiple VS Code instances simultaneously
+vstab requires yabai for window management:
 
-### Example yabai Commands
+1. **Install yabai**: `brew install koekeishiya/formulae/yabai`
+2. **Start service**: `yabai --start-service`
+3. **Grant permissions**: Allow Accessibility access when prompted
 
-```bash
-# Discover VS Code windows
-yabai -m query --windows | jq '.[] | select(.app | contains("Code"))'
-
-# Focus a specific window
-yabai -m window --focus 12345
-
-# Resize window to full screen below tab bar
-yabai -m window 12345 --move abs:0:45
-yabai -m window 12345 --resize abs:1920:1035
-```
-
-### Requirements
-
-yabai must be installed and running:
-
-1. Install: `brew install koekeishiya/formulae/yabai`
-2. Start service: `yabai --start-service`
-3. Grant Accessibility permissions when prompted
+yabai provides the window control needed for seamless tab switching and automatic window resizing.
 
 ## Troubleshooting
 
@@ -155,19 +108,14 @@ yabai must be installed and running:
 **Build errors:**
 - Ensure Node.js 18+ is installed
 - Clear node_modules and reinstall: `rm -rf node_modules package-lock.json && npm install`
-- Check TypeScript compilation: `npm run compile`
 
-### Permissions
-
-vstab requires yabai and Accessibility permissions:
-
-1. Install yabai: `brew install koekeishiya/formulae/yabai`
-2. Start yabai service: `yabai --start-service`
-3. Open System Preferences → Security & Privacy → Privacy
-4. Select "Accessibility" from the left sidebar
-5. Add yabai and vstab when prompted
+**Need help?** Check [DEVELOPERS.md](DEVELOPERS.md) for detailed troubleshooting and development information.
 
 ## Contributing
+
+We welcome contributions! Please see [DEVELOPERS.md](DEVELOPERS.md) for detailed development guidelines, architecture information, and testing procedures.
+
+### Quick Start for Contributors
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature-name`
@@ -175,17 +123,9 @@ vstab requires yabai and Accessibility permissions:
 4. Commit with conventional commits: `git commit -m "feat: add new feature"`
 5. Push and create a Pull Request
 
-### Development Guidelines
-
-- Use TypeScript for all new code
-- Follow the existing code style (ESLint/Prettier)
-- Add JSDoc comments for public APIs
-- Test on macOS with multiple VS Code windows
-- Update documentation for new features
-
 ## License
 
-ISC License - see LICENSE file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 

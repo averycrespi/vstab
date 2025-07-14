@@ -29,7 +29,7 @@
   },
   "keywords": [],
   "author": "Avery Crespi",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/averycrespi/vstab/issues"
