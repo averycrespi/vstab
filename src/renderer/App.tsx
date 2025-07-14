@@ -16,6 +16,12 @@ function App() {
     debugLog('Setting up window update listener');
     // Listen for window updates
     window.vstab.onWindowsUpdate((updatedWindows) => {
+      // Handle null/undefined updatedWindows gracefully
+      if (!updatedWindows || !Array.isArray(updatedWindows)) {
+        debugLog('Received invalid window update data:', updatedWindows);
+        return;
+      }
+      
       debugLog('Received window update:', updatedWindows.length, 'windows');
       setWindows(updatedWindows);
       
@@ -28,14 +34,22 @@ function App() {
 
     // Resize VS Code windows on mount
     debugLog('Requesting window resize to height 35');
-    window.vstab.resizeWindows(35);
+    window.vstab.resizeWindows(35).catch(error => {
+      debugLog('Error resizing windows:', error);
+      console.error('Error resizing windows:', error);
+    });
   }, [activeWindowId]);
 
   const handleTabClick = useCallback(async (windowId: string) => {
     debugLog('Tab clicked:', windowId);
     setActiveWindowId(windowId);
-    await window.vstab.focusWindow(windowId);
-    debugLog('Tab focus completed for:', windowId);
+    try {
+      await window.vstab.focusWindow(windowId);
+      debugLog('Tab focus completed for:', windowId);
+    } catch (error) {
+      debugLog('Error focusing window:', error);
+      console.error('Error focusing window:', error);
+    }
   }, []);
 
   const handleDragStart = useCallback((e: React.DragEvent, windowId: string) => {
