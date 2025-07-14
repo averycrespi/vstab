@@ -125,15 +125,82 @@ yabai -m window 12345 --resize abs:1920:1035
 2. Add IPC channels in `src/shared/ipc-channels.ts`
 3. Implement in main process (`src/main/`)
 4. Update UI in renderer process (`src/renderer/`)
-5. Test with multiple VS Code windows
+5. Write tests for new functionality
+6. Test with multiple VS Code windows
 
 ### Testing
+
+#### Test Structure
+```
+__tests__/
+├── unit/
+│   ├── main/           # Main process unit tests
+│   ├── renderer/       # Renderer process unit tests
+│   └── shared/         # Shared module unit tests
+├── integration/        # Integration tests
+├── e2e/               # End-to-end tests
+└── __mocks__/         # Mock implementations
+```
+
+#### Test Commands
+- `npm test` - Run all tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run test:coverage` - Run tests with coverage report
+- `npm run test:main` - Run main process tests only
+- `npm run test:renderer` - Run renderer process tests only
+- `npm run test:integration` - Run integration tests only
+- `npm run test:unit` - Run all unit tests
+- `npm run test:ci` - Run tests for CI (no watch, with coverage)
+
+#### Test Types
+
+**Unit Tests (40+ tests)**
+- Main process: Window discovery, persistence, IPC handlers
+- Renderer process: React components, hooks, UI interactions
+- Shared modules: Type definitions and utilities
+- Test individual functions and components in isolation
+
+**Integration Tests (15+ tests)**
+- IPC communication between main and renderer processes
+- yabai integration with mocked commands
+- File persistence workflows
+- Error handling and recovery scenarios
+
+**End-to-End Tests (5+ tests)**
+- Complete user workflows (tab switching, reordering)
+- Application lifecycle (startup, shutdown, restart)
+- Auto-hide behavior based on frontmost application
+- Window management across different scenarios
+
+#### Test Coverage
+- Minimum 80% code coverage for functions, lines, and statements
+- 70% branch coverage for conditional logic
+- Critical paths (window management, persistence) have 100% coverage
+
+#### Manual Testing Checklist
 - Manual testing with multiple VS Code workspaces
 - Check auto-hide behavior by switching apps
 - Test drag-and-drop reordering
 - Verify tab order stability during window switches
 - Test full-screen window resizing
 - Verify persistence across app restarts
+
+#### Running Tests
+```bash
+# Run all tests
+npm test
+
+# Run specific test suites
+npm run test:main
+npm run test:renderer
+npm run test:integration
+
+# Run with coverage
+npm run test:coverage
+
+# Run in watch mode during development
+npm run test:watch
+```
 
 ## Common Issues & Solutions
 
@@ -188,13 +255,15 @@ yabai -m window 12345 --resize abs:1920:1035
 
 1. **Always build before testing**: Run `npm run build` after changes
 2. **Check TypeScript compilation**: Use `npm run compile` to verify types
-3. **Test with real VS Code windows**: Open multiple workspaces for testing
-4. **Respect the architecture**: Keep main/renderer separation clear
-5. **Update types first**: When adding features, update shared types
-6. **Follow existing patterns**: Use established IPC channels and hooks
-7. **Consider yabai requirements**: Ensure yabai service is running
-8. **Test window operations**: Verify yabai commands work as expected
-9. **Maintain tab order stability**: Don't reorder on focus changes
-10. **Maintain security**: Keep contextIsolation enabled in preload
+3. **Run tests for changes**: Use `npm test` to ensure functionality works
+4. **Test with real VS Code windows**: Open multiple workspaces for testing
+5. **Respect the architecture**: Keep main/renderer separation clear
+6. **Update types first**: When adding features, update shared types
+7. **Follow existing patterns**: Use established IPC channels and hooks
+8. **Consider yabai requirements**: Ensure yabai service is running
+9. **Test window operations**: Verify yabai commands work as expected
+10. **Maintain tab order stability**: Don't reorder on focus changes
+11. **Maintain security**: Keep contextIsolation enabled in preload
+12. **Write tests for new features**: Add unit, integration, and E2E tests as appropriate
 
 This context should help AI assistants understand the project structure, make appropriate changes, and troubleshoot common issues effectively.

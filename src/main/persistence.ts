@@ -8,7 +8,12 @@ const TAB_ORDER_FILE = path.join(USER_DATA_PATH, 'tab-order.json');
 export async function loadTabOrder(): Promise<string[]> {
   try {
     const data = await fs.readFile(TAB_ORDER_FILE, 'utf-8');
-    return JSON.parse(data);
+    const parsed = JSON.parse(data);
+    // Ensure we return an array of strings
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+    return [];
   } catch (error) {
     // File doesn't exist or is invalid
     return [];
