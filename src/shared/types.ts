@@ -9,7 +9,7 @@ export interface VSCodeWindow {
     width: number;
     height: number;
   };
-  // Yabai-specific metadata (optional for AppleScript fallback)
+  // Yabai-specific metadata
   yabaiMetadata?: {
     space: number;
     display: number;
@@ -28,6 +28,5 @@ export interface TabOrder {
 export interface AppSettings {
   tabBarHeight: number;
   autoHide: boolean;
-  useYabai: boolean;
   persistTabOrder: boolean;
 }
