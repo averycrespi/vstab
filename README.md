@@ -74,7 +74,7 @@ Key settings include:
 - **Auto-Resize**: Control automatic window positioning (vertical and horizontal independently)
 - **Theme**: Choose between Light, Dark, or System theme
 - **Tab Bar Height**: Customize the height of the tab bar
-- **Logging**: Configure log level (Error/Warn/Info/Debug), file output, retention period, and max file size
+- **Logging**: Configure log level (Error/Warn/Info/Debug), retention period, and max file size (logs are always written to file)
 
 ## Troubleshooting
 

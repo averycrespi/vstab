@@ -117,8 +117,11 @@ Settings ▶                     # Submenu
 ├── Tab Bar Height: 45px        # Current height display
 ├── Auto Hide: On               # Auto-hide status
 ├── ─────────────────          # Separator
-├── Log Level: INFO             # Current log level (clickable to cycle)
-├── Log to File: On             # File logging toggle
+├── Log Level: INFO ▶           # Submenu for precise level selection
+│   ├── ○ Error
+│   ├── ○ Warn
+│   ├── ● Info                  # Current level checked
+│   └── ○ Debug
 └── Open Logs Folder            # Opens log directory in Finder
 ─────────────────────────────
 Quit vstab                      # Terminate app
@@ -474,8 +477,8 @@ npm run test:watch
 - **Tray icon not appearing**: Check icon assets exist in `assets/` directory
 - **Tray menu not updating**: Verify settings changes trigger `TRAY_UPDATE_MENU` IPC calls
 - **Logging issues**: Check `~/.config/vstab/logs/` directory exists and is writable
-- **Log files not rotating**: Verify `maxLogFileSize` and `logRetentionDays` settings are valid
-- **Missing logs**: Ensure `logToFile` setting is enabled and `logLevel` is appropriate
+- **Log files not rotating**: Verify `maxLogFileSizeMB` and `logRetentionDays` settings are valid
+- **Missing logs**: Check `logLevel` is appropriate (logging to file is always enabled)
 - **Log directory access**: Use "Open Logs Folder" in tray menu or settings UI to access log files
 
 ### Platform Requirements

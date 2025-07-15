@@ -13,7 +13,7 @@ export async function initializeLogging(settings: AppSettings): Promise<void> {
     // Configure file logger
     const fileLogger = getFileLogger();
     updateFileLoggerConfig({
-      maxFileSizeMB: settings.maxLogFileSize,
+      maxFileSizeMB: settings.maxLogFileSizeMB,
       retentionDays: settings.logRetentionDays,
     });
 
@@ -23,15 +23,14 @@ export async function initializeLogging(settings: AppSettings): Promise<void> {
     // Configure main logger
     configureLogger({
       level: settings.logLevel,
-      logToFile: settings.logToFile,
+      logToFile: true, // Always log to file
       logToConsole: true, // Always log to console in main process for debugging
     });
 
     isInitialized = true;
     logger.info('Logging system initialized', 'logger-init', {
       logLevel: settings.logLevel,
-      logToFile: settings.logToFile,
-      maxLogFileSize: settings.maxLogFileSize,
+      maxLogFileSizeMB: settings.maxLogFileSizeMB,
       retentionDays: settings.logRetentionDays,
     });
   } catch (error) {
@@ -48,21 +47,20 @@ export function updateLoggingSettings(settings: AppSettings): void {
   try {
     // Update file logger config
     updateFileLoggerConfig({
-      maxFileSizeMB: settings.maxLogFileSize,
+      maxFileSizeMB: settings.maxLogFileSizeMB,
       retentionDays: settings.logRetentionDays,
     });
 
     // Update main logger config
     configureLogger({
       level: settings.logLevel,
-      logToFile: settings.logToFile,
+      logToFile: true, // Always log to file
       logToConsole: true,
     });
 
     logger.info('Logging settings updated', 'logger-init', {
       logLevel: settings.logLevel,
-      logToFile: settings.logToFile,
-      maxLogFileSize: settings.maxLogFileSize,
+      maxLogFileSizeMB: settings.maxLogFileSizeMB,
       retentionDays: settings.logRetentionDays,
     });
   } catch (error) {

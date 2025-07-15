@@ -35,7 +35,6 @@ export interface AppSettings {
   autoResizeVertical: boolean;
   autoResizeHorizontal: boolean;
   logLevel: LogLevel;
-  logToFile: boolean;
   logRetentionDays: number;
-  maxLogFileSize: number;
+  maxLogFileSizeMB: number;
 }

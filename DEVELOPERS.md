@@ -238,8 +238,8 @@ __tests__/
 - Test full-screen window resizing
 - Verify persistence across app restarts
 - **Test logging functionality**: Verify logs are written to `~/.config/vstab/logs/`
-- **Test log settings**: Change log level, file output toggle, retention settings
-- **Test tray logging controls**: Log level cycling, file toggle, "Open Logs Folder"
+- **Test log settings**: Change log level, retention settings, max file size (file output is always enabled)
+- **Test tray logging controls**: Log level submenu selection, "Open Logs Folder"
 
 ## Styling
 

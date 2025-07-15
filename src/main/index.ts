@@ -6,6 +6,7 @@ import { setupIPCHandlers } from './ipc';
 import { logger } from '@shared/logger';
 import { initializeLogging, updateLoggingSettings } from './logger-init';
 import { initializeSettings, loadSettings, saveSettings } from './settings';
+import { LogLevel } from '@shared/types';
 
 let mainWindow: BrowserWindow | null = null;
 let pollInterval: ReturnType<typeof setInterval> | null = null;
@@ -118,13 +119,10 @@ async function toggleAutoResizeHorizontal() {
   });
 }
 
-async function cycleLogLevel() {
-  logger.debug('Cycling log level setting', 'main');
+async function setLogLevel(level: LogLevel) {
+  logger.debug('Setting log level', 'main', { level });
   const settings = await loadSettings();
-  const levels = ['error', 'warn', 'info', 'debug'] as const;
-  const currentIndex = levels.indexOf(settings.logLevel);
-  const nextIndex = (currentIndex + 1) % levels.length;
-  const newSettings = { ...settings, logLevel: levels[nextIndex] };
+  const newSettings = { ...settings, logLevel: level };
 
   await saveSettings(newSettings);
   updateLoggingSettings(newSettings);
@@ -136,28 +134,9 @@ async function cycleLogLevel() {
   }
 
   await updateTrayMenu();
-  logger.info('Log level cycled', 'main', {
+  logger.info('Log level changed', 'main', {
     from: settings.logLevel,
     to: newSettings.logLevel,
-  });
-}
-
-async function toggleLogToFile() {
-  logger.debug('Toggling log to file setting', 'main');
-  const settings = await loadSettings();
-  const newSettings = { ...settings, logToFile: !settings.logToFile };
-  await saveSettings(newSettings);
-  updateLoggingSettings(newSettings);
-
-  // Notify renderer about settings change
-  if (mainWindow) {
-    mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, newSettings);
-    logger.info('Settings change notification sent to renderer', 'main');
-  }
-
-  await updateTrayMenu();
-  logger.info('Log to file toggled', 'main', {
-    logToFile: newSettings.logToFile,
   });
 }
 
@@ -237,13 +216,32 @@ async function updateTrayMenu() {
         { type: 'separator' },
         {
           label: `Log Level: ${settings.logLevel.toUpperCase()}`,
-          click: cycleLogLevel,
-        },
-        {
-          label: 'Log to File',
-          type: 'checkbox',
-          checked: settings.logToFile,
-          click: toggleLogToFile,
+          submenu: [
+            {
+              label: 'Error',
+              type: 'radio',
+              checked: settings.logLevel === 'error',
+              click: () => setLogLevel('error'),
+            },
+            {
+              label: 'Warn',
+              type: 'radio',
+              checked: settings.logLevel === 'warn',
+              click: () => setLogLevel('warn'),
+            },
+            {
+              label: 'Info',
+              type: 'radio',
+              checked: settings.logLevel === 'info',
+              click: () => setLogLevel('info'),
+            },
+            {
+              label: 'Debug',
+              type: 'radio',
+              checked: settings.logLevel === 'debug',
+              click: () => setLogLevel('debug'),
+            },
+          ],
         },
         {
           label: 'Open Logs Folder',

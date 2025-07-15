@@ -55,11 +55,6 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
     updateSettings({ ...settings, logLevel });
   };
 
-  const handleLogToFileChange = (enabled: boolean) => {
-    if (!settings) return;
-    updateSettings({ ...settings, logToFile: enabled });
-  };
-
   const handleLogRetentionChange = (days: number) => {
     if (!settings) return;
     updateSettings({ ...settings, logRetentionDays: days });
@@ -67,7 +62,7 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
 
   const handleMaxLogFileSizeChange = (sizeMB: number) => {
     if (!settings) return;
-    updateSettings({ ...settings, maxLogFileSize: sizeMB });
+    updateSettings({ ...settings, maxLogFileSizeMB: sizeMB });
   };
 
   const updateSettings = async (newSettings: AppSettings) => {
@@ -202,20 +197,6 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
             </select>
           </div>
 
-          {/* Log to File */}
-          <div className="mb-4">
-            <label className="flex items-center text-sm text-[var(--color-vscode-text)]">
-              <input
-                type="checkbox"
-                checked={settings.logToFile}
-                onChange={e => handleLogToFileChange(e.target.checked)}
-                className="mr-2"
-                disabled={saving}
-              />
-              Log to File
-            </label>
-          </div>
-
           {/* Log Retention */}
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2 text-[var(--color-vscode-text)]">
@@ -235,13 +216,13 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
           {/* Max Log File Size */}
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2 text-[var(--color-vscode-text)]">
-              Max Log File Size: {settings.maxLogFileSize}MB
+              Max Log File Size: {settings.maxLogFileSizeMB}MB
             </label>
             <input
               type="range"
               min="1"
               max="100"
-              value={settings.maxLogFileSize}
+              value={settings.maxLogFileSizeMB}
               onChange={e => handleMaxLogFileSizeChange(Number(e.target.value))}
               className="w-full"
               disabled={saving}
