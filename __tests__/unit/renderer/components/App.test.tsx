@@ -44,6 +44,7 @@ describe('App Component', () => {
 
   const mockVstab = {
     onWindowsUpdate: jest.fn(),
+    onSettingsChanged: jest.fn(),
     resizeWindows: jest.fn().mockResolvedValue(undefined),
     focusWindow: jest.fn().mockResolvedValue(undefined),
     getSettings: jest.fn().mockResolvedValue({
@@ -349,7 +350,7 @@ describe('App Component', () => {
       expect(mockVstab.focusWindow).toHaveBeenCalledWith('window1');
       // Verify console.error was called with expected message
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error focusing window:',
+        'Error in tab click handler:',
         expect.any(Error)
       );
     });

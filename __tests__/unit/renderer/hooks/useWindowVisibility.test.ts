@@ -4,6 +4,15 @@ import { useWindowVisibility } from '../../../../src/renderer/hooks/useWindowVis
 // Mock the global window.vstab API
 const mockVstab = {
   getFrontmostApp: jest.fn(),
+  getSettings: jest.fn().mockResolvedValue({
+    theme: 'system',
+    tabBarHeight: 45,
+    autoHide: true,
+    persistTabOrder: true,
+    autoResizeVertical: true,
+    autoResizeHorizontal: true,
+    debugLogging: false,
+  }),
 };
 
 Object.defineProperty(window, 'vstab', {
@@ -53,21 +62,22 @@ describe('useWindowVisibility Hook', () => {
 
       renderHook(() => useWindowVisibility());
 
+      // Wait for settings to load and initial check
       await act(async () => {
-        await Promise.resolve(); // Wait for immediate check
+        await Promise.resolve();
       });
 
-      // Advance timer by 500ms
+      // Advance timer by 250ms (actual interval used by hook)
       await act(async () => {
-        jest.advanceTimersByTime(500);
+        jest.advanceTimersByTime(250);
         await Promise.resolve();
       });
 
       expect(mockVstab.getFrontmostApp).toHaveBeenCalledTimes(2);
 
-      // Advance another 500ms
+      // Advance another 250ms
       await act(async () => {
-        jest.advanceTimersByTime(500);
+        jest.advanceTimersByTime(250);
         await Promise.resolve();
       });
 
@@ -195,22 +205,13 @@ describe('useWindowVisibility Hook', () => {
 
   describe('Dynamic visibility changes', () => {
     it('should update visibility when frontmost app changes', async () => {
-      let resolveGetFrontmost: (value: string) => void;
-      mockVstab.getFrontmostApp.mockImplementation(
-        () =>
-          new Promise(resolve => {
-            resolveGetFrontmost = resolve;
-          })
-      );
+      // First setup a successful call
+      mockVstab.getFrontmostApp.mockResolvedValue('Visual Studio Code');
 
       const { result } = renderHook(() => useWindowVisibility());
 
-      // Initial state should be true
-      expect(result.current.isVisible).toBe(true);
-
-      // Resolve with VS Code
+      // Wait for initial setup and first check
       await act(async () => {
-        resolveGetFrontmost('Visual Studio Code');
         await Promise.resolve();
       });
 
@@ -220,7 +221,7 @@ describe('useWindowVisibility Hook', () => {
       mockVstab.getFrontmostApp.mockResolvedValue('Chrome');
 
       await act(async () => {
-        jest.advanceTimersByTime(500);
+        jest.advanceTimersByTime(250);
         await Promise.resolve();
       });
 
@@ -230,7 +231,7 @@ describe('useWindowVisibility Hook', () => {
       mockVstab.getFrontmostApp.mockResolvedValue('Code');
 
       await act(async () => {
-        jest.advanceTimersByTime(500);
+        jest.advanceTimersByTime(250);
         await Promise.resolve();
       });
 
@@ -269,17 +270,30 @@ describe('useWindowVisibility Hook', () => {
 
       const { result } = renderHook(() => useWindowVisibility());
 
-      // Use real timers for async operations
-      jest.useRealTimers();
+      // Wait for settings to load and initial error to occur
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await Promise.resolve();
       });
-      jest.useFakeTimers();
+
+      // Advance timers to trigger all retry attempts
+      // Initial error happens immediately, then 2 retries at 100ms each
+      await act(async () => {
+        jest.advanceTimersByTime(100); // First retry
+        await Promise.resolve();
+      });
+      await act(async () => {
+        jest.advanceTimersByTime(100); // Second retry
+        await Promise.resolve();
+      });
+      await act(async () => {
+        jest.advanceTimersByTime(1); // Final error logging
+        await Promise.resolve();
+      });
 
       // Should maintain initial state when error occurs
       expect(result.current.isVisible).toBe(true);
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Error checking visibility:',
+        'Error checking visibility after retries:',
         expect.any(Error)
       );
 
@@ -298,10 +312,19 @@ describe('useWindowVisibility Hook', () => {
       // Initial state should be true
       expect(result.current.isVisible).toBe(true);
 
-      // Wait for initial async call to fail
+      // Wait for initial async call to fail and all retries to complete
       await act(async () => {
-        jest.runOnlyPendingTimers();
-        await Promise.resolve(); // Allow promise rejection to be handled
+        await Promise.resolve(); // Wait for settings and initial call
+      });
+
+      // Advance timers to trigger all retry attempts
+      await act(async () => {
+        jest.advanceTimersByTime(100); // First retry
+        await Promise.resolve();
+      });
+      await act(async () => {
+        jest.advanceTimersByTime(100); // Second retry
+        await Promise.resolve();
       });
 
       // State should remain true since error doesn't change it
@@ -313,12 +336,12 @@ describe('useWindowVisibility Hook', () => {
 
       // Advance time to trigger next poll which should succeed
       await act(async () => {
-        jest.advanceTimersByTime(500);
+        jest.advanceTimersByTime(250);
         await Promise.resolve(); // Allow promise to resolve
       });
 
       expect(result.current.isVisible).toBe(false); // Should update based on Chrome
-      expect(mockVstab.getFrontmostApp).toHaveBeenCalledTimes(3);
+      expect(mockVstab.getFrontmostApp).toHaveBeenCalledTimes(4); // 1 initial + 3 retries
 
       consoleErrorSpy.mockRestore();
     });
@@ -333,7 +356,6 @@ describe('useWindowVisibility Hook', () => {
 
       // Wait for initial setup and first check
       await act(async () => {
-        jest.runOnlyPendingTimers();
         await Promise.resolve(); // Allow promise to resolve
       });
 
@@ -342,10 +364,20 @@ describe('useWindowVisibility Hook', () => {
       // Second check fails
       mockVstab.getFrontmostApp.mockRejectedValue(new Error('Polling error'));
 
-      // Advance time to trigger next poll and wait for error handling
+      // Advance time to trigger next poll and all retry attempts
       await act(async () => {
-        jest.advanceTimersByTime(500);
-        await Promise.resolve(); // Allow promise rejection to be handled
+        jest.advanceTimersByTime(250); // Trigger next poll
+        await Promise.resolve();
+      });
+
+      // Advance timers to trigger all retry attempts
+      await act(async () => {
+        jest.advanceTimersByTime(100); // First retry
+        await Promise.resolve();
+      });
+      await act(async () => {
+        jest.advanceTimersByTime(100); // Second retry
+        await Promise.resolve();
       });
 
       // State should remain unchanged
@@ -413,37 +445,37 @@ describe('useWindowVisibility Hook', () => {
   });
 
   describe('Timing behavior', () => {
-    it('should poll at 500ms intervals exactly', async () => {
+    it('should poll at 250ms intervals exactly', async () => {
       mockVstab.getFrontmostApp.mockResolvedValue('Visual Studio Code');
 
       renderHook(() => useWindowVisibility());
 
-      // Initial call
+      // Initial call (after settings load)
       await act(async () => {
         await Promise.resolve();
       });
       expect(mockVstab.getFrontmostApp).toHaveBeenCalledTimes(1);
 
-      // 250ms - no new call
-      await act(async () => {
-        jest.advanceTimersByTime(250);
-        await Promise.resolve();
-      });
-      expect(mockVstab.getFrontmostApp).toHaveBeenCalledTimes(1);
-
-      // 500ms total - new call
+      // 250ms - new call
       await act(async () => {
         jest.advanceTimersByTime(250);
         await Promise.resolve();
       });
       expect(mockVstab.getFrontmostApp).toHaveBeenCalledTimes(2);
 
-      // 1000ms total - another call
+      // 500ms total - another call
       await act(async () => {
-        jest.advanceTimersByTime(500);
+        jest.advanceTimersByTime(250);
         await Promise.resolve();
       });
       expect(mockVstab.getFrontmostApp).toHaveBeenCalledTimes(3);
+
+      // 750ms total - another call
+      await act(async () => {
+        jest.advanceTimersByTime(250);
+        await Promise.resolve();
+      });
+      expect(mockVstab.getFrontmostApp).toHaveBeenCalledTimes(4);
     });
 
     it('should handle slow API responses', async () => {
@@ -466,7 +498,7 @@ describe('useWindowVisibility Hook', () => {
 
       // Advance timer to trigger second call before first resolves
       await act(async () => {
-        jest.advanceTimersByTime(500);
+        jest.advanceTimersByTime(250);
         await Promise.resolve();
       });
 
