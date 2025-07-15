@@ -178,4 +178,25 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
       throw error;
     }
   });
+
+  // Window visibility control
+  ipcMain.handle(
+    IPC_CHANNELS.WINDOW_SET_VISIBILITY,
+    async (_, visible: boolean) => {
+      debugLog('IPC: Set window visibility request:', visible);
+      try {
+        if (visible) {
+          mainWindow.show();
+          debugLog('Main window shown');
+        } else {
+          mainWindow.hide();
+          debugLog('Main window hidden');
+        }
+      } catch (error) {
+        debugLog('Error setting window visibility:', error);
+        console.error('Error setting window visibility:', error);
+        throw error;
+      }
+    }
+  );
 }

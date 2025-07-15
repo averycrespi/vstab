@@ -48,6 +48,7 @@ describe('App Component', () => {
     offSettingsChanged: jest.fn(),
     resizeWindows: jest.fn().mockResolvedValue(undefined),
     focusWindow: jest.fn().mockResolvedValue(undefined),
+    setWindowVisibility: jest.fn().mockResolvedValue(undefined),
     getSettings: jest.fn().mockResolvedValue({
       theme: 'system',
       tabBarHeight: 45,

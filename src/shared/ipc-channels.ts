@@ -12,6 +12,7 @@ export const IPC_CHANNELS = {
   // App visibility
   APP_VISIBILITY_CHANGE: 'app:visibility:change',
   APP_SHOULD_SHOW: 'app:should-show',
+  WINDOW_SET_VISIBILITY: 'window:set-visibility',
 
   // Settings
   SETTINGS_GET: 'settings:get',

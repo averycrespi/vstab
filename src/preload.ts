@@ -67,6 +67,11 @@ contextBridge.exposeInMainWorld('vstab', {
   updateTrayMenu: () => {
     return ipcRenderer.invoke(IPC_CHANNELS.TRAY_UPDATE_MENU);
   },
+
+  // Window visibility
+  setWindowVisibility: (visible: boolean) => {
+    return ipcRenderer.invoke(IPC_CHANNELS.WINDOW_SET_VISIBILITY, visible);
+  },
 });
 
 // Type definitions for window.vstab
@@ -83,6 +88,7 @@ export interface VstabAPI {
   onSettingsChanged: (callback: (settings: AppSettings) => void) => void;
   offSettingsChanged: (callback: (settings: AppSettings) => void) => void;
   updateTrayMenu: () => Promise<void>;
+  setWindowVisibility: (visible: boolean) => Promise<void>;
 }
 
 declare global {

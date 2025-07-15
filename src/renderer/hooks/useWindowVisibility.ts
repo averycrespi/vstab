@@ -109,5 +109,13 @@ export function useWindowVisibility() {
     };
   }, [settings]);
 
+  // Control actual window visibility when isVisible changes
+  useEffect(() => {
+    if (settings !== null) {
+      debugLog('Setting window visibility via IPC:', isVisible);
+      window.vstab.setWindowVisibility(isVisible);
+    }
+  }, [isVisible, settings]);
+
   return { isVisible };
 }

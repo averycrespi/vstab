@@ -71,6 +71,13 @@ async function toggleAutoHide() {
   const settings = await loadSettings();
   const newSettings = { ...settings, autoHide: !settings.autoHide };
   await saveSettings(newSettings);
+
+  // Notify renderer about settings change
+  if (mainWindow) {
+    mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, newSettings);
+    debugLog('Settings change notification sent to renderer');
+  }
+
   await updateTrayMenu();
   debugLog('Auto hide toggled to:', newSettings.autoHide);
 }
@@ -83,6 +90,13 @@ async function toggleAutoResizeVertical() {
     autoResizeVertical: !settings.autoResizeVertical,
   };
   await saveSettings(newSettings);
+
+  // Notify renderer about settings change
+  if (mainWindow) {
+    mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, newSettings);
+    debugLog('Settings change notification sent to renderer');
+  }
+
   await updateTrayMenu();
   debugLog('Auto resize vertical toggled to:', newSettings.autoResizeVertical);
 }
@@ -95,6 +109,13 @@ async function toggleAutoResizeHorizontal() {
     autoResizeHorizontal: !settings.autoResizeHorizontal,
   };
   await saveSettings(newSettings);
+
+  // Notify renderer about settings change
+  if (mainWindow) {
+    mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, newSettings);
+    debugLog('Settings change notification sent to renderer');
+  }
+
   await updateTrayMenu();
   debugLog(
     'Auto resize horizontal toggled to:',
@@ -107,8 +128,16 @@ async function toggleDebugLogging() {
   const settings = await loadSettings();
   const newSettings = { ...settings, debugLogging: !settings.debugLogging };
   await saveSettings(newSettings);
+
   // Update global debug mode
   setDebugMode(newSettings.debugLogging);
+
+  // Notify renderer about settings change
+  if (mainWindow) {
+    mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, newSettings);
+    debugLog('Settings change notification sent to renderer');
+  }
+
   await updateTrayMenu();
   debugLog('Debug logging toggled to:', newSettings.debugLogging);
 }

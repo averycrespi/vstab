@@ -14,6 +14,7 @@ const mockVstab = {
   }),
   onSettingsChanged: jest.fn(),
   offSettingsChanged: jest.fn(),
+  setWindowVisibility: jest.fn().mockResolvedValue(undefined),
 };
 
 Object.defineProperty(window, 'vstab', {
