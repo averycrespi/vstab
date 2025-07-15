@@ -160,31 +160,6 @@ export function setupIPCHandlers(_mainWindow: BrowserWindow) {
     }
   );
 
-  // Tray window show/hide
-  ipcMain.handle(IPC_CHANNELS.TRAY_SHOW_WINDOW, async () => {
-    debugLog('IPC: Show window request from tray');
-    try {
-      _mainWindow.show();
-      debugLog('Main window shown via tray');
-    } catch (error) {
-      debugLog('Error showing window via tray:', error);
-      console.error('Error showing window via tray:', error);
-      throw error;
-    }
-  });
-
-  ipcMain.handle(IPC_CHANNELS.TRAY_HIDE_WINDOW, async () => {
-    debugLog('IPC: Hide window request from tray');
-    try {
-      _mainWindow.hide();
-      debugLog('Main window hidden via tray');
-    } catch (error) {
-      debugLog('Error hiding window via tray:', error);
-      console.error('Error hiding window via tray:', error);
-      throw error;
-    }
-  });
-
   // Tray update menu (trigger menu refresh)
   ipcMain.handle(IPC_CHANNELS.TRAY_UPDATE_MENU, async () => {
     debugLog('IPC: Update tray menu request');

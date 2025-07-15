@@ -23,9 +23,9 @@ This file provides context for AI assistants working on the vstab project.
 vstab/
 ├── src/
 │   ├── main/           # Electron main process (Node.js)
-│   │   ├── index.ts    # App entry point
+│   │   ├── index.ts    # App entry point and tray menu management
 │   │   ├── windows.ts  # yabai window discovery and management
-│   │   ├── ipc.ts      # IPC handlers
+│   │   ├── ipc.ts      # IPC handlers including tray communication
 │   │   ├── persistence.ts # Tab order storage
 │   │   └── settings.ts # User settings persistence
 │   ├── renderer/       # React UI (browser environment)
@@ -33,7 +33,14 @@ vstab/
 │   │   ├── components/ # UI components (Tab, Settings)
 │   │   └── hooks/      # React hooks (useTabOrder, useTheme, useWindowVisibility)
 │   ├── shared/         # Shared types and constants
+│   │   ├── types.ts    # Includes tray settings types
+│   │   └── ipc-channels.ts # Includes tray IPC channels
 │   └── preload.ts      # Secure IPC bridge
+├── assets/            # Tray icon assets
+│   ├── tray-icon.png      # Main tray icon
+│   ├── tray-icon@2x.png   # High-resolution tray icon
+│   ├── tray-icon.svg      # Vector tray icon
+│   └── tray-icon-template.svg # Template icon for macOS
 ├── dist/              # Built files (webpack output)
 ├── package.json       # Dependencies and scripts
 ├── tsconfig.*.json    # TypeScript configs (main/renderer)
@@ -77,6 +84,31 @@ vstab/
 - Shows tab bar only when VS Code is active
 - Hides when switching to other applications
 - Windows remain visible (no minimizing) for fast tab switching
+
+### Tray Menu System
+
+- **Tray Icon**: Optional macOS menu bar tray icon with native context menu
+- **Click Behavior**: Configurable left-click action - toggle window visibility or show context menu
+- **Status Display**: Shows real-time yabai status and current settings values
+- **Menu Structure**: Hierarchical menu with header info, settings submenu, and actions
+- **Settings Integration**: Direct access to key settings (theme, height, auto-hide, tray preferences)
+- **Asset Management**: Uses template icons for proper macOS dark/light mode integration
+
+#### Tray Menu Layout
+
+```
+vstab v1.0.0                    # Clickable header (opens GitHub)
+yabai: ✅ Running               # Status indicator
+─────────────────────────────
+Settings ▶                     # Submenu
+├── Theme: System               # Current theme display
+├── Tab Bar Height: 45px        # Current height display
+├── Auto Hide: On               # Auto-hide status
+├── Tray Icon: On               # Tray visibility status
+└── Tray Click: Toggle Window   # Click action behavior
+─────────────────────────────
+Quit vstab                      # Terminate app
+```
 
 ### IPC Communication
 
@@ -122,6 +154,59 @@ yabai -m window 12345 --move abs:0:55  # Adjusted for configurable tab bar heigh
 yabai -m window 12345 --resize abs:1920:1025
 ```
 
+### Tray Menu Implementation
+
+#### Menu Creation and Lifecycle
+
+- **Tray Icon Creation**: `createTrayIcon()` in `src/main/index.ts:34-77`
+- **Menu Updates**: `updateTrayMenu()` in `src/main/index.ts:79-171`
+- **Conditional Creation**: Tray only created when `showTrayIcon` setting is `true`
+- **Icon Assets**: Uses `assets/tray-icon.png` with template variants for macOS theming
+- **Tooltip**: Shows "vstab - VS Code Tab Switcher" on hover
+
+#### Menu Structure Implementation
+
+```typescript
+// Header section with app info and status
+{ label: 'vstab v1.0.0', click: () => openGitHub() }
+{ label: 'yabai: ✅ Running', enabled: false }
+
+// Settings submenu (display-only with TODOs for interaction)
+{
+  label: 'Settings',
+  submenu: [
+    { label: 'Theme: System' },           // TODO: Cycle themes
+    { label: 'Tab Bar Height: 45px' },    // TODO: Adjust height
+    { label: 'Auto Hide: On' },           // TODO: Toggle setting
+    { label: 'Tray Icon: On' },           // TODO: Toggle visibility
+    { label: 'Tray Click: Toggle Window' } // TODO: Cycle action
+  ]
+}
+
+// Action items
+{ label: 'Quit vstab', click: () => app.quit() }
+```
+
+#### Event Handling Patterns
+
+- **Left-click Behavior**: Configurable via `trayClickAction` setting
+  - `'toggle-window'`: Shows/hides main tab bar window
+  - `'show-menu'`: Displays context menu instead
+- **Status Updates**: Menu rebuilds on settings changes via IPC events
+- **yabai Status**: Real-time detection with ✅/❌ indicators
+
+#### IPC Integration
+
+- **Menu Updates**: `TRAY_UPDATE_MENU` channel triggers menu refresh
+- **Process Events**: Internal `tray-update-menu` event for cross-process communication
+
+#### Current Limitations
+
+- **Settings Interactivity**: Most settings items are display-only (TODO: implement direct manipulation)
+- **Theme Cycling**: Header shows current theme but doesn't cycle on click
+- **Height Adjustment**: Shows current height but no direct adjustment
+- **Toggle Actions**: Auto-hide, tray visibility, and click action items need implementation
+
 ### Code Formatting
 
 - **Prettier** configured for consistent code style across the project
@@ -142,8 +227,9 @@ yabai -m window 12345 --resize abs:1920:1025
 
 - Defined in `src/shared/ipc-channels.ts`
 - Type-safe with TypeScript interfaces
-- Handles window management, tab reordering, and user settings
+- Handles window management, tab reordering, user settings, and tray communication
 - **Settings IPC**: `SETTINGS_GET` and `SETTINGS_UPDATE` for configuration management
+- **Tray IPC**: `TRAY_UPDATE_MENU` for tray menu operations
 
 ### Settings Architecture
 
@@ -154,6 +240,9 @@ yabai -m window 12345 --resize abs:1920:1025
 - **Real-time Updates**: Settings changes apply immediately without restart required
 - **Theme Integration**: Theme setting controls CSS variables via `data-theme` attribute
 - **Window Resize Integration**: Auto-resize settings control yabai window positioning behavior
+- **Tray Integration**: Tray-specific settings control menu visibility and click behavior
+  - `showTrayIcon: boolean` - Controls tray icon visibility (default: `true`)
+  - `trayClickAction: 'toggle-window' | 'show-menu'` - Left-click action (default: `'toggle-window'`)
 
 ### Error Handling
 
@@ -280,6 +369,9 @@ npm run test:watch
 - **IPC errors**: Check channel names match between main/renderer
 - **Settings not persisting**: Check `~/.config/vstab/` directory permissions
 - **Theme not applying**: Verify settings are loaded and theme hook is working
+- **Tray icon not appearing**: Check `showTrayIcon` setting is `true` and icon assets exist
+- **Tray menu not updating**: Verify settings changes trigger `TRAY_UPDATE_MENU` IPC calls
+- **Tray click not working**: Check `trayClickAction` setting and window visibility state
 
 ### Platform Requirements
 

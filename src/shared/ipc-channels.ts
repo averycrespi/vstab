@@ -20,8 +20,6 @@ export const IPC_CHANNELS = {
   // Tray
   TRAY_TOGGLE_VISIBILITY: 'tray:toggle-visibility',
   TRAY_UPDATE_MENU: 'tray:update-menu',
-  TRAY_SHOW_WINDOW: 'tray:show-window',
-  TRAY_HIDE_WINDOW: 'tray:hide-window',
 
   // System
   SYSTEM_FRONTMOST_APP: 'system:frontmost-app',

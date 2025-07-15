@@ -143,19 +143,6 @@ async function updateTrayMenu() {
     },
     { type: 'separator' },
     {
-      label: mainWindow?.isVisible() ? 'Hide Tab Bar' : 'Show Tab Bar',
-      click: () => {
-        if (mainWindow) {
-          if (mainWindow.isVisible()) {
-            mainWindow.hide();
-          } else {
-            mainWindow.show();
-          }
-        }
-      },
-    },
-    { type: 'separator' },
-    {
       label: 'Quit vstab',
       click: () => {
         debugLog('Quit clicked from tray menu');
