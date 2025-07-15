@@ -91,11 +91,11 @@ vstab/
 
 ### Tray Menu System
 
-- **Tray Icon**: Optional macOS menu bar tray icon with native context menu
+- **Tray Icon**: Always-visible macOS menu bar tray icon with native context menu
 - **Click Behavior**: Configurable left-click action - toggle window visibility or show context menu
 - **Status Display**: Shows real-time yabai status and current settings values
 - **Menu Structure**: Hierarchical menu with header info, settings submenu, and actions
-- **Settings Integration**: Direct access to key settings (theme, height, auto-hide, tray preferences)
+- **Settings Integration**: Direct access to key settings (theme, height, auto-hide)
 - **Asset Management**: Uses template icons for proper macOS dark/light mode integration
 
 #### Tray Menu Layout
@@ -108,7 +108,6 @@ Settings ▶                     # Submenu
 ├── Theme: System               # Current theme display
 ├── Tab Bar Height: 45px        # Current height display
 ├── Auto Hide: On               # Auto-hide status
-├── Tray Icon: On               # Tray visibility status
 └── Tray Click: Toggle Window   # Click action behavior
 ─────────────────────────────
 Quit vstab                      # Terminate app
@@ -164,7 +163,7 @@ yabai -m window 12345 --resize abs:1920:1025
 
 - **Tray Icon Creation**: `createTrayIcon()` in `src/main/index.ts:34-77`
 - **Menu Updates**: `updateTrayMenu()` in `src/main/index.ts:79-171`
-- **Conditional Creation**: Tray only created when `showTrayIcon` setting is `true`
+- **Always Created**: Tray icon is always created when the app starts
 - **Icon Assets**: Uses `assets/tray-icon.png` with template variants for macOS theming
 - **Tooltip**: Shows "vstab - VS Code Tab Switcher" on hover
 
@@ -182,7 +181,6 @@ yabai -m window 12345 --resize abs:1920:1025
     { label: 'Theme: System' },           // TODO: Cycle themes
     { label: 'Tab Bar Height: 45px' },    // TODO: Adjust height
     { label: 'Auto Hide: On' },           // TODO: Toggle setting
-    { label: 'Tray Icon: On' },           // TODO: Toggle visibility
     { label: 'Tray Click: Toggle Window' } // TODO: Cycle action
   ]
 }
@@ -207,7 +205,7 @@ yabai -m window 12345 --resize abs:1920:1025
 - **Settings Interactivity**: Most settings items are display-only (TODO: implement direct manipulation)
 - **Theme Cycling**: Header shows current theme but doesn't cycle on click
 - **Height Adjustment**: Shows current height but no direct adjustment
-- **Toggle Actions**: Auto-hide, tray visibility, and click action items need implementation
+- **Toggle Actions**: Auto-hide and click action items need implementation
 
 ### Code Formatting
 
@@ -245,8 +243,7 @@ yabai -m window 12345 --resize abs:1920:1025
 - **Reactive Components**: App components automatically update when settings change via IPC notifications
 - **Theme Integration**: Theme setting controls CSS variables via `data-theme` attribute
 - **Window Resize Integration**: Auto-resize settings control yabai window positioning behavior
-- **Tray Integration**: Tray-specific settings control menu visibility
-  - `showTrayIcon: boolean` - Controls tray icon visibility (default: `true`)
+- **Tray Integration**: Tray icon is always visible when app is running
 
 ### Error Handling
 
@@ -378,7 +375,7 @@ npm run test:watch
 - **Settings not applying immediately**: Settings now apply in real-time without restart - check browser console for IPC errors
 - **Theme not applying**: Verify settings are loaded and theme hook is working
 - **Window resizing issues**: Check `autoResizeVertical` and `autoResizeHorizontal` settings - resizing now happens on every tab click
-- **Tray icon not appearing**: Check `showTrayIcon` setting is `true` and icon assets exist
+- **Tray icon not appearing**: Check icon assets exist in `assets/` directory
 - **Tray menu not updating**: Verify settings changes trigger `TRAY_UPDATE_MENU` IPC calls
 
 ### Platform Requirements

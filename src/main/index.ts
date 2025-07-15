@@ -32,13 +32,6 @@ function getAppVersion(): string {
 }
 
 async function createTrayIcon() {
-  const settings = await loadSettings();
-
-  if (!settings.showTrayIcon) {
-    debugLog('Tray icon disabled in settings');
-    return;
-  }
-
   debugLog('Creating tray icon');
 
   // Create tray icon path - use proper vstab icon
@@ -332,17 +325,9 @@ app.whenReady().then(async () => {
   });
 
   // Listen for tray settings changes
-  (process as any).on('tray-settings-changed', async (settings: any) => {
-    debugLog('Received tray settings changed event:', settings);
-    if (settings.showTrayIcon && !tray) {
-      // Create tray icon if it doesn't exist
-      await createTrayIcon();
-    } else if (!settings.showTrayIcon && tray) {
-      // Destroy tray icon if it exists
-      debugLog('Destroying tray icon due to settings change');
-      tray.destroy();
-      tray = null;
-    } else if (tray) {
+  (process as any).on('tray-settings-changed', async () => {
+    debugLog('Received tray settings changed event');
+    if (tray) {
       // Update existing tray menu
       await updateTrayMenu();
     }

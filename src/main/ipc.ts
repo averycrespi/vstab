@@ -146,11 +146,6 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
           (global as any).DEBUG_MODE = settings.debugLogging;
         }
 
-        // Handle tray icon changes
-        if ('showTrayIcon' in settings) {
-          (process as any).emit('tray-settings-changed', settings);
-        }
-
         // Notify renderer about settings change
         mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, settings);
         debugLog('Settings change notification sent to renderer');

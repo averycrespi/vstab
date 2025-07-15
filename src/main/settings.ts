@@ -13,7 +13,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoResizeVertical: true,
   autoResizeHorizontal: true,
   debugLogging: false,
-  showTrayIcon: true,
 };
 
 export async function loadSettings(): Promise<AppSettings> {

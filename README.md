@@ -73,7 +73,6 @@ Key settings include:
 - **Auto-Resize**: Control automatic window positioning (vertical and horizontal independently)
 - **Theme**: Choose between Light, Dark, or System theme
 - **Tab Bar Height**: Customize the height of the tab bar
-- **Tray Integration**: Configure tray icon visibility
 
 ## Troubleshooting
 

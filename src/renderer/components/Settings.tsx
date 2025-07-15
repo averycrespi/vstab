@@ -53,11 +53,6 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
     updateSettings({ ...settings, debugLogging: enabled });
   };
 
-  const handleShowTrayIconChange = (enabled: boolean) => {
-    if (!settings) return;
-    updateSettings({ ...settings, showTrayIcon: enabled });
-  };
-
   const updateSettings = async (newSettings: AppSettings) => {
     setSaving(true);
     try {
@@ -80,16 +75,6 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
             updatedSettings.autoResizeHorizontal)
       ) {
         await window.vstab.resizeWindows(updatedSettings.tabBarHeight);
-      }
-
-      // Trigger tray menu update if needed
-      if (settings && settings.showTrayIcon !== updatedSettings.showTrayIcon) {
-        try {
-          await window.vstab.updateTrayMenu();
-        } catch (error) {
-          debugLog('Error updating tray menu:', error);
-          console.error('Error updating tray menu:', error);
-        }
       }
     } catch (error: any) {
       debugLog('Error updating settings:', error);
@@ -185,20 +170,6 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
               disabled={saving}
             />
             Enable Debug Logging
-          </label>
-        </div>
-
-        {/* Tray Icon Settings */}
-        <div className="mb-4">
-          <label className="flex items-center text-sm text-[var(--color-vscode-text)]">
-            <input
-              type="checkbox"
-              checked={settings.showTrayIcon}
-              onChange={e => handleShowTrayIconChange(e.target.checked)}
-              className="mr-2"
-              disabled={saving}
-            />
-            Show Tray Icon
           </label>
         </div>
 
