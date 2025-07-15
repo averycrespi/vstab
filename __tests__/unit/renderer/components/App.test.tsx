@@ -45,6 +45,7 @@ describe('App Component', () => {
   const mockVstab = {
     onWindowsUpdate: jest.fn(),
     onSettingsChanged: jest.fn(),
+    offSettingsChanged: jest.fn(),
     resizeWindows: jest.fn().mockResolvedValue(undefined),
     focusWindow: jest.fn().mockResolvedValue(undefined),
     getSettings: jest.fn().mockResolvedValue({

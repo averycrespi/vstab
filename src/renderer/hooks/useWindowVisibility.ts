@@ -20,6 +20,19 @@ export function useWindowVisibility() {
         debugLog('Error loading settings in visibility hook:', error);
         console.error('Error loading settings in visibility hook:', error);
       });
+
+    // Listen for settings changes
+    const handleSettingsChanged = (updatedSettings: AppSettings) => {
+      debugLog('Visibility hook - settings changed:', updatedSettings);
+      setSettings(updatedSettings);
+    };
+
+    window.vstab.onSettingsChanged(handleSettingsChanged);
+
+    return () => {
+      // Clean up listener
+      window.vstab.offSettingsChanged(handleSettingsChanged);
+    };
   }, []);
 
   useEffect(() => {

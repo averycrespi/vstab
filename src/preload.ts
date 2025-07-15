@@ -49,9 +49,18 @@ contextBridge.exposeInMainWorld('vstab', {
   },
 
   onSettingsChanged: (callback: (settings: AppSettings) => void) => {
-    ipcRenderer.on(IPC_CHANNELS.SETTINGS_CHANGED, (_, settings) =>
-      callback(settings)
-    );
+    const wrapper = (_: any, settings: AppSettings) => callback(settings);
+    ipcRenderer.on(IPC_CHANNELS.SETTINGS_CHANGED, wrapper);
+    // Store the wrapper on the callback function for cleanup
+    (callback as any)._wrapper = wrapper;
+  },
+
+  offSettingsChanged: (callback: (settings: AppSettings) => void) => {
+    const wrapper = (callback as any)._wrapper;
+    if (wrapper) {
+      ipcRenderer.removeListener(IPC_CHANNELS.SETTINGS_CHANGED, wrapper);
+      delete (callback as any)._wrapper;
+    }
   },
 
   // Tray management
@@ -72,6 +81,7 @@ export interface VstabAPI {
   getSettings: () => Promise<AppSettings>;
   updateSettings: (settings: AppSettings) => Promise<AppSettings>;
   onSettingsChanged: (callback: (settings: AppSettings) => void) => void;
+  offSettingsChanged: (callback: (settings: AppSettings) => void) => void;
   updateTrayMenu: () => Promise<void>;
 }
 

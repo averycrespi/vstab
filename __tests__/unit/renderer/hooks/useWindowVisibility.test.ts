@@ -12,6 +12,8 @@ const mockVstab = {
     autoResizeHorizontal: true,
     debugLogging: false,
   }),
+  onSettingsChanged: jest.fn(),
+  offSettingsChanged: jest.fn(),
 };
 
 Object.defineProperty(window, 'vstab', {
