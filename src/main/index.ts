@@ -6,7 +6,7 @@ import { setupIPCHandlers } from './ipc';
 import { logger } from '@shared/logger';
 import { initializeLogging, updateLoggingSettings } from './logger-init';
 import { initializeSettings, loadSettings, saveSettings } from './settings';
-import { LogLevel } from '@shared/types';
+import { LogLevel, Theme } from '@shared/types';
 
 let mainWindow: BrowserWindow | null = null;
 let pollInterval: ReturnType<typeof setInterval> | null = null;
@@ -29,6 +29,10 @@ async function getYabaiStatus(): Promise<boolean> {
 function getAppVersion(): string {
   const packageJson = require('../../package.json');
   return packageJson.version || '1.0.0';
+}
+
+function toProperCase(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
 async function createTrayIcon() {
@@ -114,6 +118,26 @@ async function toggleAutoResizeHorizontal() {
   await updateTrayMenu();
   logger.info('Auto resize horizontal toggled', 'main', {
     autoResizeHorizontal: newSettings.autoResizeHorizontal,
+  });
+}
+
+async function setTheme(theme: Theme) {
+  logger.debug('Setting theme', 'main', { theme });
+  const settings = await loadSettings();
+  const newSettings = { ...settings, theme };
+
+  await saveSettings(newSettings);
+
+  // Notify renderer about settings change
+  if (mainWindow) {
+    mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, newSettings);
+    logger.info('Settings change notification sent to renderer', 'main');
+  }
+
+  await updateTrayMenu();
+  logger.info('Theme changed', 'main', {
+    from: settings.theme,
+    to: newSettings.theme,
   });
 }
 
@@ -292,11 +316,46 @@ async function updateTrayMenu() {
       label: 'Settings',
       submenu: [
         {
-          label: `Theme: ${settings.theme}`,
-          click: () => {
-            // TODO: Open settings or cycle theme
-            logger.debug('Theme setting clicked', 'main');
-          },
+          label: 'Auto Hide Tab Bar',
+          type: 'checkbox',
+          checked: settings.autoHide,
+          click: toggleAutoHide,
+        },
+        {
+          label: 'Auto Resize Windows Vertically',
+          type: 'checkbox',
+          checked: settings.autoResizeVertical,
+          click: toggleAutoResizeVertical,
+        },
+        {
+          label: 'Auto Resize Windows Horizontally',
+          type: 'checkbox',
+          checked: settings.autoResizeHorizontal,
+          click: toggleAutoResizeHorizontal,
+        },
+        { type: 'separator' },
+        {
+          label: `Theme: ${toProperCase(settings.theme)}`,
+          submenu: [
+            {
+              label: 'Light',
+              type: 'radio',
+              checked: settings.theme === 'light',
+              click: () => setTheme('light'),
+            },
+            {
+              label: 'Dark',
+              type: 'radio',
+              checked: settings.theme === 'dark',
+              click: () => setTheme('dark'),
+            },
+            {
+              label: 'System',
+              type: 'radio',
+              checked: settings.theme === 'system',
+              click: () => setTheme('system'),
+            },
+          ],
         },
         {
           label: `Tab Bar Height: ${settings.tabBarHeight}px`,
@@ -435,26 +494,7 @@ async function updateTrayMenu() {
         },
         { type: 'separator' },
         {
-          label: 'Auto Hide',
-          type: 'checkbox',
-          checked: settings.autoHide,
-          click: toggleAutoHide,
-        },
-        {
-          label: 'Auto Resize Vertical',
-          type: 'checkbox',
-          checked: settings.autoResizeVertical,
-          click: toggleAutoResizeVertical,
-        },
-        {
-          label: 'Auto Resize Horizontal',
-          type: 'checkbox',
-          checked: settings.autoResizeHorizontal,
-          click: toggleAutoResizeHorizontal,
-        },
-        { type: 'separator' },
-        {
-          label: `Log Level: ${settings.logLevel.toUpperCase()}`,
+          label: `Log Level: ${toProperCase(settings.logLevel)}`,
           submenu: [
             {
               label: 'Error',
@@ -482,16 +522,16 @@ async function updateTrayMenu() {
             },
           ],
         },
-        {
-          label: 'Open Logs Folder',
-          click: openLogsFolder,
-        },
-        { type: 'separator' },
-        {
-          label: 'Show Settings File',
-          click: openSettingsDirectory,
-        },
       ],
+    },
+    { type: 'separator' },
+    {
+      label: 'Open Logs Folder',
+      click: openLogsFolder,
+    },
+    {
+      label: 'Open Config Folder',
+      click: openSettingsDirectory,
     },
     { type: 'separator' },
     {
