@@ -4,7 +4,7 @@ import { IPC_CHANNELS } from '@shared/ipc-channels';
 import { discoverVSCodeWindows } from './windows';
 import { setupIPCHandlers } from './ipc';
 import { debugLog, setDebugMode } from '@shared/debug';
-import { initializeSettings, loadSettings } from './settings';
+import { initializeSettings, loadSettings, saveSettings } from './settings';
 
 let mainWindow: BrowserWindow | null = null;
 let pollInterval: ReturnType<typeof setInterval> | null = null;
@@ -76,6 +76,94 @@ async function createTrayIcon() {
   }
 }
 
+// Toggle functions for boolean settings
+async function toggleAutoHide() {
+  debugLog('Toggling auto hide setting');
+  const settings = await loadSettings();
+  const newSettings = { ...settings, autoHide: !settings.autoHide };
+  await saveSettings(newSettings);
+  await updateTrayMenu();
+  debugLog('Auto hide toggled to:', newSettings.autoHide);
+}
+
+async function toggleAutoResizeVertical() {
+  debugLog('Toggling auto resize vertical setting');
+  const settings = await loadSettings();
+  const newSettings = {
+    ...settings,
+    autoResizeVertical: !settings.autoResizeVertical,
+  };
+  await saveSettings(newSettings);
+  await updateTrayMenu();
+  debugLog('Auto resize vertical toggled to:', newSettings.autoResizeVertical);
+}
+
+async function toggleAutoResizeHorizontal() {
+  debugLog('Toggling auto resize horizontal setting');
+  const settings = await loadSettings();
+  const newSettings = {
+    ...settings,
+    autoResizeHorizontal: !settings.autoResizeHorizontal,
+  };
+  await saveSettings(newSettings);
+  await updateTrayMenu();
+  debugLog(
+    'Auto resize horizontal toggled to:',
+    newSettings.autoResizeHorizontal
+  );
+}
+
+async function togglePersistTabOrder() {
+  debugLog('Toggling persist tab order setting');
+  const settings = await loadSettings();
+  const newSettings = {
+    ...settings,
+    persistTabOrder: !settings.persistTabOrder,
+  };
+  await saveSettings(newSettings);
+  await updateTrayMenu();
+  debugLog('Persist tab order toggled to:', newSettings.persistTabOrder);
+}
+
+async function toggleDebugLogging() {
+  debugLog('Toggling debug logging setting');
+  const settings = await loadSettings();
+  const newSettings = { ...settings, debugLogging: !settings.debugLogging };
+  await saveSettings(newSettings);
+  // Update global debug mode
+  setDebugMode(newSettings.debugLogging);
+  await updateTrayMenu();
+  debugLog('Debug logging toggled to:', newSettings.debugLogging);
+}
+
+async function toggleTrayIcon() {
+  debugLog('Toggling tray icon setting');
+  const settings = await loadSettings();
+  const newSettings = { ...settings, showTrayIcon: !settings.showTrayIcon };
+  await saveSettings(newSettings);
+
+  // Handle tray icon visibility change with a slight delay
+  // to allow menu interaction to complete
+  setTimeout(() => {
+    (process as any).emit('tray-settings-changed', newSettings);
+  }, 100);
+
+  debugLog('Tray icon toggled to:', newSettings.showTrayIcon);
+}
+
+async function cycleTrayClickAction() {
+  debugLog('Cycling tray click action setting');
+  const settings = await loadSettings();
+  const newAction: 'toggle-window' | 'show-menu' =
+    settings.trayClickAction === 'toggle-window'
+      ? 'show-menu'
+      : 'toggle-window';
+  const newSettings = { ...settings, trayClickAction: newAction };
+  await saveSettings(newSettings);
+  await updateTrayMenu();
+  debugLog('Tray click action cycled to:', newAction);
+}
+
 async function updateTrayMenu() {
   if (!tray) return;
 
@@ -117,27 +205,47 @@ async function updateTrayMenu() {
             debugLog('Tab bar height setting clicked');
           },
         },
+        { type: 'separator' },
         {
-          label: `Auto Hide: ${settings.autoHide ? 'On' : 'Off'}`,
-          click: () => {
-            // TODO: Toggle auto hide
-            debugLog('Auto hide setting clicked');
-          },
+          label: 'Auto Hide',
+          type: 'checkbox',
+          checked: settings.autoHide,
+          click: toggleAutoHide,
+        },
+        {
+          label: 'Auto Resize Vertical',
+          type: 'checkbox',
+          checked: settings.autoResizeVertical,
+          click: toggleAutoResizeVertical,
+        },
+        {
+          label: 'Auto Resize Horizontal',
+          type: 'checkbox',
+          checked: settings.autoResizeHorizontal,
+          click: toggleAutoResizeHorizontal,
+        },
+        {
+          label: 'Persist Tab Order',
+          type: 'checkbox',
+          checked: settings.persistTabOrder,
+          click: togglePersistTabOrder,
+        },
+        {
+          label: 'Debug Logging',
+          type: 'checkbox',
+          checked: settings.debugLogging,
+          click: toggleDebugLogging,
         },
         { type: 'separator' },
         {
-          label: `Tray Icon: ${settings.showTrayIcon ? 'On' : 'Off'}`,
-          click: () => {
-            // TODO: Toggle tray icon
-            debugLog('Tray icon setting clicked');
-          },
+          label: 'Show Tray Icon',
+          type: 'checkbox',
+          checked: settings.showTrayIcon,
+          click: toggleTrayIcon,
         },
         {
           label: `Tray Click: ${settings.trayClickAction === 'toggle-window' ? 'Toggle Window' : 'Show Menu'}`,
-          click: () => {
-            // TODO: Cycle tray click action
-            debugLog('Tray click action setting clicked');
-          },
+          click: cycleTrayClickAction,
         },
       ],
     },
