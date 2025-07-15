@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { AppSettings, Theme } from '@shared/types';
 import { debugLog } from '@shared/debug';
 
@@ -52,6 +52,18 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
     updateSettings({ ...settings, debugLogging: enabled });
   };
 
+  const handleShowTrayIconChange = (enabled: boolean) => {
+    if (!settings) return;
+    updateSettings({ ...settings, showTrayIcon: enabled });
+  };
+
+  const handleTrayClickActionChange = (
+    action: 'toggle-window' | 'show-menu'
+  ) => {
+    if (!settings) return;
+    updateSettings({ ...settings, trayClickAction: action });
+  };
+
   const updateSettings = async (newSettings: AppSettings) => {
     setSaving(true);
     try {
@@ -74,6 +86,20 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
             updatedSettings.autoResizeHorizontal)
       ) {
         await window.vstab.resizeWindows(updatedSettings.tabBarHeight);
+      }
+
+      // Trigger tray menu update if needed
+      if (
+        settings &&
+        (settings.showTrayIcon !== updatedSettings.showTrayIcon ||
+          settings.trayClickAction !== updatedSettings.trayClickAction)
+      ) {
+        try {
+          await window.vstab.updateTrayMenu();
+        } catch (error) {
+          debugLog('Error updating tray menu:', error);
+          console.error('Error updating tray menu:', error);
+        }
       }
     } catch (error: any) {
       debugLog('Error updating settings:', error);
@@ -171,6 +197,41 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
             Enable Debug Logging
           </label>
         </div>
+
+        {/* Tray Icon Settings */}
+        <div className="mb-4">
+          <label className="flex items-center text-sm text-[var(--color-vscode-text)]">
+            <input
+              type="checkbox"
+              checked={settings.showTrayIcon}
+              onChange={e => handleShowTrayIconChange(e.target.checked)}
+              className="mr-2"
+              disabled={saving}
+            />
+            Show Tray Icon
+          </label>
+        </div>
+
+        {settings.showTrayIcon && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2 text-[var(--color-vscode-text)]">
+              Tray Click Action
+            </label>
+            <select
+              value={settings.trayClickAction}
+              onChange={e =>
+                handleTrayClickActionChange(
+                  e.target.value as 'toggle-window' | 'show-menu'
+                )
+              }
+              className="w-full px-3 py-2 bg-[var(--color-vscode-dark)] border border-[var(--color-vscode-border)] rounded text-[var(--color-vscode-text)]"
+              disabled={saving}
+            >
+              <option value="toggle-window">Toggle Window</option>
+              <option value="show-menu">Show Menu</option>
+            </select>
+          </div>
+        )}
 
         {/* Close Button */}
         <div className="flex justify-end">

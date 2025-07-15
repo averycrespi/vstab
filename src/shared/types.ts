@@ -35,4 +35,6 @@ export interface AppSettings {
   autoResizeVertical: boolean;
   autoResizeHorizontal: boolean;
   debugLogging: boolean;
+  showTrayIcon: boolean;
+  trayClickAction: 'toggle-window' | 'show-menu';
 }

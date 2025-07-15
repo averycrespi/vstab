@@ -1,15 +1,174 @@
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, screen, Tray, Menu, shell } from 'electron';
 import * as path from 'path';
 import { IPC_CHANNELS } from '@shared/ipc-channels';
 import { discoverVSCodeWindows } from './windows';
 import { setupIPCHandlers } from './ipc';
 import { debugLog, setDebugMode } from '@shared/debug';
-import { initializeSettings } from './settings';
+import { initializeSettings, loadSettings } from './settings';
 
 let mainWindow: BrowserWindow | null = null;
 let pollInterval: ReturnType<typeof setInterval> | null = null;
+let tray: Tray | null = null;
 
 const TAB_BAR_HEIGHT = 35;
+
+// Helper functions for tray menu
+async function getYabaiStatus(): Promise<boolean> {
+  const { exec } = require('child_process');
+  const { promisify } = require('util');
+  const execAsync = promisify(exec);
+
+  try {
+    await execAsync('which yabai');
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function getAppVersion(): string {
+  const packageJson = require('../../package.json');
+  return packageJson.version || '1.0.0';
+}
+
+async function createTrayIcon() {
+  const settings = await loadSettings();
+
+  if (!settings.showTrayIcon) {
+    debugLog('Tray icon disabled in settings');
+    return;
+  }
+
+  debugLog('Creating tray icon');
+
+  // Create tray icon path - use proper vstab icon
+  const trayIconPath = path.join(process.cwd(), 'assets', 'tray-icon.png');
+
+  try {
+    tray = new Tray(trayIconPath);
+    debugLog('Tray icon created successfully');
+
+    // Update tray menu
+    await updateTrayMenu();
+
+    // Set tooltip
+    tray.setToolTip('vstab - VS Code Tab Switcher');
+
+    // Handle tray click based on settings
+    tray.on('click', () => {
+      debugLog('Tray icon clicked');
+      if (settings.trayClickAction === 'toggle-window') {
+        if (mainWindow) {
+          if (mainWindow.isVisible()) {
+            mainWindow.hide();
+          } else {
+            mainWindow.show();
+          }
+        }
+      } else if (settings.trayClickAction === 'show-menu') {
+        // Menu is shown automatically on right-click, so for left-click we can show it too
+        tray?.popUpContextMenu();
+      }
+    });
+  } catch (error) {
+    debugLog('Error creating tray icon:', error);
+    console.error('Error creating tray icon:', error);
+  }
+}
+
+async function updateTrayMenu() {
+  if (!tray) return;
+
+  debugLog('Updating tray menu');
+
+  const yabaiRunning = await getYabaiStatus();
+  const appVersion = getAppVersion();
+  const settings = await loadSettings();
+
+  const menuTemplate = [
+    {
+      label: `vstab v${appVersion}`,
+      click: () => {
+        debugLog('Opening GitHub repository');
+        shell.openExternal('https://github.com/averycrespi/vstab');
+      },
+    },
+    {
+      label: `yabai: ${yabaiRunning ? '✅ Running' : '❌ Not Available'}`,
+      click: () => {
+        // Do nothing, but keep it clickable so text isn't faded
+      },
+    },
+    { type: 'separator' },
+    {
+      label: 'Settings',
+      submenu: [
+        {
+          label: `Theme: ${settings.theme}`,
+          click: () => {
+            // TODO: Open settings or cycle theme
+            debugLog('Theme setting clicked');
+          },
+        },
+        {
+          label: `Tab Bar Height: ${settings.tabBarHeight}px`,
+          click: () => {
+            // TODO: Open settings
+            debugLog('Tab bar height setting clicked');
+          },
+        },
+        {
+          label: `Auto Hide: ${settings.autoHide ? 'On' : 'Off'}`,
+          click: () => {
+            // TODO: Toggle auto hide
+            debugLog('Auto hide setting clicked');
+          },
+        },
+        { type: 'separator' },
+        {
+          label: `Tray Icon: ${settings.showTrayIcon ? 'On' : 'Off'}`,
+          click: () => {
+            // TODO: Toggle tray icon
+            debugLog('Tray icon setting clicked');
+          },
+        },
+        {
+          label: `Tray Click: ${settings.trayClickAction === 'toggle-window' ? 'Toggle Window' : 'Show Menu'}`,
+          click: () => {
+            // TODO: Cycle tray click action
+            debugLog('Tray click action setting clicked');
+          },
+        },
+      ],
+    },
+    { type: 'separator' },
+    {
+      label: mainWindow?.isVisible() ? 'Hide Tab Bar' : 'Show Tab Bar',
+      click: () => {
+        if (mainWindow) {
+          if (mainWindow.isVisible()) {
+            mainWindow.hide();
+          } else {
+            mainWindow.show();
+          }
+        }
+      },
+    },
+    { type: 'separator' },
+    {
+      label: 'Quit vstab',
+      click: () => {
+        debugLog('Quit clicked from tray menu');
+        app.quit();
+      },
+    },
+  ];
+
+  const contextMenu = Menu.buildFromTemplate(menuTemplate as any);
+  tray.setContextMenu(contextMenu);
+
+  debugLog('Tray menu updated successfully');
+}
 
 async function createWindow() {
   debugLog('Creating main window');
@@ -71,6 +230,11 @@ function startWindowPolling() {
       const windows = await discoverVSCodeWindows();
       debugLog('Sending windows to renderer:', windows.length, 'windows');
       mainWindow.webContents.send(IPC_CHANNELS.VSCODE_WINDOWS_LIST, windows);
+
+      // Update tray menu with current status
+      if (tray) {
+        await updateTrayMenu();
+      }
     } catch (error) {
       debugLog('Error discovering windows:', error);
       console.error('Error discovering windows:', error);
@@ -99,6 +263,34 @@ app.whenReady().then(async () => {
 
   debugLog('App ready, creating window');
   createWindow();
+
+  debugLog('Creating tray icon');
+  createTrayIcon();
+
+  // Listen for tray menu update requests
+  (process as any).on('tray-update-menu', async () => {
+    debugLog('Received tray menu update event');
+    if (tray) {
+      await updateTrayMenu();
+    }
+  });
+
+  // Listen for tray settings changes
+  (process as any).on('tray-settings-changed', async (settings: any) => {
+    debugLog('Received tray settings changed event:', settings);
+    if (settings.showTrayIcon && !tray) {
+      // Create tray icon if it doesn't exist
+      await createTrayIcon();
+    } else if (!settings.showTrayIcon && tray) {
+      // Destroy tray icon if it exists
+      debugLog('Destroying tray icon due to settings change');
+      tray.destroy();
+      tray = null;
+    } else if (tray) {
+      // Update existing tray menu
+      await updateTrayMenu();
+    }
+  });
 });
 
 app.on('window-all-closed', () => {
@@ -118,6 +310,14 @@ app.on('activate', () => {
   if (mainWindow === null) {
     debugLog('No main window, creating new one');
     createWindow();
+  }
+});
+
+app.on('before-quit', () => {
+  debugLog('App about to quit, cleaning up tray');
+  if (tray) {
+    tray.destroy();
+    tray = null;
   }
 });
 

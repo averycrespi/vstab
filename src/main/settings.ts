@@ -14,6 +14,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoResizeVertical: true,
   autoResizeHorizontal: true,
   debugLogging: false,
+  showTrayIcon: true,
+  trayClickAction: 'toggle-window',
 };
 
 export async function loadSettings(): Promise<AppSettings> {

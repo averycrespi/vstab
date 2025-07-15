@@ -146,6 +146,11 @@ export function setupIPCHandlers(_mainWindow: BrowserWindow) {
           (global as any).DEBUG_MODE = settings.debugLogging;
         }
 
+        // Handle tray icon changes
+        if ('showTrayIcon' in settings || 'trayClickAction' in settings) {
+          (process as any).emit('tray-settings-changed', settings);
+        }
+
         return settings;
       } catch (error) {
         debugLog('Error saving settings:', error);
@@ -154,4 +159,44 @@ export function setupIPCHandlers(_mainWindow: BrowserWindow) {
       }
     }
   );
+
+  // Tray window show/hide
+  ipcMain.handle(IPC_CHANNELS.TRAY_SHOW_WINDOW, async () => {
+    debugLog('IPC: Show window request from tray');
+    try {
+      _mainWindow.show();
+      debugLog('Main window shown via tray');
+    } catch (error) {
+      debugLog('Error showing window via tray:', error);
+      console.error('Error showing window via tray:', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.TRAY_HIDE_WINDOW, async () => {
+    debugLog('IPC: Hide window request from tray');
+    try {
+      _mainWindow.hide();
+      debugLog('Main window hidden via tray');
+    } catch (error) {
+      debugLog('Error hiding window via tray:', error);
+      console.error('Error hiding window via tray:', error);
+      throw error;
+    }
+  });
+
+  // Tray update menu (trigger menu refresh)
+  ipcMain.handle(IPC_CHANNELS.TRAY_UPDATE_MENU, async () => {
+    debugLog('IPC: Update tray menu request');
+    try {
+      // This will be handled by emitting an event to main process
+      // The main process will listen for this and update the tray menu
+      (process as any).emit('tray-update-menu');
+      debugLog('Tray menu update triggered');
+    } catch (error) {
+      debugLog('Error triggering tray menu update:', error);
+      console.error('Error triggering tray menu update:', error);
+      throw error;
+    }
+  });
 }
