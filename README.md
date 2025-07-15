@@ -66,7 +66,7 @@ npm start
 
 ## Settings
 
-Settings can be modified from the gear icon in the tab bar and are persisted to `~/.config/vstab/settings.json`. All settings apply immediately without requiring an application restart.
+Settings can be modified from the tray menu and are persisted to `~/.config/vstab/settings.json`. All settings apply immediately without requiring an application restart.
 
 ### Available Settings
 

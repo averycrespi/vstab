@@ -167,13 +167,11 @@ export interface AppSettings {
 - **Graceful Loading**: Falls back to defaults if file is missing or corrupted
 - **Validation**: Settings are validated and merged with defaults to ensure all properties exist
 
-#### Settings UI (`src/renderer/components/Settings.tsx`)
+#### Settings UI (Tray Menu)
 
-- **Modal Interface**: Accessible via gear icon in tab bar
+- **Tray Interface**: Accessible via tray menu with native macOS controls
 - **Real-time Updates**: All changes apply immediately without restart
-- **Organized Sections**: Grouped into Appearance, Window Management, and Logging
-- **Input Controls**: Range sliders, checkboxes, select dropdowns for different setting types
-- **Visual Feedback**: Shows current values and provides immediate visual feedback
+- **Display-only Interface**: Shows current settings values in tray menu
 
 #### IPC Integration
 

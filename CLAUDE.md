@@ -67,7 +67,7 @@ vstab/
 - Stable tab order maintained across window switches and closures
 - Tab order always persisted to `~/.config/vstab/tab_order.json`
 - No automatic reordering on tab switches or window focus changes
-- Settings button provides access to configuration modal
+- Settings are accessible through the tray menu interface
 - **Tab Click Behavior**: Clicking tabs now triggers window resizing when auto-resize settings are enabled
 - **Window Positioning**: VS Code windows are automatically repositioned and resized on every tab click (respects auto-resize settings)
 
@@ -98,7 +98,7 @@ Settings are stored in `~/.config/vstab/settings.json` with automatic creation a
 
 #### Settings Management
 
-- Settings UI accessible via gear icon in tab bar
+- Settings UI accessible via tray menu
 - Real-time settings updates with immediate effect
 - IPC-based settings synchronization between main and renderer processes
 - Automatic settings file creation with sensible defaults on first run
