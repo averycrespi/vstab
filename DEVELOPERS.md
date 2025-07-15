@@ -62,7 +62,7 @@ Follow the installation instructions in the [README](README.md).
 - React components render tabs based on discovered windows
 - Drag-and-drop reordering with HTML5 API
 - Stable tab order maintained across window switches and closures
-- Tab order persisted to `userData/tab-order.json`
+- Tab order automatically persisted to `userData/tab-order.json`
 - No automatic reordering on tab switches or window focus changes
 - **Tab Click Behavior**: Clicking tabs now triggers window resizing when auto-resize settings are enabled
 - **Window Positioning**: VS Code windows are automatically repositioned and resized on every tab click (respects auto-resize settings)

@@ -7,7 +7,7 @@ A macOS workspace tab switcher for VS Code.
 - **Persistent Tab Bar**: Always-on-top tab bar showing all VS Code workspaces.
 - **Smart Auto-Hide**: Only appears when VS Code is active, automatically hides when switching to other apps (configurable).
 - **Window Management**: Click tabs to focus windows, with automatic window resizing and positioning, keeps all windows visible for fast switching.
-- **Drag-and-Drop**: Reorder tabs by dragging, with persistent tab order between sessions.
+- **Drag-and-Drop**: Reorder tabs by dragging, with automatic tab order persistence.
 - **Space-Aware**: Automatically resizes VS Code windows to use full screen below the tab bar.
 - **yabai Integration**: Native window management using [yabai](https://github.com/koekeishiya/yabai)'s JSON API for stable, multi-window support.
 - **Stable Window IDs**: Hash-based identification for consistent window tracking across restarts.
@@ -73,7 +73,7 @@ Key settings include:
 - **Auto-Resize**: Control automatic window positioning (vertical and horizontal independently)
 - **Theme**: Choose between Light, Dark, or System theme
 - **Tab Bar Height**: Customize the height of the tab bar
-- **Tray Integration**: Configure tray icon visibility and click behavior
+- **Tray Integration**: Configure tray icon visibility
 
 ## Troubleshooting
 
