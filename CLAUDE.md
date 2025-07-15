@@ -73,19 +73,36 @@ vstab/
 
 ### User Settings
 
-- Settings stored in `~/.config/vstab/settings.json` with automatic creation
-- **Theme Support**: Light, Dark, or System (follows macOS preference) - default: `system`
-- **Tab Bar Height**: Configurable height from 25-60px - default: `45px`
-- **Auto Resize Vertical**: Toggle vertical window resizing - default: `true`
-- **Auto Resize Horizontal**: Toggle horizontal window resizing - default: `true`
-- **Auto Hide**: Show tab bar only when VS Code is active - default: `true`
-- **Logging Settings**:
-  - **Log Level**: Error, Warn, Info, or Debug - default: `info`
-  - **Log to File**: Enable/disable file logging - default: `true`
-  - **Log Retention Days**: Number of days to keep log files (1-30) - default: `7`
-  - **Max Log File Size**: Maximum log file size in MB (1-100) - default: `10`
+Settings are stored in `~/.config/vstab/settings.json` with automatic creation and apply immediately without restart.
+
+#### Current Settings Structure
+
+**Appearance & Behavior:**
+
+- **theme**: 'light' | 'dark' | 'system' - default: `'system'`
+- **tabBarHeight**: number (25-60px) - default: `45`
+- **topMargin**: number - default: `10`
+- **bottomMargin**: number - default: `0`
+- **autoHide**: boolean - Show tab bar only when VS Code is active - default: `true`
+
+**Window Management:**
+
+- **autoResizeVertical**: boolean - Toggle vertical window resizing - default: `true`
+- **autoResizeHorizontal**: boolean - Toggle horizontal window resizing - default: `true`
+
+**Logging Configuration:**
+
+- **logLevel**: 'error' | 'warn' | 'info' | 'debug' - default: `'info'`
+- **logRetentionDays**: number (1-30) - Number of days to keep log files - default: `7`
+- **maxLogFileSizeMB**: number (1-100) - Maximum log file size before rotation - default: `10`
+
+#### Settings Management
+
 - Settings UI accessible via gear icon in tab bar
 - Real-time settings updates with immediate effect
+- IPC-based settings synchronization between main and renderer processes
+- Automatic settings file creation with sensible defaults on first run
+- Settings validation and fallback to defaults for invalid values
 
 ### Auto-Hide Behavior
 

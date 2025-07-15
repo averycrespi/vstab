@@ -66,15 +66,30 @@ npm start
 
 ## Settings
 
-Settings can be modified from the tray menu or gear icon in the tab bar, and are persisted to `~/.config/vstab/settings.json`. All settings apply immediately without requiring an application restart.
+Settings can be modified from the gear icon in the tab bar and are persisted to `~/.config/vstab/settings.json`. All settings apply immediately without requiring an application restart.
 
-Key settings include:
+### Available Settings
 
-- **Auto-Hide**: Toggle whether the tab bar hides when VS Code is not active
-- **Auto-Resize**: Control automatic window positioning (vertical and horizontal independently)
-- **Theme**: Choose between Light, Dark, or System theme
-- **Tab Bar Height**: Customize the height of the tab bar
-- **Logging**: Configure log level (Error/Warn/Info/Debug), retention period, and max file size (logs are always written to file)
+**Appearance & Behavior:**
+
+- **Theme**: Choose between Light, Dark, or System theme (default: System)
+- **Tab Bar Height**: Customize the height of the tab bar from 25-60px (default: 45px)
+- **Top Margin**: Vertical spacing above tab bar (default: 10px)
+- **Bottom Margin**: Vertical spacing below tab bar (default: 0px)
+- **Auto-Hide**: Toggle whether the tab bar hides when VS Code is not active (default: enabled)
+
+**Window Management:**
+
+- **Auto Resize Vertical**: Control automatic vertical window positioning and resizing (default: enabled)
+- **Auto Resize Horizontal**: Control automatic horizontal window positioning and resizing (default: enabled)
+
+**Logging:**
+
+- **Log Level**: Configure verbosity - Error, Warn, Info, or Debug (default: Info)
+- **Log Retention**: Number of days to keep log files, 1-30 days (default: 7 days). Must be changed in settings file.
+- **Max Log File Size**: Maximum size before rotation, 1-100MB (default: 10MB). Must be changed in settings file.
+
+All log files are stored in `~/.config/vstab/logs/` and can be accessed via the tray menu "Open Logs Folder" option.
 
 ## Troubleshooting
 

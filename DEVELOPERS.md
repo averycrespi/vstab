@@ -136,6 +136,60 @@ logger.debug('Window discovered', 'windows', { windowId, title });
 - **Settings Synchronization**: All components automatically update when settings change via IPC notifications
 - **Logging IPC**: Dedicated channels for log file access and management
 
+### Settings Architecture
+
+vstab implements a comprehensive settings management system with type safety, persistence, and real-time updates.
+
+#### Settings Structure
+
+All settings are defined in `src/shared/types.ts` as the `AppSettings` interface:
+
+```typescript
+export interface AppSettings {
+  theme: Theme; // 'light' | 'dark' | 'system'
+  tabBarHeight: number; // 25-60px range
+  topMargin: number; // Spacing above tab bar
+  bottomMargin: number; // Spacing below tab bar
+  autoHide: boolean; // Auto-hide when VS Code inactive
+  autoResizeVertical: boolean; // Enable vertical window resizing
+  autoResizeHorizontal: boolean; // Enable horizontal window resizing
+  logLevel: LogLevel; // 'error' | 'warn' | 'info' | 'debug'
+  logRetentionDays: number; // 1-30 days
+  maxLogFileSizeMB: number; // 1-100MB
+}
+```
+
+#### Settings Management (`src/main/settings.ts`)
+
+- **Storage Location**: `~/.config/vstab/settings.json` (XDG Base Directory compliant)
+- **Default Values**: Comprehensive defaults defined in `DEFAULT_SETTINGS` constant
+- **Automatic Creation**: Settings file created on first app launch if it doesn't exist
+- **Graceful Loading**: Falls back to defaults if file is missing or corrupted
+- **Validation**: Settings are validated and merged with defaults to ensure all properties exist
+
+#### Settings UI (`src/renderer/components/Settings.tsx`)
+
+- **Modal Interface**: Accessible via gear icon in tab bar
+- **Real-time Updates**: All changes apply immediately without restart
+- **Organized Sections**: Grouped into Appearance, Window Management, and Logging
+- **Input Controls**: Range sliders, checkboxes, select dropdowns for different setting types
+- **Visual Feedback**: Shows current values and provides immediate visual feedback
+
+#### IPC Integration
+
+- **Loading**: `SETTINGS_GET` channel retrieves current settings
+- **Saving**: `SETTINGS_UPDATE` channel persists changes and broadcasts updates
+- **Change Notifications**: `SETTINGS_CHANGED` event notifies all components of updates
+- **Type Safety**: All IPC channels use TypeScript interfaces for data validation
+
+#### Settings Features
+
+- **Theme Integration**: Theme changes immediately update CSS custom properties
+- **Window Resizing**: Auto-resize settings trigger immediate window repositioning
+- **Logging Control**: Log level changes apply to all active loggers
+- **Persistence**: All changes automatically saved to disk
+- **Error Handling**: Graceful fallback to defaults for invalid settings
+
 ## Build System
 
 ### TypeScript Configuration
@@ -228,17 +282,35 @@ __tests__/
 
 ### Manual Testing Checklist
 
+**Core Functionality:**
+
 - Manual testing with multiple VS Code workspaces
-- Check auto-hide behavior by switching apps (verify improved responsiveness)
-- Test auto-hide setting toggle (disabled should always show tab bar)
-- Test settings changes apply immediately without restart
 - Test drag-and-drop reordering
 - Verify tab order stability during window switches
-- Test window resizing on tab clicks (when auto-resize is enabled)
-- Test full-screen window resizing
 - Verify persistence across app restarts
+
+**Settings Testing:**
+
+- Test settings changes apply immediately without restart
+- **Theme Settings**: Test theme switching (Light/Dark/System) with immediate visual feedback
+- **Tab Bar Height**: Test height adjustment slider (25-60px range) with immediate resize
+- **Margin Settings**: Test topMargin and bottomMargin (visual spacing verification)
+- **Auto-Hide Toggle**: Test auto-hide setting (disabled should always show tab bar)
+- **Window Resizing**: Test autoResizeVertical and autoResizeHorizontal toggles on tab clicks
+- **Logging Settings**: Change log level, retention days (1-30), max file size (1-100MB)
+
+**Window Management:**
+
+- Check auto-hide behavior by switching apps (verify improved responsiveness)
+- Test window resizing on tab clicks (when auto-resize settings are enabled)
+- Test full-screen window resizing
+- Verify margin settings affect window positioning
+
+**Logging Verification:**
+
 - **Test logging functionality**: Verify logs are written to `~/.config/vstab/logs/`
-- **Test log settings**: Change log level, retention settings, max file size (file output is always enabled)
+- **Test log settings**: Verify log level changes affect log output verbosity
+- **Test log rotation**: Verify file rotation based on size and retention settings
 - **Test tray logging controls**: Log level submenu selection, "Open Logs Folder"
 
 ## Styling
