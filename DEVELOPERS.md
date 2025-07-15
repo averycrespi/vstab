@@ -38,29 +38,7 @@ vstab/
 
 ## Development Setup
 
-### Prerequisites
-
-- macOS (required for yabai)
-- Node.js 18+ and npm
-- VS Code
-- yabai (`brew install koekeishiya/formulae/yabai`)
-
-### Getting Started
-
-```bash
-# Clone and install
-git clone https://github.com/averycrespi/vstab.git
-cd vstab
-npm install
-
-# Install and start yabai
-brew install koekeishiya/formulae/yabai
-yabai --start-service
-
-# Build and run
-npm run build
-npm start
-```
+Follow the installation instructions in the [README](README.md).
 
 ### Development Scripts
 

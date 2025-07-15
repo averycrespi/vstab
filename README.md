@@ -1,41 +1,50 @@
 # vstab
 
-A macOS workspace tab switcher for VS Code that provides a persistent tab bar for quick switching between VS Code windows.
-
-![VS Tab Demo](https://via.placeholder.com/800x200/1e1e1e/cccccc?text=VS+Code+Workspace+Tab+Bar)
+A macOS workspace tab switcher for VS Code.
 
 ## Features
 
-- **Persistent Tab Bar**: Always-on-top tab bar showing all VS Code workspaces
-- **Smart Auto-Hide**: Only appears when VS Code is active, automatically hides when switching to other apps
-- **Window Management**: Click tabs to focus windows, keeps all windows visible for fast switching
-- **Drag-and-Drop**: Reorder tabs by dragging, with persistent tab order between sessions
-- **Space-Aware**: Automatically resizes VS Code windows to use full screen below the tab bar
-- **yabai Integration**: Native window management using yabai's JSON API for stable, multi-window support
-- **Stable Window IDs**: Hash-based identification for consistent window tracking across restarts
+- **Persistent Tab Bar**: Always-on-top tab bar showing all VS Code workspaces.
+- **Smart Auto-Hide**: Only appears when VS Code is active, automatically hides when switching to other apps.
+- **Window Management**: Click tabs to focus windows, keeps all windows visible for fast switching.
+- **Drag-and-Drop**: Reorder tabs by dragging, with persistent tab order between sessions.
+- **Space-Aware**: Automatically resizes VS Code windows to use full screen below the tab bar.
+- **yabai Integration**: Native window management using [yabai](https://github.com/koekeishiya/yabai)'s JSON API for stable, multi-window support.
+- **Stable Window IDs**: Hash-based identification for consistent window tracking across restarts.
+- **Tray Menu**: Native macOS tray menu to view status and modify settings.
 
 ## Installation
 
-### Prerequisites
+### Requirements
 
 - macOS (required for yabai)
 - Node.js 18+ and npm
 - VS Code
-- yabai (`brew install koekeishiya/formulae/yabai`)
+
+### Configure yabai
+
+To install and start yabai:
+
+```sh
+brew install koekeishiya/formulae/yabai
+yabai --start-service
+```
+
+To grant accessibility access:
+- Open macOS Settings > Privacy and Security > Accessibility
+- Click the "+" icon and add yabai
+- Toggle yabai on
+
+For more information, see the [yabai documentation](https://github.com/koekeishiya/yabai?tab=readme-ov-file#requirements-and-caveats).
 
 ### Build from Source
 
 ```bash
 # Clone the repository
-git clone https://github.com/averycrespi/vstab.git
-cd vstab
+git clone https://github.com/averycrespi/vstab.git && cd vstab
 
 # Install dependencies
 npm install
-
-# Install and start yabai
-brew install koekeishiya/formulae/yabai
-yabai --start-service
 
 # Build the application
 npm run build
@@ -51,45 +60,11 @@ npm start
 3. **Switch Workspaces**: Click on tabs to switch between VS Code windows
 4. **Reorder Tabs**: Drag tabs to reorder them (order is saved automatically)
 5. **Auto-Hide**: The tab bar automatically hides when you switch to other applications
+6. **Tray Menu**: Use the tray menu to check the current version, view the current yabai status, and change settings.
 
-### Running the App
+## Settings
 
-```bash
-# Start the application
-npm start
-
-# Run in development mode
-npm run dev
-```
-
-## How It Works
-
-vstab integrates with macOS's yabai window manager to provide seamless workspace switching:
-
-- **Window Discovery**: Automatically detects all VS Code windows and workspaces
-- **Smart Visibility**: Tab bar appears only when VS Code is active
-- **Stable Identification**: Uses workspace paths to maintain consistent tab order
-- **Native Integration**: Leverages yabai for precise window management
-
-## Configuration
-
-The application uses sensible defaults:
-
-- **Tab Bar Height**: 35px
-- **Polling Interval**: 1 second for window discovery
-- **Auto-Hide**: 500ms for frontmost app detection
-
-For advanced configuration options, see [DEVELOPERS.md](DEVELOPERS.md).
-
-## yabai Setup
-
-vstab requires yabai for window management:
-
-1. **Install yabai**: `brew install koekeishiya/formulae/yabai`
-2. **Start service**: `yabai --start-service`
-3. **Grant permissions**: Allow Accessibility access when prompted
-
-yabai provides the window control needed for seamless tab switching and automatic window resizing.
+Settings can be modified from the tray menu, and are persisted to `~/.config/vstab/settings.json`.
 
 ## Troubleshooting
 
@@ -103,7 +78,7 @@ yabai provides the window control needed for seamless tab switching and automati
 
 **Windows not switching:**
 
-- Grant Accessibility permissions to yabai and vstab
+- Grant Accessibility permissions to yabai
 - Ensure yabai has window management permissions
 - Check Console.app for yabai connection errors
 
@@ -114,18 +89,6 @@ yabai provides the window control needed for seamless tab switching and automati
 
 **Need help?** Check [DEVELOPERS.md](DEVELOPERS.md) for detailed troubleshooting and development information.
 
-## Contributing
-
-We welcome contributions! Please see [DEVELOPERS.md](DEVELOPERS.md) for detailed development guidelines, architecture information, and testing procedures.
-
-### Quick Start for Contributors
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes with tests
-4. Commit with conventional commits: `git commit -m "feat: add new feature"`
-5. Push and create a Pull Request
-
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
@@ -135,7 +98,3 @@ MIT License - see [LICENSE](LICENSE) file for details.
 - [Electron](https://electronjs.org/) - Desktop app framework
 - [VS Code](https://code.visualstudio.com/) - The editor this enhances
 - [yabai](https://github.com/koekeishiya/yabai) - macOS window management system
-
----
-
-**Note**: This application is designed specifically for macOS and requires VS Code. It enhances the multi-workspace workflow by providing quick tab-based switching similar to browser tabs.
