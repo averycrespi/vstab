@@ -3,6 +3,7 @@ import { promisify } from 'util';
 import { createHash } from 'crypto';
 import { VSCodeWindow } from '@shared/types';
 import { debugLog } from '@shared/debug';
+import { loadSettings } from './settings';
 
 const execAsync = promisify(exec);
 
@@ -168,6 +169,15 @@ export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
   debugLog('Resizing VS Code windows with tab bar height:', tabBarHeight);
   
   try {
+    // Load settings to check if resizing is enabled
+    const settings = await loadSettings();
+    
+    // If neither vertical nor horizontal resize is enabled, skip resizing
+    if (!settings.autoResizeVertical && !settings.autoResizeHorizontal) {
+      debugLog('Window resizing disabled in settings');
+      return;
+    }
+    
     // Get all VS Code windows via yabai
     const { stdout } = await execAsync('yabai -m query --windows');
     const windows: YabaiWindow[] = JSON.parse(stdout);
@@ -193,29 +203,36 @@ export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
       // VS Code windows should start below the tab bar with extra buffer to avoid overlap
       const BUFFER_PIXELS = 10; // Additional buffer to ensure no overlap
       const totalOffset = tabBarHeight + BUFFER_PIXELS;
-      const newY = display.frame.y + totalOffset; // Start below tab bar with buffer
-      const newHeight = display.frame.h - totalOffset; // Available height minus tab bar and buffer
-      const newX = display.frame.x; // Start at left edge of display
-      const newWidth = display.frame.w; // Use full width of display
+      
+      // Calculate dimensions based on settings
+      const newY = settings.autoResizeVertical ? display.frame.y + totalOffset : window.frame.y;
+      const newHeight = settings.autoResizeVertical ? display.frame.h - totalOffset : window.frame.h;
+      const newX = settings.autoResizeHorizontal ? display.frame.x : window.frame.x;
+      const newWidth = settings.autoResizeHorizontal ? display.frame.w : window.frame.w;
       
       try {
         // Use grid positioning for more reliable results
         debugLog(`Setting window ${window.id} grid position and size`);
         
-        // First, move the window to the correct position
-        await execAsync(`yabai -m window ${window.id} --move abs:${newX}:${newY}`);
-        
-        // Then resize to correct dimensions
-        await execAsync(`yabai -m window ${window.id} --resize abs:${newWidth}:${newHeight}`);
-        
-        debugLog(`Window ${window.id} positioned at (${newX}, ${newY}) with size ${newWidth}x${newHeight}`);
+        // Only move/resize if the respective setting is enabled
+        if (settings.autoResizeHorizontal || settings.autoResizeVertical) {
+          // First, move the window to the correct position
+          await execAsync(`yabai -m window ${window.id} --move abs:${newX}:${newY}`);
+          
+          // Then resize to correct dimensions
+          await execAsync(`yabai -m window ${window.id} --resize abs:${newWidth}:${newHeight}`);
+          
+          debugLog(`Window ${window.id} positioned at (${newX}, ${newY}) with size ${newWidth}x${newHeight}`);
+        }
       } catch (windowError) {
         debugLog(`Error resizing individual window ${window.id}:`, windowError);
         
         // Fallback: try using grid system
         try {
           debugLog(`Trying grid fallback for window ${window.id}`);
-          await execAsync(`yabai -m window ${window.id} --grid 1:1:0:0:1:1`);
+          if (settings.autoResizeVertical && settings.autoResizeHorizontal) {
+            await execAsync(`yabai -m window ${window.id} --grid 1:1:0:0:1:1`);
+          }
           await execAsync(`yabai -m window ${window.id} --move abs:${newX}:${newY}`);
           await execAsync(`yabai -m window ${window.id} --resize abs:${newWidth}:${newHeight}`);
         } catch (gridError) {

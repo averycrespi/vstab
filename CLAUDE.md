@@ -25,11 +25,12 @@ vstab/
 │   │   ├── index.ts    # App entry point
 │   │   ├── windows.ts  # yabai window discovery and management
 │   │   ├── ipc.ts      # IPC handlers
-│   │   └── persistence.ts # Tab order storage
+│   │   ├── persistence.ts # Tab order storage
+│   │   └── settings.ts # User settings persistence
 │   ├── renderer/       # React UI (browser environment)
 │   │   ├── App.tsx     # Main component
-│   │   ├── components/ # UI components
-│   │   └── hooks/      # React hooks
+│   │   ├── components/ # UI components (Tab, Settings)
+│   │   └── hooks/      # React hooks (useTabOrder, useTheme, useWindowVisibility)
 │   ├── shared/         # Shared types and constants
 │   └── preload.ts      # Secure IPC bridge
 ├── dist/              # Built files (webpack output)
@@ -52,6 +53,19 @@ vstab/
 - Stable tab order maintained across window switches and closures
 - Tab order persisted to `userData/tab-order.json`
 - No automatic reordering on tab switches or window focus changes
+- Settings button provides access to configuration modal
+
+### User Settings
+- Settings stored in `~/.config/vstab/settings.json` with automatic creation
+- **Theme Support**: Light, Dark, or System (follows macOS preference) - default: `system`
+- **Tab Bar Height**: Configurable height from 25-60px - default: `45px`
+- **Auto Resize Vertical**: Toggle vertical window resizing - default: `true`
+- **Auto Resize Horizontal**: Toggle horizontal window resizing - default: `true`
+- **Auto Hide**: Show tab bar only when VS Code is active - default: `true`
+- **Persist Tab Order**: Maintain tab order across sessions - default: `true`
+- **Debug Logging**: Enable/disable debug output - default: `false`
+- Settings UI accessible via gear icon in tab bar
+- Real-time settings updates with immediate effect
 
 ### Auto-Hide Behavior
 - Polls frontmost app every 500ms via yabai window focus detection
@@ -92,24 +106,37 @@ yabai -m query --windows | jq '.[] | select(.app | contains("Code"))'
 
 # Window operations
 yabai -m window --focus 12345
-yabai -m window 12345 --move abs:0:45
-yabai -m window 12345 --resize abs:1920:1035
+yabai -m window 12345 --move abs:0:55  # Adjusted for configurable tab bar height
+yabai -m window 12345 --resize abs:1920:1025
 ```
 
 ### Styling Approach
 - Uses Tailwind CSS v4 with CSS custom properties
 - CSS variables defined in `:root` for VS Code theme colors
+- **Theme System**: Light and dark themes with system preference detection
+- Dynamic theme switching via `data-theme` attribute on document root
 - Inline styles for dynamic states (hover, active)
 
 ### IPC Channels
 - Defined in `src/shared/ipc-channels.ts`
 - Type-safe with TypeScript interfaces
-- Handles window management, tab reordering, settings
+- Handles window management, tab reordering, and user settings
+- **Settings IPC**: `SETTINGS_GET` and `SETTINGS_UPDATE` for configuration management
+
+### Settings Architecture
+- **Storage Location**: `~/.config/vstab/settings.json` (XDG Base Directory compliant)
+- **Default Creation**: Settings file auto-created on first app launch with sensible defaults
+- **Settings Types**: All settings defined in `src/shared/types.ts` with TypeScript interfaces
+- **IPC Communication**: Settings loaded/saved via `SETTINGS_GET` and `SETTINGS_UPDATE` channels
+- **Real-time Updates**: Settings changes apply immediately without restart required
+- **Theme Integration**: Theme setting controls CSS variables via `data-theme` attribute
+- **Window Resize Integration**: Auto-resize settings control yabai window positioning behavior
 
 ### Error Handling
 - yabai connection errors logged to console
 - Graceful error handling for individual window operations
 - Fallback mechanisms for failed yabai commands
+- Settings file creation/read errors handled gracefully with defaults
 - TypeScript strict mode for compile-time safety
 
 ## Development Workflow
@@ -214,6 +241,8 @@ npm run test:watch
 - **yabai errors**: Verify yabai installation and Accessibility permissions
 - **Window operations fail**: Check yabai can query and control windows
 - **IPC errors**: Check channel names match between main/renderer
+- **Settings not persisting**: Check `~/.config/vstab/` directory permissions
+- **Theme not applying**: Verify settings are loaded and theme hook is working
 
 ### Platform Requirements
 - **macOS only**: yabai is macOS-specific
@@ -225,15 +254,15 @@ npm run test:watch
 
 ### Planned Features (Low Priority)
 - UI polish and animations
-- Settings UI for configuration options
 - Multi-monitor optimization
-- Custom themes and styling options
+- Keyboard shortcuts for tab switching
+- Advanced theme customization
 
 ### Potential Improvements
 - Performance optimizations for many windows
 - Enhanced yabai configuration options
-- Keyboard shortcuts for tab switching
 - Better window state persistence
+- Export/import settings functionality
 
 ## Dependencies Notes
 
@@ -265,5 +294,8 @@ npm run test:watch
 10. **Maintain tab order stability**: Don't reorder on focus changes
 11. **Maintain security**: Keep contextIsolation enabled in preload
 12. **Write tests for new features**: Add unit, integration, and E2E tests as appropriate
+13. **Test settings functionality**: Verify settings persistence, theme switching, and window resizing
+14. **Update tests for changes**: When modifying components, update corresponding test mocks and expectations
+15. **ALWAYS UPDATE DOCUMENTATION**: After implementing features or making significant changes, update documentation (CLAUDE.md, README.md, DEVELOPERS.md, etc.) to reflect the new functionality, architecture changes, file structure updates, and any new best practices or troubleshooting steps
 
 This context should help AI assistants understand the project structure, make appropriate changes, and troubleshoot common issues effectively.

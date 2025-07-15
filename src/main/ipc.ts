@@ -2,7 +2,9 @@ import { ipcMain, BrowserWindow } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc-channels';
 import { focusWindow, hideWindow, getFrontmostApp, resizeVSCodeWindows, discoverVSCodeWindows } from './windows';
 import { loadTabOrder, saveTabOrder } from './persistence';
+import { loadSettings, saveSettings } from './settings';
 import { debugLog } from '@shared/debug';
+import { AppSettings } from '@shared/types';
 
 export function setupIPCHandlers(_mainWindow: BrowserWindow) {
   debugLog('Setting up IPC handlers');
@@ -96,6 +98,40 @@ export function setupIPCHandlers(_mainWindow: BrowserWindow) {
       debugLog('Error getting frontmost app:', error);
       console.error('Error getting frontmost app:', error);
       return '';
+    }
+  });
+
+  // Get settings
+  ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
+    debugLog('IPC: Get settings request');
+    try {
+      const settings = await loadSettings();
+      debugLog('Loaded settings:', settings);
+      return settings;
+    } catch (error) {
+      debugLog('Error loading settings:', error);
+      console.error('Error loading settings:', error);
+      throw error;
+    }
+  });
+
+  // Update settings
+  ipcMain.handle(IPC_CHANNELS.SETTINGS_UPDATE, async (_, settings: AppSettings) => {
+    debugLog('IPC: Update settings request:', settings);
+    try {
+      await saveSettings(settings);
+      debugLog('Settings saved successfully');
+      
+      // Update debug logging based on settings
+      if ('debugLogging' in settings) {
+        (global as any).DEBUG_MODE = settings.debugLogging;
+      }
+      
+      return settings;
+    } catch (error) {
+      debugLog('Error saving settings:', error);
+      console.error('Error saving settings:', error);
+      throw error;
     }
   });
 }

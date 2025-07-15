@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc-channels';
-import { VSCodeWindow } from '@shared/types';
+import { VSCodeWindow, AppSettings } from '@shared/types';
 
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer without exposing the entire object
@@ -35,6 +35,15 @@ contextBridge.exposeInMainWorld('vstab', {
   // Window resizing
   resizeWindows: (tabBarHeight: number) => {
     return ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_RESIZE, tabBarHeight);
+  },
+  
+  // Settings
+  getSettings: () => {
+    return ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_GET);
+  },
+  
+  updateSettings: (settings: AppSettings) => {
+    return ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_UPDATE, settings);
   }
 });
 
@@ -47,6 +56,8 @@ export interface VstabAPI {
   shouldShow: () => Promise<boolean>;
   getFrontmostApp: () => Promise<string>;
   resizeWindows: (tabBarHeight: number) => Promise<void>;
+  getSettings: () => Promise<AppSettings>;
+  updateSettings: (settings: AppSettings) => Promise<AppSettings>;
 }
 
 declare global {

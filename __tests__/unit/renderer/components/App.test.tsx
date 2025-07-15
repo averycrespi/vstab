@@ -7,12 +7,15 @@ import { VSCodeWindow } from '../../../../src/shared/types';
 // Mock the hooks
 jest.mock('../../../../src/renderer/hooks/useWindowVisibility');
 jest.mock('../../../../src/renderer/hooks/useTabOrder');
+jest.mock('../../../../src/renderer/hooks/useTheme');
 
 import { useWindowVisibility } from '../../../../src/renderer/hooks/useWindowVisibility';
 import { useTabOrder } from '../../../../src/renderer/hooks/useTabOrder';
+import { useTheme } from '../../../../src/renderer/hooks/useTheme';
 
 const mockUseWindowVisibility = jest.mocked(useWindowVisibility);
 const mockUseTabOrder = jest.mocked(useTabOrder);
+const mockUseTheme = jest.mocked(useTheme);
 
 describe('App Component', () => {
   const mockWindows: VSCodeWindow[] = [
@@ -42,7 +45,25 @@ describe('App Component', () => {
   const mockVstab = {
     onWindowsUpdate: jest.fn(),
     resizeWindows: jest.fn().mockResolvedValue(undefined),
-    focusWindow: jest.fn().mockResolvedValue(undefined)
+    focusWindow: jest.fn().mockResolvedValue(undefined),
+    getSettings: jest.fn().mockResolvedValue({
+      theme: 'system',
+      tabBarHeight: 45,
+      autoHide: true,
+      persistTabOrder: true,
+      autoResizeVertical: true,
+      autoResizeHorizontal: true,
+      debugLogging: false
+    }),
+    updateSettings: jest.fn().mockResolvedValue({
+      theme: 'system',
+      tabBarHeight: 45,
+      autoHide: true,
+      persistTabOrder: true,
+      autoResizeVertical: true,
+      autoResizeHorizontal: true,
+      debugLogging: false
+    })
   };
 
   const mockReorderWindows = jest.fn();
@@ -62,22 +83,36 @@ describe('App Component', () => {
       orderedWindows: mockWindows,
       reorderWindows: mockReorderWindows
     });
+    mockUseTheme.mockReturnValue({
+      theme: 'system',
+      setTheme: jest.fn()
+    });
   });
 
   describe('Rendering', () => {
-    it('should render tab bar with correct styles', () => {
+    it('should render tab bar with correct styles', async () => {
       const { container } = render(<App />);
       
+      // Wait for settings to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+      
       const tabBar = container.firstChild as HTMLElement;
-      expect(tabBar).toHaveClass('h-9', 'flex', 'items-center', 'border-b');
+      expect(tabBar).toHaveClass('flex', 'items-center', 'justify-between', 'border-b');
       expect(tabBar).toHaveStyle({
         backgroundColor: 'var(--color-vscode-dark)',
         borderColor: 'var(--color-vscode-border)'
       });
     });
 
-    it('should render all windows as tabs', () => {
+    it('should render all windows as tabs', async () => {
       render(<App />);
+      
+      // Wait for settings to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
       
       expect(screen.getByText('vstab')).toBeInTheDocument();
       expect(screen.getByText('my-project')).toBeInTheDocument();
@@ -92,7 +127,7 @@ describe('App Component', () => {
       expect(container.firstChild).toBeNull();
     });
 
-    it('should render empty when no windows', () => {
+    it('should render empty when no windows', async () => {
       mockUseTabOrder.mockReturnValue({
         orderedWindows: [],
         reorderWindows: mockReorderWindows
@@ -100,11 +135,17 @@ describe('App Component', () => {
       
       const { container } = render(<App />);
       
+      // Wait for settings to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+      
       const tabBar = container.firstChild as HTMLElement;
-      expect(tabBar).toBeEmptyDOMElement();
+      const tabContainer = tabBar.querySelector('.flex-1');
+      expect(tabContainer).toBeEmptyDOMElement();
     });
 
-    it('should render tabs in order from useTabOrder hook', () => {
+    it('should render tabs in order from useTabOrder hook', async () => {
       const reorderedWindows = [mockWindows[2], mockWindows[0], mockWindows[1]];
       mockUseTabOrder.mockReturnValue({
         orderedWindows: reorderedWindows,
@@ -112,6 +153,11 @@ describe('App Component', () => {
       });
       
       render(<App />);
+      
+      // Wait for settings to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
       
       const tabs = screen.getAllByText(new RegExp('vstab|my-project|helper-lib'));
       expect(tabs[0]).toHaveTextContent('helper-lib');
@@ -121,22 +167,37 @@ describe('App Component', () => {
   });
 
   describe('Initialization', () => {
-    it('should set up window update listener on mount', () => {
+    it('should set up window update listener on mount', async () => {
       render(<App />);
+      
+      // Wait for settings to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
       
       expect(mockVstab.onWindowsUpdate).toHaveBeenCalledTimes(1);
       expect(mockVstab.onWindowsUpdate).toHaveBeenCalledWith(expect.any(Function));
     });
 
-    it('should request window resize on mount', () => {
+    it('should request window resize on mount', async () => {
       render(<App />);
       
+      // Wait for settings to load and resize to be called
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+      
       expect(mockVstab.resizeWindows).toHaveBeenCalledTimes(1);
-      expect(mockVstab.resizeWindows).toHaveBeenCalledWith(35);
+      expect(mockVstab.resizeWindows).toHaveBeenCalledWith(45); // Updated from 35 to 45 based on default settings
     });
 
-    it('should handle window update callback', () => {
+    it('should handle window update callback', async () => {
       render(<App />);
+      
+      // Wait for settings to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
       
       const updateCallback = mockVstab.onWindowsUpdate.mock.calls[0][0];
       const newWindows = [mockWindows[0]];
@@ -156,6 +217,11 @@ describe('App Component', () => {
       const user = userEvent.setup();
       render(<App />);
       
+      // Wait for settings to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+      
       const tab = screen.getByText('my-project').closest('.tab')!;
       await user.click(tab);
       
@@ -165,6 +231,11 @@ describe('App Component', () => {
     it('should handle multiple tab clicks', async () => {
       const user = userEvent.setup();
       render(<App />);
+      
+      // Wait for settings to load
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
       
       const tab1 = screen.getByText('vstab').closest('.tab')!;
       const tab2 = screen.getByText('my-project').closest('.tab')!;
@@ -278,12 +349,12 @@ describe('App Component', () => {
       // Should not throw during render
       expect(() => render(<App />)).not.toThrow();
       
-      expect(mockVstab.resizeWindows).toHaveBeenCalledWith(35);
-      
-      // Wait for the promise rejection to be handled
+      // Wait for settings to load and resize to be called
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 10));
       });
+      
+      expect(mockVstab.resizeWindows).toHaveBeenCalledWith(45); // Updated from 35 to 45
       
       // Verify console.error was called with expected message
       expect(consoleErrorSpy).toHaveBeenCalledWith('Error resizing windows:', expect.any(Error));

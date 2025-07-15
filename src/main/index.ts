@@ -4,6 +4,7 @@ import { IPC_CHANNELS } from '@shared/ipc-channels';
 import { discoverVSCodeWindows } from './windows';
 import { setupIPCHandlers } from './ipc';
 import { debugLog, setDebugMode } from '@shared/debug';
+import { initializeSettings } from './settings';
 
 let mainWindow: BrowserWindow | null = null;
 let pollInterval: ReturnType<typeof setInterval> | null = null;
@@ -85,10 +86,14 @@ function startWindowPolling() {
   pollInterval = setInterval(pollWindows, 1000);
 }
 
-app.whenReady().then(() => {
-  // Enable debug mode in development
-  if (process.env.NODE_ENV === 'development') {
-    setDebugMode(true);
+app.whenReady().then(async () => {
+  // Initialize settings and set debug mode
+  const settings = await initializeSettings();
+  setDebugMode(settings.debugLogging || process.env.NODE_ENV === 'development');
+  
+  if (settings.debugLogging) {
+    debugLog('Debug mode enabled from settings');
+  } else if (process.env.NODE_ENV === 'development') {
     debugLog('Debug mode enabled for development');
   }
   

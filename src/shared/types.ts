@@ -25,8 +25,14 @@ export interface TabOrder {
   order: number;
 }
 
+export type Theme = 'light' | 'dark' | 'system';
+
 export interface AppSettings {
+  theme: Theme;
   tabBarHeight: number;
   autoHide: boolean;
   persistTabOrder: boolean;
+  autoResizeVertical: boolean;
+  autoResizeHorizontal: boolean;
+  debugLogging: boolean;
 }
