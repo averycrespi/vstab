@@ -182,6 +182,64 @@ async function setTabBarHeight(height: number) {
   });
 }
 
+async function setTopMargin(margin: number) {
+  logger.debug('Setting top margin', 'main', { margin });
+  const settings = await loadSettings();
+  const newSettings = { ...settings, topMargin: margin };
+
+  await saveSettings(newSettings);
+
+  // Notify renderer about settings change
+  if (mainWindow) {
+    mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, newSettings);
+    logger.info('Settings change notification sent to renderer', 'main');
+  }
+
+  // Trigger window resizing to apply new margin immediately
+  try {
+    const { resizeVSCodeWindows } = await import('./windows');
+    await resizeVSCodeWindows(settings.tabBarHeight);
+    logger.debug('VS Code windows resized for new top margin', 'main');
+  } catch (error) {
+    logger.error('Failed to resize VS Code windows', 'main', error);
+  }
+
+  await updateTrayMenu();
+  logger.info('Top margin changed', 'main', {
+    from: settings.topMargin,
+    to: newSettings.topMargin,
+  });
+}
+
+async function setBottomMargin(margin: number) {
+  logger.debug('Setting bottom margin', 'main', { margin });
+  const settings = await loadSettings();
+  const newSettings = { ...settings, bottomMargin: margin };
+
+  await saveSettings(newSettings);
+
+  // Notify renderer about settings change
+  if (mainWindow) {
+    mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, newSettings);
+    logger.info('Settings change notification sent to renderer', 'main');
+  }
+
+  // Trigger window resizing to apply new margin immediately
+  try {
+    const { resizeVSCodeWindows } = await import('./windows');
+    await resizeVSCodeWindows(settings.tabBarHeight);
+    logger.debug('VS Code windows resized for new bottom margin', 'main');
+  } catch (error) {
+    logger.error('Failed to resize VS Code windows', 'main', error);
+  }
+
+  await updateTrayMenu();
+  logger.info('Bottom margin changed', 'main', {
+    from: settings.bottomMargin,
+    to: newSettings.bottomMargin,
+  });
+}
+
 async function openLogsFolder() {
   logger.debug('Opening logs folder', 'main');
   try {
@@ -290,6 +348,88 @@ async function updateTrayMenu() {
               type: 'radio',
               checked: settings.tabBarHeight === 60,
               click: () => setTabBarHeight(60),
+            },
+          ],
+        },
+        {
+          label: `Window Top Margin: ${settings.topMargin}px`,
+          submenu: [
+            {
+              label: '0px',
+              type: 'radio',
+              checked: settings.topMargin === 0,
+              click: () => setTopMargin(0),
+            },
+            {
+              label: '5px',
+              type: 'radio',
+              checked: settings.topMargin === 5,
+              click: () => setTopMargin(5),
+            },
+            {
+              label: '10px',
+              type: 'radio',
+              checked: settings.topMargin === 10,
+              click: () => setTopMargin(10),
+            },
+            {
+              label: '15px',
+              type: 'radio',
+              checked: settings.topMargin === 15,
+              click: () => setTopMargin(15),
+            },
+            {
+              label: '20px',
+              type: 'radio',
+              checked: settings.topMargin === 20,
+              click: () => setTopMargin(20),
+            },
+            {
+              label: '25px',
+              type: 'radio',
+              checked: settings.topMargin === 25,
+              click: () => setTopMargin(25),
+            },
+          ],
+        },
+        {
+          label: `Window Bottom Margin: ${settings.bottomMargin}px`,
+          submenu: [
+            {
+              label: '0px',
+              type: 'radio',
+              checked: settings.bottomMargin === 0,
+              click: () => setBottomMargin(0),
+            },
+            {
+              label: '10px',
+              type: 'radio',
+              checked: settings.bottomMargin === 10,
+              click: () => setBottomMargin(10),
+            },
+            {
+              label: '20px',
+              type: 'radio',
+              checked: settings.bottomMargin === 20,
+              click: () => setBottomMargin(20),
+            },
+            {
+              label: '30px',
+              type: 'radio',
+              checked: settings.bottomMargin === 30,
+              click: () => setBottomMargin(30),
+            },
+            {
+              label: '40px',
+              type: 'radio',
+              checked: settings.bottomMargin === 40,
+              click: () => setBottomMargin(40),
+            },
+            {
+              label: '50px',
+              type: 'radio',
+              checked: settings.bottomMargin === 50,
+              click: () => setBottomMargin(50),
             },
           ],
         },

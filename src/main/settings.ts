@@ -9,6 +9,8 @@ const SETTINGS_FILE = path.join(CONFIG_DIR, 'settings.json');
 const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
   tabBarHeight: 45,
+  topMargin: 10,
+  bottomMargin: 0,
   autoHide: true,
   autoResizeVertical: true,
   autoResizeHorizontal: true,

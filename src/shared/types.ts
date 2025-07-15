@@ -31,6 +31,8 @@ export type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 export interface AppSettings {
   theme: Theme;
   tabBarHeight: number;
+  topMargin: number;
+  bottomMargin: number;
   autoHide: boolean;
   autoResizeVertical: boolean;
   autoResizeHorizontal: boolean;
