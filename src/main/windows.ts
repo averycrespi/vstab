@@ -122,7 +122,7 @@ export async function discoverVSCodeWindows(): Promise<VSCodeWindow[]> {
     );
   }
 
-  logger.info('Using yabai for window discovery', 'windows');
+  logger.debug('Using yabai for window discovery', 'windows');
   return await discoverVSCodeWindowsYabai();
 }
 
