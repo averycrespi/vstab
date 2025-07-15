@@ -23,12 +23,18 @@ vstab/
 │   │   ├── index.ts    # App entry point
 │   │   ├── windows.ts  # yabai window discovery and management
 │   │   ├── ipc.ts      # IPC handlers
-│   │   └── persistence.ts # Tab order storage
+│   │   ├── persistence.ts # Tab order storage
+│   │   ├── file-logger.ts # File-based logging with rotation
+│   │   └── logger-init.ts # Logging system initialization
 │   ├── renderer/       # React UI (browser environment)
 │   │   ├── App.tsx     # Main component
+│   │   ├── logger.ts   # Renderer-specific logger configuration
 │   │   ├── components/ # UI components
 │   │   └── hooks/      # React hooks
 │   ├── shared/         # Shared types and constants
+│   │   ├── types.ts    # Includes logging settings types
+│   │   ├── logger.ts   # Core structured logging system
+│   │   └── ipc-channels.ts # Includes logging IPC channels
 │   └── preload.ts      # Secure IPC bridge
 ├── dist/              # Built files (webpack output)
 ├── package.json       # Dependencies and scripts
@@ -77,6 +83,50 @@ Follow the installation instructions in the [README](README.md).
 - Enhanced error handling with retry logic for failed yabai queries
 - Improved app name matching for various VS Code process names
 
+### Logging System
+
+vstab implements a comprehensive structured logging system for production debugging and monitoring.
+
+#### Architecture
+
+- **Core Logger** (`src/shared/logger.ts`): Structured logging with TypeScript interfaces and multiple log levels
+- **File Logger** (`src/main/file-logger.ts`): File-based persistence with automatic rotation and cleanup
+- **Logger Initialization** (`src/main/logger-init.ts`): Connects file logging to main logger and handles settings updates
+- **Renderer Logger** (`src/renderer/logger.ts`): Browser-optimized configuration for UI components
+
+#### Log Levels and Usage
+
+```typescript
+import { logger } from '@shared/logger';
+
+// Error: Critical failures, system errors
+logger.error('Failed to connect to yabai', 'windows', error);
+
+// Warn: Recoverable issues, validation failures
+logger.warn('Invalid settings detected', 'settings', { invalidKeys });
+
+// Info: Application lifecycle, user actions
+logger.info('Tab order saved successfully', 'persistence');
+
+// Debug: Detailed traces, IPC messages, timing
+logger.debug('Window discovered', 'windows', { windowId, title });
+```
+
+#### Log Storage
+
+- **Location**: `~/.config/vstab/logs/`
+- **Format**: JSON structured logs (one per line)
+- **Rotation**: Daily files with size-based rotation (1-100MB configurable)
+- **Retention**: Automatic cleanup (1-30 days configurable)
+- **File Naming**: `vstab-YYYY-MM-DD.log` with timestamp suffixes for rotated files
+
+#### Configuration
+
+- **Runtime Control**: Log level and file output controlled via user settings
+- **Development**: Renderer process logs to console for debugging
+- **Production**: Main process handles all file logging
+- **IPC Integration**: Settings sync between main and renderer processes
+
 ### IPC Communication
 
 - Main process handles yabai operations and file persistence
@@ -84,6 +134,7 @@ Follow the installation instructions in the [README](README.md).
 - Preload script provides secure IPC bridge
 - **Real-time Settings**: `SETTINGS_CHANGED` event broadcasts setting updates across the app for immediate application
 - **Settings Synchronization**: All components automatically update when settings change via IPC notifications
+- **Logging IPC**: Dedicated channels for log file access and management
 
 ## Build System
 
@@ -186,6 +237,9 @@ __tests__/
 - Test window resizing on tab clicks (when auto-resize is enabled)
 - Test full-screen window resizing
 - Verify persistence across app restarts
+- **Test logging functionality**: Verify logs are written to `~/.config/vstab/logs/`
+- **Test log settings**: Change log level, file output toggle, retention settings
+- **Test tray logging controls**: Log level cycling, file toggle, "Open Logs Folder"
 
 ## Styling
 
@@ -247,6 +301,8 @@ __tests__/
 - **yabai errors**: Verify yabai installation and Accessibility permissions
 - **Window operations fail**: Check yabai can query and control windows
 - **IPC errors**: Check channel names match between main/renderer
+- **Logging issues**: Check `~/.config/vstab/logs/` directory exists and is writable
+- **Application debugging**: Use structured logs for troubleshooting; adjust log level to Debug for detailed information
 
 ### Platform Requirements
 
@@ -291,7 +347,9 @@ __tests__/
 9. **Test window operations**: Verify yabai commands work as expected
 10. **Maintain tab order stability**: Don't reorder on focus changes
 11. **Maintain security**: Keep contextIsolation enabled in preload
-12. **Write tests for new features**: Add unit, integration, and E2E tests as appropriate
+12. **Use structured logging**: Import logger from `@shared/logger` and use appropriate levels with context
+13. **Monitor logs during development**: Use appropriate log levels and check `~/.config/vstab/logs/` for issues
+14. **Write tests for new features**: Add unit, integration, and E2E tests as appropriate
 
 ## Contributing
 

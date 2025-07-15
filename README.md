@@ -11,7 +11,8 @@ A macOS workspace tab switcher for VS Code.
 - **Space-Aware**: Automatically resizes VS Code windows to use full screen below the tab bar.
 - **yabai Integration**: Native window management using [yabai](https://github.com/koekeishiya/yabai)'s JSON API for stable, multi-window support.
 - **Stable Window IDs**: Hash-based identification for consistent window tracking across restarts.
-- **Tray Menu**: Native macOS tray menu to view status and modify settings.
+- **Comprehensive Logging**: Structured JSON logging with configurable levels, file rotation, and retention management.
+- **Tray Menu**: Native macOS tray menu to view status, modify settings, and access logs.
 
 ## Installation
 
@@ -73,6 +74,7 @@ Key settings include:
 - **Auto-Resize**: Control automatic window positioning (vertical and horizontal independently)
 - **Theme**: Choose between Light, Dark, or System theme
 - **Tab Bar Height**: Customize the height of the tab bar
+- **Logging**: Configure log level (Error/Warn/Info/Debug), file output, retention period, and max file size
 
 ## Troubleshooting
 
@@ -100,6 +102,12 @@ Key settings include:
 
 - Ensure Node.js 18+ is installed
 - Clear node_modules and reinstall: `rm -rf node_modules package-lock.json && npm install`
+
+**Application issues:**
+
+- Check log files in `~/.config/vstab/logs/` for detailed error information
+- Use the tray menu "Open Logs Folder" option to access logs easily
+- Adjust log level to Debug in settings for more detailed troubleshooting information
 
 **Need help?** Check [DEVELOPERS.md](DEVELOPERS.md) for detailed troubleshooting and development information.
 

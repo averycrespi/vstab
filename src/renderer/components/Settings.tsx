@@ -1,7 +1,7 @@
 /** @jsxImportSource react */
 import { useState, useEffect } from 'react';
-import { AppSettings, Theme } from '@shared/types';
-import { debugLog } from '@shared/debug';
+import { AppSettings, Theme, LogLevel } from '@shared/types';
+import { logger } from '../logger';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -14,15 +14,17 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
 
   useEffect(() => {
     if (isOpen) {
-      debugLog('Loading settings');
+      logger.info('Loading settings', 'settings-ui');
       window.vstab
         .getSettings()
         .then((loadedSettings: AppSettings) => {
-          debugLog('Settings loaded:', loadedSettings);
+          logger.debug('Settings loaded', 'settings-ui', {
+            settings: loadedSettings,
+          });
           setSettings(loadedSettings);
         })
         .catch((error: any) => {
-          debugLog('Error loading settings:', error);
+          logger.error('Error loading settings', 'settings-ui', error);
           console.error('Error loading settings:', error);
         });
     }
@@ -48,15 +50,32 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
     updateSettings({ ...settings, autoResizeHorizontal: enabled });
   };
 
-  const handleDebugLoggingChange = (enabled: boolean) => {
+  const handleLogLevelChange = (logLevel: LogLevel) => {
     if (!settings) return;
-    updateSettings({ ...settings, debugLogging: enabled });
+    updateSettings({ ...settings, logLevel });
+  };
+
+  const handleLogToFileChange = (enabled: boolean) => {
+    if (!settings) return;
+    updateSettings({ ...settings, logToFile: enabled });
+  };
+
+  const handleLogRetentionChange = (days: number) => {
+    if (!settings) return;
+    updateSettings({ ...settings, logRetentionDays: days });
+  };
+
+  const handleMaxLogFileSizeChange = (sizeMB: number) => {
+    if (!settings) return;
+    updateSettings({ ...settings, maxLogFileSize: sizeMB });
   };
 
   const updateSettings = async (newSettings: AppSettings) => {
     setSaving(true);
     try {
-      debugLog('Updating settings:', newSettings);
+      logger.info('Updating settings', 'settings-ui', {
+        settings: newSettings,
+      });
       const updatedSettings = await window.vstab.updateSettings(newSettings);
       setSettings(updatedSettings);
 
@@ -77,7 +96,7 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
         await window.vstab.resizeWindows(updatedSettings.tabBarHeight);
       }
     } catch (error: any) {
-      debugLog('Error updating settings:', error);
+      logger.error('Error updating settings', 'settings-ui', error);
       console.error('Error updating settings:', error);
     } finally {
       setSaving(false);
@@ -159,18 +178,75 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
           </label>
         </div>
 
-        {/* Debug Logging */}
+        {/* Logging Settings */}
         <div className="mb-6">
-          <label className="flex items-center text-sm text-[var(--color-vscode-text)]">
+          <h3 className="text-sm font-medium mb-3 text-[var(--color-vscode-text)]">
+            Logging Settings
+          </h3>
+
+          {/* Log Level */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2 text-[var(--color-vscode-text)]">
+              Log Level
+            </label>
+            <select
+              value={settings.logLevel}
+              onChange={e => handleLogLevelChange(e.target.value as LogLevel)}
+              className="w-full px-3 py-2 bg-[var(--color-vscode-dark)] border border-[var(--color-vscode-border)] rounded text-[var(--color-vscode-text)]"
+              disabled={saving}
+            >
+              <option value="error">Error</option>
+              <option value="warn">Warn</option>
+              <option value="info">Info</option>
+              <option value="debug">Debug</option>
+            </select>
+          </div>
+
+          {/* Log to File */}
+          <div className="mb-4">
+            <label className="flex items-center text-sm text-[var(--color-vscode-text)]">
+              <input
+                type="checkbox"
+                checked={settings.logToFile}
+                onChange={e => handleLogToFileChange(e.target.checked)}
+                className="mr-2"
+                disabled={saving}
+              />
+              Log to File
+            </label>
+          </div>
+
+          {/* Log Retention */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2 text-[var(--color-vscode-text)]">
+              Log Retention: {settings.logRetentionDays} days
+            </label>
             <input
-              type="checkbox"
-              checked={settings.debugLogging}
-              onChange={e => handleDebugLoggingChange(e.target.checked)}
-              className="mr-2"
+              type="range"
+              min="1"
+              max="30"
+              value={settings.logRetentionDays}
+              onChange={e => handleLogRetentionChange(Number(e.target.value))}
+              className="w-full"
               disabled={saving}
             />
-            Enable Debug Logging
-          </label>
+          </div>
+
+          {/* Max Log File Size */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2 text-[var(--color-vscode-text)]">
+              Max Log File Size: {settings.maxLogFileSize}MB
+            </label>
+            <input
+              type="range"
+              min="1"
+              max="100"
+              value={settings.maxLogFileSize}
+              onChange={e => handleMaxLogFileSizeChange(Number(e.target.value))}
+              className="w-full"
+              disabled={saving}
+            />
+          </div>
         </div>
 
         {/* Close Button */}

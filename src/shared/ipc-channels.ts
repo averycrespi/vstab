@@ -23,6 +23,11 @@ export const IPC_CHANNELS = {
   TRAY_TOGGLE_VISIBILITY: 'tray:toggle-visibility',
   TRAY_UPDATE_MENU: 'tray:update-menu',
 
+  // Logging
+  LOGS_GET_DIRECTORY: 'logs:get-directory',
+  LOGS_GET_FILES: 'logs:get-files',
+  LOGS_READ_FILE: 'logs:read-file',
+
   // System
   SYSTEM_FRONTMOST_APP: 'system:frontmost-app',
   SYSTEM_DISPLAY_INFO: 'system:display-info',

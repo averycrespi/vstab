@@ -5,10 +5,10 @@ import Settings from './components/Settings';
 import { useWindowVisibility } from './hooks/useWindowVisibility';
 import { useTabOrder } from './hooks/useTabOrder';
 import { useTheme } from './hooks/useTheme';
-import { debugLog } from '@shared/debug';
+import { logger } from './logger';
 
 function App() {
-  debugLog('App component initializing');
+  logger.info('App component initializing', 'renderer');
   const [windows, setWindows] = useState<VSCodeWindow[]>([]);
   const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -19,58 +19,60 @@ function App() {
 
   // Load settings on mount
   useEffect(() => {
-    debugLog('Loading settings');
+    logger.info('Loading settings', 'renderer');
     window.vstab
       .getSettings()
       .then((loadedSettings: AppSettings) => {
-        debugLog('Settings loaded:', loadedSettings);
+        logger.debug('Settings loaded', 'renderer', {
+          settings: loadedSettings,
+        });
         setSettings(loadedSettings);
         setTheme(loadedSettings.theme);
 
-        // Update debug mode
-        if (loadedSettings.debugLogging) {
-          (global as any).DEBUG_MODE = true;
-        }
+        // Settings loaded successfully
       })
       .catch((error: any) => {
-        debugLog('Error loading settings:', error);
+        logger.error('Error loading settings', 'renderer', error);
         console.error('Error loading settings:', error);
       });
   }, [setTheme]);
 
   // Listen for settings changes
   useEffect(() => {
-    debugLog('Setting up settings change listener');
+    logger.debug('Setting up settings change listener', 'renderer');
     window.vstab.onSettingsChanged((updatedSettings: AppSettings) => {
-      debugLog('Received settings change notification:', updatedSettings);
+      logger.info('Received settings change notification', 'renderer', {
+        settings: updatedSettings,
+      });
       setSettings(updatedSettings);
       setTheme(updatedSettings.theme);
 
-      // Update debug mode
-      if (updatedSettings.debugLogging) {
-        (global as any).DEBUG_MODE = true;
-      } else {
-        (global as any).DEBUG_MODE = false;
-      }
+      // Settings updated successfully
     });
   }, [setTheme]);
 
   useEffect(() => {
-    debugLog('Setting up window update listener');
+    logger.debug('Setting up window update listener', 'renderer');
     // Listen for window updates
     window.vstab.onWindowsUpdate(updatedWindows => {
       // Handle null/undefined updatedWindows gracefully
       if (!updatedWindows || !Array.isArray(updatedWindows)) {
-        debugLog('Received invalid window update data:', updatedWindows);
+        logger.warn('Received invalid window update data', 'renderer', {
+          data: updatedWindows,
+        });
         return;
       }
 
-      debugLog('Received window update:', updatedWindows.length, 'windows');
+      logger.debug('Received window update', 'renderer', {
+        windowCount: updatedWindows.length,
+      });
       setWindows(updatedWindows);
 
       // Set first window as active if none selected
       if (!activeWindowId && updatedWindows.length > 0) {
-        debugLog('Setting first window as active:', updatedWindows[0].id);
+        logger.debug('Setting first window as active', 'renderer', {
+          windowId: updatedWindows[0].id,
+        });
         setActiveWindowId(updatedWindows[0].id);
       }
     });
@@ -82,9 +84,11 @@ function App() {
       settings &&
       (settings.autoResizeVertical || settings.autoResizeHorizontal)
     ) {
-      debugLog('Requesting window resize to height', settings.tabBarHeight);
+      logger.debug('Requesting window resize', 'renderer', {
+        height: settings.tabBarHeight,
+      });
       window.vstab.resizeWindows(settings.tabBarHeight).catch(error => {
-        debugLog('Error resizing windows:', error);
+        logger.error('Error resizing windows', 'renderer', error);
         console.error('Error resizing windows:', error);
       });
     }
@@ -92,23 +96,23 @@ function App() {
 
   const handleTabClick = useCallback(
     async (windowId: string) => {
-      debugLog('Tab clicked:', windowId);
+      logger.debug('Tab clicked:', windowId);
       setActiveWindowId(windowId);
       try {
         await window.vstab.focusWindow(windowId);
-        debugLog('Tab focus completed for:', windowId);
+        logger.debug('Tab focus completed for:', windowId);
 
         // Resize windows after focusing if auto-resize is enabled
         if (
           settings &&
           (settings.autoResizeVertical || settings.autoResizeHorizontal)
         ) {
-          debugLog('Triggering window resize after tab click');
+          logger.debug('Triggering window resize after tab click');
           await window.vstab.resizeWindows(settings.tabBarHeight);
-          debugLog('Window resize completed after tab click');
+          logger.debug('Window resize completed after tab click');
         }
       } catch (error) {
-        debugLog('Error in tab click handler:', error);
+        logger.error('Error in tab click handler', 'renderer', error);
         console.error('Error in tab click handler:', error);
       }
     },
@@ -117,7 +121,7 @@ function App() {
 
   const handleDragStart = useCallback(
     (e: React.DragEvent, windowId: string) => {
-      debugLog('Drag started for tab:', windowId);
+      logger.debug('Drag started for tab:', windowId);
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', windowId);
     },
@@ -133,7 +137,7 @@ function App() {
     (e: React.DragEvent, targetId: string) => {
       e.preventDefault();
       const draggedId = e.dataTransfer.getData('text/plain');
-      debugLog('Drop event - dragged:', draggedId, 'target:', targetId);
+      logger.debug('Drop event', 'renderer', { draggedId, targetId });
 
       if (draggedId !== targetId) {
         const newOrder = [...orderedWindows];
@@ -141,16 +145,14 @@ function App() {
         const targetIndex = newOrder.findIndex(w => w.id === targetId);
 
         if (draggedIndex !== -1 && targetIndex !== -1) {
-          debugLog(
-            'Reordering tabs - from index',
-            draggedIndex,
-            'to index',
-            targetIndex
-          );
+          logger.debug('Reordering tabs', 'renderer', {
+            fromIndex: draggedIndex,
+            toIndex: targetIndex,
+          });
           const [draggedWindow] = newOrder.splice(draggedIndex, 1);
           newOrder.splice(targetIndex, 0, draggedWindow);
           const newOrderIds = newOrder.map(w => w.id);
-          debugLog('New tab order:', newOrderIds);
+          logger.debug('New tab order', 'renderer', { order: newOrderIds });
           reorderWindows(newOrderIds);
         }
       }
@@ -159,16 +161,14 @@ function App() {
   );
 
   if (!isVisible) {
-    debugLog('App not visible, rendering null');
+    logger.debug('App not visible, rendering null');
     return null;
   }
 
-  debugLog(
-    'Rendering app with',
-    orderedWindows.length,
-    'windows, active:',
-    activeWindowId
-  );
+  logger.debug('Rendering app', 'renderer', {
+    windowCount: orderedWindows.length,
+    activeWindowId,
+  });
 
   const tabBarHeight = settings?.tabBarHeight || 35;
 
@@ -184,7 +184,10 @@ function App() {
       >
         <div className="flex items-center flex-1">
           {orderedWindows.map(window => {
-            debugLog('Rendering tab for window:', window.id, window.title);
+            logger.debug('Rendering tab for window', 'renderer', {
+              windowId: window.id,
+              title: window.title,
+            });
             return (
               <Tab
                 key={window.id}

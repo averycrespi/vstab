@@ -1,29 +1,41 @@
 import { useState, useEffect } from 'react';
-import { debugLog } from '@shared/debug';
+import { logger } from '../logger';
 import { AppSettings } from '@shared/types';
 
 export function useWindowVisibility() {
-  debugLog('Initializing window visibility hook');
+  logger.debug('Initializing window visibility hook', 'useWindowVisibility');
   const [isVisible, setIsVisible] = useState(true);
   const [settings, setSettings] = useState<AppSettings | null>(null);
 
   // Load settings when hook initializes
   useEffect(() => {
-    debugLog('Loading settings for visibility hook');
+    logger.debug('Loading settings for visibility hook', 'useWindowVisibility');
     window.vstab
       .getSettings()
       .then((loadedSettings: AppSettings) => {
-        debugLog('Visibility hook - settings loaded:', loadedSettings);
+        logger.debug(
+          'Visibility hook - settings loaded',
+          'useWindowVisibility',
+          { settings: loadedSettings }
+        );
         setSettings(loadedSettings);
       })
       .catch((error: any) => {
-        debugLog('Error loading settings in visibility hook:', error);
+        logger.error(
+          'Error loading settings in visibility hook',
+          'useWindowVisibility',
+          error
+        );
         console.error('Error loading settings in visibility hook:', error);
       });
 
     // Listen for settings changes
     const handleSettingsChanged = (updatedSettings: AppSettings) => {
-      debugLog('Visibility hook - settings changed:', updatedSettings);
+      logger.debug(
+        'Visibility hook - settings changed',
+        'useWindowVisibility',
+        { settings: updatedSettings }
+      );
       setSettings(updatedSettings);
     };
 
@@ -42,7 +54,10 @@ export function useWindowVisibility() {
       try {
         // If autoHide is disabled, always show the tab bar
         if (settings && !settings.autoHide) {
-          debugLog('Auto-hide disabled, showing tab bar');
+          logger.debug(
+            'Auto-hide disabled, showing tab bar',
+            'useWindowVisibility'
+          );
           setIsVisible(true);
           return;
         }
@@ -60,31 +75,33 @@ export function useWindowVisibility() {
           frontmostApp.includes('Code') || // Case-sensitive check for "Code"
           frontmostApp.includes('VSCode');
 
-        debugLog(
-          'Visibility check - frontmost:',
+        logger.debug('Visibility check', 'useWindowVisibility', {
           frontmostApp,
-          'shouldShow:',
           shouldShow,
-          'autoHide:',
-          settings?.autoHide
-        );
+          autoHide: settings?.autoHide,
+        });
         setIsVisible(shouldShow);
       } catch (error) {
-        debugLog(
-          `Error checking visibility (attempt ${retryCount + 1}):`,
-          error
-        );
+        logger.error('Error checking visibility', 'useWindowVisibility', {
+          attempt: retryCount + 1,
+          error,
+        });
 
         // Retry logic for failed yabai queries
         if (retryCount < 2) {
-          debugLog(
-            `Retrying visibility check in 100ms (attempt ${retryCount + 2})`
+          logger.debug(
+            'Retrying visibility check in 100ms',
+            'useWindowVisibility',
+            { nextAttempt: retryCount + 2 }
           );
           setTimeout(() => checkVisibility(retryCount + 1), 100);
         } else {
           console.error('Error checking visibility after retries:', error);
           // On repeated failures, default to visible to avoid hiding the tab bar indefinitely
-          debugLog('Defaulting to visible after failed retries');
+          logger.warn(
+            'Defaulting to visible after failed retries',
+            'useWindowVisibility'
+          );
           setIsVisible(true);
         }
       }
@@ -93,16 +110,22 @@ export function useWindowVisibility() {
     // Only start polling if we have settings
     if (settings !== null) {
       // Check immediately
-      debugLog('Starting initial visibility check');
+      logger.debug('Starting initial visibility check', 'useWindowVisibility');
       checkVisibility();
 
       // Then check every 250ms for more responsive detection
-      debugLog('Setting up visibility polling interval (250ms)');
+      logger.debug(
+        'Setting up visibility polling interval (250ms)',
+        'useWindowVisibility'
+      );
       intervalId = setInterval(() => checkVisibility(), 250);
     }
 
     return () => {
-      debugLog('Cleaning up visibility polling interval');
+      logger.debug(
+        'Cleaning up visibility polling interval',
+        'useWindowVisibility'
+      );
       if (intervalId) {
         clearInterval(intervalId);
       }
@@ -112,7 +135,9 @@ export function useWindowVisibility() {
   // Control actual window visibility when isVisible changes
   useEffect(() => {
     if (settings !== null) {
-      debugLog('Setting window visibility via IPC:', isVisible);
+      logger.debug('Setting window visibility via IPC', 'useWindowVisibility', {
+        isVisible,
+      });
       window.vstab.setWindowVisibility(isVisible);
     }
   }, [isVisible, settings]);

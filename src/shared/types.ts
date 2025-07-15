@@ -26,6 +26,7 @@ export interface TabOrder {
 }
 
 export type Theme = 'light' | 'dark' | 'system';
+export type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 
 export interface AppSettings {
   theme: Theme;
@@ -33,5 +34,8 @@ export interface AppSettings {
   autoHide: boolean;
   autoResizeVertical: boolean;
   autoResizeHorizontal: boolean;
-  debugLogging: boolean;
+  logLevel: LogLevel;
+  logToFile: boolean;
+  logRetentionDays: number;
+  maxLogFileSize: number;
 }

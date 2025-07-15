@@ -2,7 +2,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { createHash } from 'crypto';
 import { VSCodeWindow } from '@shared/types';
-import { debugLog } from '@shared/debug';
+import { logger } from '@shared/logger';
 import { loadSettings } from './settings';
 
 const execAsync = promisify(exec);
@@ -53,7 +53,7 @@ async function isYabaiAvailable(): Promise<boolean> {
 }
 
 async function discoverVSCodeWindowsYabai(): Promise<VSCodeWindow[]> {
-  debugLog('Starting yabai VS Code window discovery');
+  logger.debug('Starting yabai VS Code window discovery', 'windows');
 
   try {
     const { stdout } = await execAsync('yabai -m query --windows');
@@ -65,7 +65,9 @@ async function discoverVSCodeWindowsYabai(): Promise<VSCodeWindow[]> {
         window.app.includes('Visual Studio Code') || window.app.includes('Code')
     );
 
-    debugLog(`Found ${vscodeWindows.length} VS Code windows via yabai`);
+    logger.debug('Found VS Code windows via yabai', 'windows', {
+      windowCount: vscodeWindows.length,
+    });
 
     const result: VSCodeWindow[] = vscodeWindows.map(window => {
       // Extract workspace path from title
@@ -100,17 +102,19 @@ async function discoverVSCodeWindowsYabai(): Promise<VSCodeWindow[]> {
       };
     });
 
-    debugLog('Discovered windows via yabai:', result);
+    logger.debug('Discovered windows via yabai', 'windows', {
+      windows: result,
+    });
     return result;
   } catch (error) {
-    debugLog('Error executing yabai query:', error);
+    logger.error('Error executing yabai query', 'windows', error);
     console.error('Error executing yabai query:', error);
     return [];
   }
 }
 
 export async function discoverVSCodeWindows(): Promise<VSCodeWindow[]> {
-  debugLog('Starting VS Code window discovery');
+  logger.debug('Starting VS Code window discovery', 'windows');
 
   if (!(await isYabaiAvailable())) {
     throw new Error(
@@ -118,12 +122,12 @@ export async function discoverVSCodeWindows(): Promise<VSCodeWindow[]> {
     );
   }
 
-  debugLog('Using yabai for window discovery');
+  logger.info('Using yabai for window discovery', 'windows');
   return await discoverVSCodeWindowsYabai();
 }
 
 export async function focusWindow(windowId: string): Promise<void> {
-  debugLog('Focusing window:', windowId);
+  logger.info('Focusing window', 'windows', { windowId });
 
   if (!windowIdMap.has(windowId)) {
     throw new Error(`Window ID ${windowId} not found in current window map`);
@@ -131,22 +135,23 @@ export async function focusWindow(windowId: string): Promise<void> {
 
   const yabaiWindowId = windowIdMap.get(windowId)!;
   try {
-    debugLog('Focusing window via yabai:', yabaiWindowId);
+    logger.debug('Focusing window via yabai', 'windows', { yabaiWindowId });
     await execAsync(`yabai -m window --focus ${yabaiWindowId}`);
-    debugLog('Window focused successfully via yabai');
+    logger.info('Window focused successfully via yabai', 'windows');
   } catch (error) {
-    debugLog('Error focusing window via yabai:', error);
+    logger.error('Error focusing window via yabai', 'windows', error);
     throw new Error(`Failed to focus window ${windowId} via yabai: ${error}`);
   }
 }
 
 export async function hideWindow(windowId: string): Promise<void> {
-  debugLog('Hiding window:', windowId);
+  logger.debug('Hiding window', 'windows', { windowId });
 
   // Don't actually hide/minimize windows - just log the action
   // Windows will stay visible and can be switched between via the tab bar
-  debugLog(
-    'Window hide requested but not minimizing - keeping windows visible for tab switching'
+  logger.info(
+    'Window hide requested but not minimizing - keeping windows visible for tab switching',
+    'windows'
   );
 }
 
@@ -158,21 +163,23 @@ export async function getFrontmostApp(): Promise<string> {
 
     const focusedWindow = windows.find(window => window['has-focus']);
     if (focusedWindow) {
-      debugLog('Frontmost app via yabai:', focusedWindow.app);
+      logger.debug('Frontmost app via yabai', 'windows', {
+        app: focusedWindow.app,
+      });
       return focusedWindow.app;
     }
 
-    debugLog('No focused window found via yabai');
+    logger.debug('No focused window found via yabai', 'windows');
     return '';
   } catch (error) {
-    debugLog('Error getting frontmost app via yabai:', error);
+    logger.error('Error getting frontmost app via yabai', 'windows', error);
     console.error('Error getting frontmost app via yabai:', error);
     return '';
   }
 }
 
 export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
-  debugLog('Resizing VS Code windows with tab bar height:', tabBarHeight);
+  logger.info('Resizing VS Code windows', 'windows', { tabBarHeight });
 
   try {
     // Load settings to check if resizing is enabled
@@ -180,7 +187,7 @@ export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
 
     // If neither vertical nor horizontal resize is enabled, skip resizing
     if (!settings.autoResizeVertical && !settings.autoResizeHorizontal) {
-      debugLog('Window resizing disabled in settings');
+      logger.info('Window resizing disabled in settings', 'windows');
       return;
     }
 
@@ -193,7 +200,9 @@ export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
         window.app.includes('Visual Studio Code') || window.app.includes('Code')
     );
 
-    debugLog(`Found ${vscodeWindows.length} VS Code windows to resize`);
+    logger.debug('Found VS Code windows to resize', 'windows', {
+      windowCount: vscodeWindows.length,
+    });
 
     // Get display bounds to ensure proper positioning
     const { stdout: displaysOutput } = await execAsync(
@@ -228,7 +237,9 @@ export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
 
       try {
         // Use grid positioning for more reliable results
-        debugLog(`Setting window ${window.id} grid position and size`);
+        logger.debug('Setting window grid position and size', 'windows', {
+          windowId: window.id,
+        });
 
         // Only move/resize if the respective setting is enabled
         if (settings.autoResizeHorizontal || settings.autoResizeVertical) {
@@ -242,16 +253,25 @@ export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
             `yabai -m window ${window.id} --resize abs:${newWidth}:${newHeight}`
           );
 
-          debugLog(
-            `Window ${window.id} positioned at (${newX}, ${newY}) with size ${newWidth}x${newHeight}`
-          );
+          logger.info('Window positioned and resized', 'windows', {
+            windowId: window.id,
+            x: newX,
+            y: newY,
+            width: newWidth,
+            height: newHeight,
+          });
         }
       } catch (windowError) {
-        debugLog(`Error resizing individual window ${window.id}:`, windowError);
+        logger.error('Error resizing individual window', 'windows', {
+          windowId: window.id,
+          error: windowError,
+        });
 
         // Fallback: try using grid system
         try {
-          debugLog(`Trying grid fallback for window ${window.id}`);
+          logger.debug('Trying grid fallback for window', 'windows', {
+            windowId: window.id,
+          });
           if (settings.autoResizeVertical && settings.autoResizeHorizontal) {
             await execAsync(`yabai -m window ${window.id} --grid 1:1:0:0:1:1`);
           }
@@ -262,17 +282,17 @@ export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
             `yabai -m window ${window.id} --resize abs:${newWidth}:${newHeight}`
           );
         } catch (gridError) {
-          debugLog(
-            `Grid fallback also failed for window ${window.id}:`,
-            gridError
-          );
+          logger.error('Grid fallback also failed for window', 'windows', {
+            windowId: window.id,
+            error: gridError,
+          });
         }
       }
     }
 
-    debugLog('VS Code window resize process completed');
+    logger.info('VS Code window resize process completed', 'windows');
   } catch (error) {
-    debugLog('Error resizing windows via yabai:', error);
+    logger.error('Error resizing windows via yabai', 'windows', error);
     console.error('Error resizing windows via yabai:', error);
   }
 }

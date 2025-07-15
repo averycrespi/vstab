@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc-channels';
 import { VSCodeWindow, AppSettings } from '@shared/types';
+import { LogEntry } from '@shared/logger';
 
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer without exposing the entire object
@@ -72,6 +73,19 @@ contextBridge.exposeInMainWorld('vstab', {
   setWindowVisibility: (visible: boolean) => {
     return ipcRenderer.invoke(IPC_CHANNELS.WINDOW_SET_VISIBILITY, visible);
   },
+
+  // Logging
+  getLogsDirectory: () => {
+    return ipcRenderer.invoke(IPC_CHANNELS.LOGS_GET_DIRECTORY);
+  },
+
+  getLogFiles: () => {
+    return ipcRenderer.invoke(IPC_CHANNELS.LOGS_GET_FILES);
+  },
+
+  readLogFile: (filename: string, lines?: number) => {
+    return ipcRenderer.invoke(IPC_CHANNELS.LOGS_READ_FILE, filename, lines);
+  },
 });
 
 // Type definitions for window.vstab
@@ -89,6 +103,9 @@ export interface VstabAPI {
   offSettingsChanged: (callback: (settings: AppSettings) => void) => void;
   updateTrayMenu: () => Promise<void>;
   setWindowVisibility: (visible: boolean) => Promise<void>;
+  getLogsDirectory: () => Promise<string>;
+  getLogFiles: () => Promise<string[]>;
+  readLogFile: (filename: string, lines?: number) => Promise<LogEntry[]>;
 }
 
 declare global {

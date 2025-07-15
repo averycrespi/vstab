@@ -12,7 +12,10 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoHide: true,
   autoResizeVertical: true,
   autoResizeHorizontal: true,
-  debugLogging: false,
+  logLevel: 'info',
+  logToFile: true,
+  logRetentionDays: 7,
+  maxLogFileSize: 10,
 };
 
 export async function loadSettings(): Promise<AppSettings> {

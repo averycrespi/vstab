@@ -3,7 +3,8 @@ import * as path from 'path';
 import { IPC_CHANNELS } from '@shared/ipc-channels';
 import { discoverVSCodeWindows } from './windows';
 import { setupIPCHandlers } from './ipc';
-import { debugLog, setDebugMode } from '@shared/debug';
+import { logger } from '@shared/logger';
+import { initializeLogging, updateLoggingSettings } from './logger-init';
 import { initializeSettings, loadSettings, saveSettings } from './settings';
 
 let mainWindow: BrowserWindow | null = null;
@@ -32,14 +33,14 @@ function getAppVersion(): string {
 }
 
 async function createTrayIcon() {
-  debugLog('Creating tray icon');
+  logger.info('Creating tray icon', 'main');
 
   // Create tray icon path - use proper vstab icon
   const trayIconPath = path.join(process.cwd(), 'assets', 'tray-icon.png');
 
   try {
     tray = new Tray(trayIconPath);
-    debugLog('Tray icon created successfully');
+    logger.info('Tray icon created successfully', 'main');
 
     // Update tray menu
     await updateTrayMenu();
@@ -49,18 +50,18 @@ async function createTrayIcon() {
 
     // Handle tray click - always show context menu
     tray.on('click', () => {
-      debugLog('Tray icon clicked - showing context menu');
+      logger.debug('Tray icon clicked - showing context menu', 'main');
       tray?.popUpContextMenu();
     });
   } catch (error) {
-    debugLog('Error creating tray icon:', error);
+    logger.error('Error creating tray icon', 'main', error);
     console.error('Error creating tray icon:', error);
   }
 }
 
 // Toggle functions for boolean settings
 async function toggleAutoHide() {
-  debugLog('Toggling auto hide setting');
+  logger.debug('Toggling auto hide setting', 'main');
   const settings = await loadSettings();
   const newSettings = { ...settings, autoHide: !settings.autoHide };
   await saveSettings(newSettings);
@@ -68,15 +69,15 @@ async function toggleAutoHide() {
   // Notify renderer about settings change
   if (mainWindow) {
     mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, newSettings);
-    debugLog('Settings change notification sent to renderer');
+    logger.info('Settings change notification sent to renderer', 'main');
   }
 
   await updateTrayMenu();
-  debugLog('Auto hide toggled to:', newSettings.autoHide);
+  logger.info('Auto hide toggled', 'main', { autoHide: newSettings.autoHide });
 }
 
 async function toggleAutoResizeVertical() {
-  debugLog('Toggling auto resize vertical setting');
+  logger.debug('Toggling auto resize vertical setting', 'main');
   const settings = await loadSettings();
   const newSettings = {
     ...settings,
@@ -87,15 +88,17 @@ async function toggleAutoResizeVertical() {
   // Notify renderer about settings change
   if (mainWindow) {
     mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, newSettings);
-    debugLog('Settings change notification sent to renderer');
+    logger.info('Settings change notification sent to renderer', 'main');
   }
 
   await updateTrayMenu();
-  debugLog('Auto resize vertical toggled to:', newSettings.autoResizeVertical);
+  logger.info('Auto resize vertical toggled', 'main', {
+    autoResizeVertical: newSettings.autoResizeVertical,
+  });
 }
 
 async function toggleAutoResizeHorizontal() {
-  debugLog('Toggling auto resize horizontal setting');
+  logger.debug('Toggling auto resize horizontal setting', 'main');
   const settings = await loadSettings();
   const newSettings = {
     ...settings,
@@ -106,39 +109,75 @@ async function toggleAutoResizeHorizontal() {
   // Notify renderer about settings change
   if (mainWindow) {
     mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, newSettings);
-    debugLog('Settings change notification sent to renderer');
+    logger.info('Settings change notification sent to renderer', 'main');
   }
 
   await updateTrayMenu();
-  debugLog(
-    'Auto resize horizontal toggled to:',
-    newSettings.autoResizeHorizontal
-  );
+  logger.info('Auto resize horizontal toggled', 'main', {
+    autoResizeHorizontal: newSettings.autoResizeHorizontal,
+  });
 }
 
-async function toggleDebugLogging() {
-  debugLog('Toggling debug logging setting');
+async function cycleLogLevel() {
+  logger.debug('Cycling log level setting', 'main');
   const settings = await loadSettings();
-  const newSettings = { ...settings, debugLogging: !settings.debugLogging };
-  await saveSettings(newSettings);
+  const levels = ['error', 'warn', 'info', 'debug'] as const;
+  const currentIndex = levels.indexOf(settings.logLevel);
+  const nextIndex = (currentIndex + 1) % levels.length;
+  const newSettings = { ...settings, logLevel: levels[nextIndex] };
 
-  // Update global debug mode
-  setDebugMode(newSettings.debugLogging);
+  await saveSettings(newSettings);
+  updateLoggingSettings(newSettings);
 
   // Notify renderer about settings change
   if (mainWindow) {
     mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, newSettings);
-    debugLog('Settings change notification sent to renderer');
+    logger.info('Settings change notification sent to renderer', 'main');
   }
 
   await updateTrayMenu();
-  debugLog('Debug logging toggled to:', newSettings.debugLogging);
+  logger.info('Log level cycled', 'main', {
+    from: settings.logLevel,
+    to: newSettings.logLevel,
+  });
+}
+
+async function toggleLogToFile() {
+  logger.debug('Toggling log to file setting', 'main');
+  const settings = await loadSettings();
+  const newSettings = { ...settings, logToFile: !settings.logToFile };
+  await saveSettings(newSettings);
+  updateLoggingSettings(newSettings);
+
+  // Notify renderer about settings change
+  if (mainWindow) {
+    mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, newSettings);
+    logger.info('Settings change notification sent to renderer', 'main');
+  }
+
+  await updateTrayMenu();
+  logger.info('Log to file toggled', 'main', {
+    logToFile: newSettings.logToFile,
+  });
+}
+
+async function openLogsFolder() {
+  logger.debug('Opening logs folder', 'main');
+  try {
+    const { getFileLogger } = await import('./file-logger');
+    const fileLogger = getFileLogger();
+    const logDir = await fileLogger.getLogDirectory();
+    shell.openPath(logDir);
+    logger.info('Logs folder opened', 'main', { logDir });
+  } catch (error) {
+    logger.error('Failed to open logs folder', 'main', error);
+  }
 }
 
 async function updateTrayMenu() {
   if (!tray) return;
 
-  debugLog('Updating tray menu');
+  logger.debug('Updating tray menu', 'main');
 
   const yabaiRunning = await getYabaiStatus();
   const appVersion = getAppVersion();
@@ -148,7 +187,7 @@ async function updateTrayMenu() {
     {
       label: `vstab v${appVersion}`,
       click: () => {
-        debugLog('Opening GitHub repository');
+        logger.debug('Opening GitHub repository', 'main');
         shell.openExternal('https://github.com/averycrespi/vstab');
       },
     },
@@ -166,14 +205,14 @@ async function updateTrayMenu() {
           label: `Theme: ${settings.theme}`,
           click: () => {
             // TODO: Open settings or cycle theme
-            debugLog('Theme setting clicked');
+            logger.debug('Theme setting clicked', 'main');
           },
         },
         {
           label: `Tab Bar Height: ${settings.tabBarHeight}px`,
           click: () => {
             // TODO: Open settings
-            debugLog('Tab bar height setting clicked');
+            logger.debug('Tab bar height setting clicked', 'main');
           },
         },
         { type: 'separator' },
@@ -195,11 +234,20 @@ async function updateTrayMenu() {
           checked: settings.autoResizeHorizontal,
           click: toggleAutoResizeHorizontal,
         },
+        { type: 'separator' },
         {
-          label: 'Debug Logging',
+          label: `Log Level: ${settings.logLevel.toUpperCase()}`,
+          click: cycleLogLevel,
+        },
+        {
+          label: 'Log to File',
           type: 'checkbox',
-          checked: settings.debugLogging,
-          click: toggleDebugLogging,
+          checked: settings.logToFile,
+          click: toggleLogToFile,
+        },
+        {
+          label: 'Open Logs Folder',
+          click: openLogsFolder,
         },
       ],
     },
@@ -207,7 +255,7 @@ async function updateTrayMenu() {
     {
       label: 'Quit vstab',
       click: () => {
-        debugLog('Quit clicked from tray menu');
+        logger.info('Quit clicked from tray menu', 'main');
         app.quit();
       },
     },
@@ -216,14 +264,14 @@ async function updateTrayMenu() {
   const contextMenu = Menu.buildFromTemplate(menuTemplate as any);
   tray.setContextMenu(contextMenu);
 
-  debugLog('Tray menu updated successfully');
+  logger.debug('Tray menu updated successfully', 'main');
 }
 
 async function createWindow() {
-  debugLog('Creating main window');
+  logger.info('Creating main window', 'main');
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width } = primaryDisplay.workAreaSize;
-  debugLog('Screen dimensions:', { width, height: TAB_BAR_HEIGHT });
+  logger.debug('Screen dimensions', 'main', { width, height: TAB_BAR_HEIGHT });
 
   mainWindow = new BrowserWindow({
     width,
@@ -246,11 +294,11 @@ async function createWindow() {
   });
 
   const htmlPath = path.join(__dirname, 'index.html');
-  debugLog('Loading HTML file:', htmlPath);
+  logger.debug('Loading HTML file', 'main', { htmlPath });
   mainWindow.loadFile(htmlPath);
 
   if (process.env.NODE_ENV === 'development') {
-    debugLog('Opening dev tools in development mode');
+    logger.debug('Opening dev tools in development mode', 'main');
     mainWindow.webContents.openDevTools({ mode: 'detach' });
   }
 
@@ -259,25 +307,27 @@ async function createWindow() {
   });
 
   // Start polling for VS Code windows
-  debugLog('Starting window polling');
+  logger.info('Starting window polling', 'main');
   startWindowPolling();
 
   // Set up IPC handlers
-  debugLog('Setting up IPC handlers');
+  logger.info('Setting up IPC handlers', 'main');
   setupIPCHandlers(mainWindow);
 }
 
 function startWindowPolling() {
   const pollWindows = async () => {
     if (!mainWindow) {
-      debugLog('Main window not available, skipping poll');
+      logger.warn('Main window not available, skipping poll', 'main');
       return;
     }
 
     try {
-      debugLog('Polling for VS Code windows');
+      logger.debug('Polling for VS Code windows', 'main');
       const windows = await discoverVSCodeWindows();
-      debugLog('Sending windows to renderer:', windows.length, 'windows');
+      logger.debug('Sending windows to renderer', 'main', {
+        windowCount: windows.length,
+      });
       mainWindow.webContents.send(IPC_CHANNELS.VSCODE_WINDOWS_LIST, windows);
 
       // Update tray menu with current status
@@ -285,40 +335,34 @@ function startWindowPolling() {
         await updateTrayMenu();
       }
     } catch (error) {
-      debugLog('Error discovering windows:', error);
+      logger.error('Error discovering windows', 'main', error);
       console.error('Error discovering windows:', error);
     }
   };
 
   // Poll immediately
-  debugLog('Starting initial window poll');
+  logger.info('Starting initial window poll', 'main');
   pollWindows();
 
   // Then poll every 1 second
-  debugLog('Setting up window polling interval (1000ms)');
+  logger.info('Setting up window polling interval (1000ms)', 'main');
   pollInterval = setInterval(pollWindows, 1000);
 }
 
 app.whenReady().then(async () => {
-  // Initialize settings and set debug mode
+  // Initialize settings and logging
   const settings = await initializeSettings();
-  setDebugMode(settings.debugLogging || process.env.NODE_ENV === 'development');
+  await initializeLogging(settings);
 
-  if (settings.debugLogging) {
-    debugLog('Debug mode enabled from settings');
-  } else if (process.env.NODE_ENV === 'development') {
-    debugLog('Debug mode enabled for development');
-  }
-
-  debugLog('App ready, creating window');
+  logger.info('App ready, creating window', 'main');
   createWindow();
 
-  debugLog('Creating tray icon');
+  logger.info('Creating tray icon', 'main');
   createTrayIcon();
 
   // Listen for tray menu update requests
   (process as any).on('tray-update-menu', async () => {
-    debugLog('Received tray menu update event');
+    logger.debug('Received tray menu update event', 'main');
     if (tray) {
       await updateTrayMenu();
     }
@@ -326,7 +370,7 @@ app.whenReady().then(async () => {
 
   // Listen for tray settings changes
   (process as any).on('tray-settings-changed', async () => {
-    debugLog('Received tray settings changed event');
+    logger.debug('Received tray settings changed event', 'main');
     if (tray) {
       // Update existing tray menu
       await updateTrayMenu();
@@ -335,27 +379,27 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
-  debugLog('All windows closed');
+  logger.info('All windows closed', 'main');
   if (pollInterval) {
-    debugLog('Clearing polling interval');
+    logger.info('Clearing polling interval', 'main');
     clearInterval(pollInterval);
   }
   if (process.platform !== 'darwin') {
-    debugLog('Quitting app (non-macOS)');
+    logger.info('Quitting app (non-macOS)', 'main');
     app.quit();
   }
 });
 
 app.on('activate', () => {
-  debugLog('App activated');
+  logger.info('App activated', 'main');
   if (mainWindow === null) {
-    debugLog('No main window, creating new one');
+    logger.info('No main window, creating new one', 'main');
     createWindow();
   }
 });
 
 app.on('before-quit', () => {
-  debugLog('App about to quit, cleaning up tray');
+  logger.info('App about to quit, cleaning up tray', 'main');
   if (tray) {
     tray.destroy();
     tray = null;
@@ -363,5 +407,5 @@ app.on('before-quit', () => {
 });
 
 // Prevent app from showing in dock
-debugLog('Hiding app from dock');
+logger.info('Hiding app from dock', 'main');
 app.dock?.hide();

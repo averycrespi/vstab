@@ -26,16 +26,20 @@ vstab/
 │   │   ├── index.ts    # App entry point and tray menu management
 │   │   ├── windows.ts  # yabai window discovery and management
 │   │   ├── ipc.ts      # IPC handlers including tray communication
-│   │   ├── persistence.ts # Tab order storage
-│   │   └── settings.ts # User settings persistence
+│   │   ├── persistence.ts # Tab order storage with logging
+│   │   ├── settings.ts # User settings persistence
+│   │   ├── file-logger.ts # File-based logging with rotation
+│   │   └── logger-init.ts # Logging system initialization
 │   ├── renderer/       # React UI (browser environment)
-│   │   ├── App.tsx     # Main component
-│   │   ├── components/ # UI components (Tab, Settings)
+│   │   ├── App.tsx     # Main component with logging
+│   │   ├── logger.ts   # Renderer-specific logger configuration
+│   │   ├── components/ # UI components (Tab, Settings with logging UI)
 │   │   └── hooks/      # React hooks (useTabOrder, useTheme, useWindowVisibility)
 │   ├── shared/         # Shared types and constants
-│   │   ├── types.ts    # Includes tray settings types
-│   │   └── ipc-channels.ts # Includes tray IPC channels
-│   └── preload.ts      # Secure IPC bridge
+│   │   ├── types.ts    # Includes logging settings types
+│   │   ├── logger.ts   # Core structured logging system
+│   │   └── ipc-channels.ts # Includes logging IPC channels
+│   └── preload.ts      # Secure IPC bridge with logging methods
 ├── assets/            # Tray icon assets
 │   ├── tray-icon.png      # Main tray icon
 │   ├── tray-icon@2x.png   # High-resolution tray icon
@@ -75,7 +79,11 @@ vstab/
 - **Auto Resize Vertical**: Toggle vertical window resizing - default: `true`
 - **Auto Resize Horizontal**: Toggle horizontal window resizing - default: `true`
 - **Auto Hide**: Show tab bar only when VS Code is active - default: `true`
-- **Debug Logging**: Enable/disable debug output - default: `false`
+- **Logging Settings**:
+  - **Log Level**: Error, Warn, Info, or Debug - default: `info`
+  - **Log to File**: Enable/disable file logging - default: `true`
+  - **Log Retention Days**: Number of days to keep log files (1-30) - default: `7`
+  - **Max Log File Size**: Maximum log file size in MB (1-100) - default: `10`
 - Settings UI accessible via gear icon in tab bar
 - Real-time settings updates with immediate effect
 
@@ -108,7 +116,10 @@ Settings ▶                     # Submenu
 ├── Theme: System               # Current theme display
 ├── Tab Bar Height: 45px        # Current height display
 ├── Auto Hide: On               # Auto-hide status
-└── Tray Click: Toggle Window   # Click action behavior
+├── ─────────────────          # Separator
+├── Log Level: INFO             # Current log level (clickable to cycle)
+├── Log to File: On             # File logging toggle
+└── Open Logs Folder            # Opens log directory in Finder
 ─────────────────────────────
 Quit vstab                      # Terminate app
 ```
@@ -118,6 +129,91 @@ Quit vstab                      # Terminate app
 - Main process handles yabai operations and file persistence
 - Renderer process handles UI and user interactions
 - Preload script provides secure IPC bridge
+
+### Logging System
+
+vstab implements a comprehensive structured logging system with file rotation, configurable levels, and both console and file output.
+
+#### Architecture
+
+- **Core Logger** (`src/shared/logger.ts`): Structured logging with TypeScript interfaces
+- **File Logger** (`src/main/file-logger.ts`): File-based persistence with automatic rotation
+- **Logger Initialization** (`src/main/logger-init.ts`): Connects file logging to main logger
+- **Renderer Logger** (`src/renderer/logger.ts`): Browser-optimized configuration
+
+#### Log Levels
+
+- **Error**: Critical failures, system errors, unrecoverable issues
+- **Warn**: Recoverable issues, missing resources, validation failures
+- **Info**: Application lifecycle events, user actions, important state changes
+- **Debug**: Detailed operation traces, IPC messages, timing information
+
+#### Log Storage
+
+- **Location**: `~/.config/vstab/logs/`
+- **Format**: JSON structured logs for easy parsing and analysis
+- **Rotation**: Daily rotation when files exceed size limit (configurable 1-100MB)
+- **Retention**: Automatic cleanup after configurable days (1-30 days)
+- **File Naming**: `vstab-YYYY-MM-DD.log` with timestamp suffixes for rotated files
+
+#### Log Entry Structure
+
+```json
+{
+  "timestamp": "2024-01-15T10:30:45.123Z",
+  "level": "info",
+  "message": "Window focused successfully",
+  "context": "windows",
+  "data": {
+    "windowId": "abc123",
+    "title": "my-project — /Users/user/projects/my-project"
+  },
+  "source": {
+    "file": "windows.ts",
+    "function": "focusWindow",
+    "line": 95
+  }
+}
+```
+
+#### Usage Examples
+
+```typescript
+// Import logger in any file
+import { logger } from '@shared/logger';
+
+// Basic logging with context
+logger.info('Application started', 'main');
+logger.error('Failed to connect to yabai', 'windows', error);
+
+// Structured data logging
+logger.debug('Window discovered', 'windows', {
+  windowId: window.id,
+  title: window.title,
+  isActive: window.isActive,
+});
+
+// File-specific context helps with debugging
+logger.warn('Invalid settings detected', 'settings', {
+  invalidKeys: ['unknownOption'],
+  defaults: DEFAULT_SETTINGS,
+});
+```
+
+#### Configuration
+
+- **Runtime Configuration**: Log level and file output controlled via user settings
+- **Development Mode**: Renderer process logs to console for debugging
+- **Production Mode**: Main process handles all file logging
+- **IPC Integration**: Logging settings sync between main and renderer processes
+
+#### Troubleshooting with Logs
+
+1. **Application Issues**: Check `info` level logs for lifecycle events
+2. **yabai Problems**: Look for `error` level logs in `windows` context
+3. **Settings Issues**: Check `settings` context for validation errors
+4. **Performance Analysis**: Use `debug` level for detailed timing information
+5. **User Actions**: Track user interactions via `info` level logs in `renderer` context
 
 ## Build System
 
@@ -377,6 +473,10 @@ npm run test:watch
 - **Window resizing issues**: Check `autoResizeVertical` and `autoResizeHorizontal` settings - resizing now happens on every tab click
 - **Tray icon not appearing**: Check icon assets exist in `assets/` directory
 - **Tray menu not updating**: Verify settings changes trigger `TRAY_UPDATE_MENU` IPC calls
+- **Logging issues**: Check `~/.config/vstab/logs/` directory exists and is writable
+- **Log files not rotating**: Verify `maxLogFileSize` and `logRetentionDays` settings are valid
+- **Missing logs**: Ensure `logToFile` setting is enabled and `logLevel` is appropriate
+- **Log directory access**: Use "Open Logs Folder" in tray menu or settings UI to access log files
 
 ### Platform Requirements
 
@@ -435,9 +535,11 @@ npm run test:watch
 10. **Test window operations**: Verify yabai commands work as expected
 11. **Maintain tab order stability**: Don't reorder on focus changes
 12. **Maintain security**: Keep contextIsolation enabled in preload
-13. **Write tests for new features**: Add unit, integration, and E2E tests as appropriate
-14. **Test settings functionality**: Verify settings persistence, theme switching, and window resizing
-15. **Update tests for changes**: When modifying components, update corresponding test mocks and expectations
-16. **ALWAYS UPDATE DOCUMENTATION**: After implementing features or making significant changes, update documentation (CLAUDE.md, README.md, DEVELOPERS.md, etc.) to reflect the new functionality, architecture changes, file structure updates, and any new best practices or troubleshooting steps
+13. **Use structured logging**: Import logger from `@shared/logger` and use appropriate levels with context
+14. **Write tests for new features**: Add unit, integration, and E2E tests as appropriate
+15. **Test settings functionality**: Verify settings persistence, theme switching, window resizing, and logging configuration
+16. **Update tests for changes**: When modifying components, update corresponding test mocks and expectations
+17. **Monitor logs during development**: Use appropriate log levels and check `~/.config/vstab/logs/` for issues
+18. **ALWAYS UPDATE DOCUMENTATION**: After implementing features or making significant changes, update documentation (CLAUDE.md, README.md, DEVELOPERS.md, etc.) to reflect the new functionality, architecture changes, file structure updates, and any new best practices or troubleshooting steps
 
 This context should help AI assistants understand the project structure, make appropriate changes, and troubleshoot common issues effectively.

@@ -1,33 +1,40 @@
 import { useState, useEffect, useCallback } from 'react';
 import { VSCodeWindow } from '@shared/types';
-import { debugLog } from '@shared/debug';
+import { logger } from '../logger';
 
 export function useTabOrder(windows: VSCodeWindow[]) {
-  debugLog('Initializing tab order hook with', windows.length, 'windows');
+  logger.debug('Initializing tab order hook', 'useTabOrder', {
+    windowCount: windows.length,
+  });
   const [tabOrder, setTabOrder] = useState<string[]>([]);
 
   useEffect(() => {
     // Load saved tab order on mount
-    debugLog('Loading saved tab order');
+    logger.debug('Loading saved tab order', 'useTabOrder');
     window.vstab
       .getTabOrder()
       .then(order => {
-        debugLog('Loaded tab order:', order);
+        logger.debug('Loaded tab order', 'useTabOrder', { order });
         setTabOrder(order);
       })
       .catch(error => {
-        debugLog('Error loading tab order:', error);
+        logger.error('Error loading tab order', 'useTabOrder', error);
         console.error('Error loading tab order:', error);
         // Keep default empty array on error
       });
   }, []);
 
   const orderedWindows = useCallback(() => {
-    debugLog('Computing ordered windows - current tab order:', tabOrder);
+    logger.debug('Computing ordered windows', 'useTabOrder', {
+      currentOrder: tabOrder,
+    });
 
     // If no saved order, just return windows as-is to maintain their natural order
     if (tabOrder.length === 0) {
-      debugLog('No saved order, returning windows in natural order');
+      logger.debug(
+        'No saved order, returning windows in natural order',
+        'useTabOrder'
+      );
       return windows;
     }
 
@@ -52,19 +59,20 @@ export function useTabOrder(windows: VSCodeWindow[]) {
     }
 
     const result = [...ordered, ...newWindows];
-    debugLog(
-      'Ordered windows result:',
-      result.map(w => w.id)
-    );
+    logger.debug('Ordered windows result', 'useTabOrder', {
+      windowIds: result.map(w => w.id),
+    });
 
     // Update saved order if there are new windows
     if (newWindows.length > 0) {
       const newOrder = result.map(w => w.id);
-      debugLog('Auto-updating tab order with new windows:', newOrder);
+      logger.debug('Auto-updating tab order with new windows', 'useTabOrder', {
+        newOrder,
+      });
       setTabOrder(newOrder);
       // Don't await this, let it save in background
       window.vstab.reorderTabs(newOrder).catch(err => {
-        debugLog('Error auto-saving tab order:', err);
+        logger.error('Error auto-saving tab order', 'useTabOrder', err);
         console.error('Error auto-saving tab order:', err);
       });
     }
@@ -73,13 +81,13 @@ export function useTabOrder(windows: VSCodeWindow[]) {
   }, [windows, tabOrder]);
 
   const reorderWindows = useCallback(async (newOrder: string[]) => {
-    debugLog('Reordering windows to:', newOrder);
+    logger.debug('Reordering windows', 'useTabOrder', { newOrder });
     setTabOrder(newOrder);
     try {
       await window.vstab.reorderTabs(newOrder);
-      debugLog('Tab order saved successfully');
+      logger.info('Tab order saved successfully', 'useTabOrder');
     } catch (error) {
-      debugLog('Error saving tab order:', error);
+      logger.error('Error saving tab order', 'useTabOrder', error);
       console.error('Error saving tab order:', error);
       // State update already happened, so UI will still show new order
     }

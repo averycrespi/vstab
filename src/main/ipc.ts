@@ -9,32 +9,34 @@ import {
 } from './windows';
 import { loadTabOrder, saveTabOrder } from './persistence';
 import { loadSettings, saveSettings } from './settings';
-import { debugLog } from '@shared/debug';
+import { logger } from '@shared/logger';
+import { getFileLogger } from './file-logger';
+import { updateLoggingSettings } from './logger-init';
 import { AppSettings } from '@shared/types';
 
 export function setupIPCHandlers(mainWindow: BrowserWindow) {
-  debugLog('Setting up IPC handlers');
+  logger.info('Setting up IPC handlers', 'ipc');
 
   // Window focus
   ipcMain.handle(
     IPC_CHANNELS.VSCODE_WINDOW_FOCUS,
     async (_, windowId: string) => {
-      debugLog('IPC: Focus window request for:', windowId);
+      logger.debug('Focus window request', 'ipc', { windowId });
       try {
         await focusWindow(windowId);
 
         // Hide all other VS Code windows
-        debugLog('Hiding other VS Code windows');
+        logger.debug('Hiding other VS Code windows', 'ipc');
         const windows = await discoverVSCodeWindows();
         for (const window of windows) {
           if (window.id !== windowId) {
-            debugLog('Hiding window:', window.id);
+            logger.debug('Hiding window', 'ipc', { windowId: window.id });
             await hideWindow(window.id);
           }
         }
-        debugLog('Window focus completed successfully');
+        logger.info('Window focus completed successfully', 'ipc');
       } catch (error) {
-        debugLog('Error handling window focus:', error);
+        logger.error('Error handling window focus', 'ipc', error);
         console.error('Error handling window focus:', error);
         throw error;
       }
@@ -43,12 +45,12 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
 
   // Tab reordering
   ipcMain.handle(IPC_CHANNELS.TABS_REORDER, async (_, windowIds: string[]) => {
-    debugLog('IPC: Reorder tabs request:', windowIds);
+    logger.debug('Reorder tabs request', 'ipc', { windowIds });
     try {
       await saveTabOrder(windowIds);
-      debugLog('Tab order saved successfully');
+      logger.info('Tab order saved successfully', 'ipc');
     } catch (error) {
-      debugLog('Error saving tab order:', error);
+      logger.error('Error saving tab order', 'ipc', error);
       console.error('Error saving tab order:', error);
       throw error;
     }
@@ -56,13 +58,13 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
 
   // Get tab order
   ipcMain.handle(IPC_CHANNELS.TABS_GET_ORDER, async () => {
-    debugLog('IPC: Get tab order request');
+    logger.debug('Get tab order request', 'ipc');
     try {
       const tabOrder = await loadTabOrder();
-      debugLog('Loaded tab order:', tabOrder);
+      logger.debug('Loaded tab order', 'ipc', { tabOrder });
       return tabOrder;
     } catch (error) {
-      debugLog('Error loading tab order:', error);
+      logger.error('Error loading tab order', 'ipc', error);
       console.error('Error loading tab order:', error);
       return [];
     }
@@ -70,19 +72,14 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
 
   // Check if app should be visible
   ipcMain.handle(IPC_CHANNELS.APP_SHOULD_SHOW, async () => {
-    debugLog('IPC: Check app visibility request');
+    logger.debug('Check app visibility request', 'ipc');
     try {
       const frontmostApp = await getFrontmostApp();
       const shouldShow = frontmostApp.includes('Code');
-      debugLog(
-        'App should show:',
-        shouldShow,
-        '(frontmost:',
-        frontmostApp + ')'
-      );
+      logger.debug('App should show', 'ipc', { shouldShow, frontmostApp });
       return shouldShow;
     } catch (error) {
-      debugLog('Error checking frontmost app:', error);
+      logger.error('Error checking frontmost app', 'ipc', error);
       console.error('Error checking frontmost app:', error);
       return false;
     }
@@ -92,12 +89,12 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
   ipcMain.handle(
     IPC_CHANNELS.VSCODE_WINDOWS_RESIZE,
     async (_, tabBarHeight: number) => {
-      debugLog('IPC: Resize windows request, height:', tabBarHeight);
+      logger.debug('Resize windows request', 'ipc', { tabBarHeight });
       try {
         await resizeVSCodeWindows(tabBarHeight);
-        debugLog('Windows resized successfully');
+        logger.info('Windows resized successfully', 'ipc');
       } catch (error) {
-        debugLog('Error resizing windows:', error);
+        logger.error('Error resizing windows', 'ipc', error);
         console.error('Error resizing windows:', error);
         throw error;
       }
@@ -106,13 +103,13 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
 
   // Get frontmost app
   ipcMain.handle(IPC_CHANNELS.SYSTEM_FRONTMOST_APP, async () => {
-    debugLog('IPC: Get frontmost app request');
+    logger.debug('Get frontmost app request', 'ipc');
     try {
       const frontmostApp = await getFrontmostApp();
-      debugLog('Frontmost app result:', frontmostApp);
+      logger.debug('Frontmost app result', 'ipc', { frontmostApp });
       return frontmostApp;
     } catch (error) {
-      debugLog('Error getting frontmost app:', error);
+      logger.error('Error getting frontmost app', 'ipc', error);
       console.error('Error getting frontmost app:', error);
       return '';
     }
@@ -120,13 +117,13 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
 
   // Get settings
   ipcMain.handle(IPC_CHANNELS.SETTINGS_GET, async () => {
-    debugLog('IPC: Get settings request');
+    logger.debug('Get settings request', 'ipc');
     try {
       const settings = await loadSettings();
-      debugLog('Loaded settings:', settings);
+      logger.debug('Loaded settings', 'ipc', { settings });
       return settings;
     } catch (error) {
-      debugLog('Error loading settings:', error);
+      logger.error('Error loading settings', 'ipc', error);
       console.error('Error loading settings:', error);
       throw error;
     }
@@ -136,23 +133,21 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
   ipcMain.handle(
     IPC_CHANNELS.SETTINGS_UPDATE,
     async (_, settings: AppSettings) => {
-      debugLog('IPC: Update settings request:', settings);
+      logger.debug('Update settings request', 'ipc', { settings });
       try {
         await saveSettings(settings);
-        debugLog('Settings saved successfully');
+        logger.info('Settings saved successfully', 'ipc');
 
-        // Update debug logging based on settings
-        if ('debugLogging' in settings) {
-          (global as any).DEBUG_MODE = settings.debugLogging;
-        }
+        // Update logging settings
+        updateLoggingSettings(settings);
 
         // Notify renderer about settings change
         mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, settings);
-        debugLog('Settings change notification sent to renderer');
+        logger.info('Settings change notification sent to renderer', 'ipc');
 
         return settings;
       } catch (error) {
-        debugLog('Error saving settings:', error);
+        logger.error('Error saving settings', 'ipc', error);
         console.error('Error saving settings:', error);
         throw error;
       }
@@ -161,14 +156,14 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
 
   // Tray update menu (trigger menu refresh)
   ipcMain.handle(IPC_CHANNELS.TRAY_UPDATE_MENU, async () => {
-    debugLog('IPC: Update tray menu request');
+    logger.debug('Update tray menu request', 'ipc');
     try {
       // This will be handled by emitting an event to main process
       // The main process will listen for this and update the tray menu
       (process as any).emit('tray-update-menu');
-      debugLog('Tray menu update triggered');
+      logger.info('Tray menu update triggered', 'ipc');
     } catch (error) {
-      debugLog('Error triggering tray menu update:', error);
+      logger.error('Error triggering tray menu update', 'ipc', error);
       console.error('Error triggering tray menu update:', error);
       throw error;
     }
@@ -178,18 +173,64 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
   ipcMain.handle(
     IPC_CHANNELS.WINDOW_SET_VISIBILITY,
     async (_, visible: boolean) => {
-      debugLog('IPC: Set window visibility request:', visible);
+      logger.debug('Set window visibility request', 'ipc', { visible });
       try {
         if (visible) {
           mainWindow.show();
-          debugLog('Main window shown');
+          logger.info('Main window shown', 'ipc');
         } else {
           mainWindow.hide();
-          debugLog('Main window hidden');
+          logger.info('Main window hidden', 'ipc');
         }
       } catch (error) {
-        debugLog('Error setting window visibility:', error);
+        logger.error('Error setting window visibility', 'ipc', error);
         console.error('Error setting window visibility:', error);
+        throw error;
+      }
+    }
+  );
+
+  // Logging IPC handlers
+  ipcMain.handle(IPC_CHANNELS.LOGS_GET_DIRECTORY, async () => {
+    logger.debug('Get logs directory request', 'ipc');
+    try {
+      const fileLogger = getFileLogger();
+      const logDir = await fileLogger.getLogDirectory();
+      logger.debug('Log directory result', 'ipc', { logDir });
+      return logDir;
+    } catch (error) {
+      logger.error('Error getting log directory', 'ipc', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.LOGS_GET_FILES, async () => {
+    logger.debug('Get log files request', 'ipc');
+    try {
+      const fileLogger = getFileLogger();
+      const files = await fileLogger.getLogFiles();
+      logger.debug('Log files result', 'ipc', { files });
+      return files;
+    } catch (error) {
+      logger.error('Error getting log files', 'ipc', error);
+      throw error;
+    }
+  });
+
+  ipcMain.handle(
+    IPC_CHANNELS.LOGS_READ_FILE,
+    async (_, filename: string, lines?: number) => {
+      logger.debug('Read log file request', 'ipc', { filename, lines });
+      try {
+        const fileLogger = getFileLogger();
+        const entries = await fileLogger.readLogFile(filename, lines);
+        logger.debug('Log file read result', 'ipc', {
+          filename,
+          entryCount: entries.length,
+        });
+        return entries;
+      } catch (error) {
+        logger.error('Error reading log file', 'ipc', error);
         throw error;
       }
     }
