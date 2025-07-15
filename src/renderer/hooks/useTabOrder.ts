@@ -16,13 +16,31 @@ export function useTabOrder(windows: VSCodeWindow[]) {
       .then(order => {
         logger.debug('Loaded tab order', 'useTabOrder', { order });
         setTabOrder(order);
+
+        // If no saved order exists but we have windows, save the initial order
+        if (order.length === 0 && windows.length > 0) {
+          const initialOrder = windows.map(w => w.id);
+          logger.debug(
+            'No saved order found, saving initial window order',
+            'useTabOrder',
+            {
+              initialOrder,
+            }
+          );
+          setTabOrder(initialOrder);
+          // Save initial order in background
+          window.vstab.reorderTabs(initialOrder).catch(err => {
+            logger.error('Error saving initial tab order', 'useTabOrder', err);
+            console.error('Error saving initial tab order:', err);
+          });
+        }
       })
       .catch(error => {
         logger.error('Error loading tab order', 'useTabOrder', error);
         console.error('Error loading tab order:', error);
         // Keep default empty array on error
       });
-  }, []);
+  }, [windows]);
 
   const orderedWindows = useCallback(() => {
     logger.debug('Computing ordered windows', 'useTabOrder', {

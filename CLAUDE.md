@@ -65,7 +65,7 @@ vstab/
 - React components render tabs based on discovered windows
 - Drag-and-drop reordering with HTML5 API
 - Stable tab order maintained across window switches and closures
-- Tab order always persisted to `userData/tab-order.json`
+- Tab order always persisted to `~/.config/vstab/tab_order.json`
 - No automatic reordering on tab switches or window focus changes
 - Settings button provides access to configuration modal
 - **Tab Click Behavior**: Clicking tabs now triggers window resizing when auto-resize settings are enabled
