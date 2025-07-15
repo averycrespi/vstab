@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import { useState, useEffect } from 'react';
 import { AppSettings, Theme } from '@shared/types';
 import { debugLog } from '@shared/debug';
