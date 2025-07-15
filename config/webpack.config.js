@@ -10,9 +10,9 @@ const commonConfig = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
     alias: {
-      '@shared': path.resolve(__dirname, 'src/shared'),
-      '@main': path.resolve(__dirname, 'src/main'),
-      '@renderer': path.resolve(__dirname, 'src/renderer'),
+      '@shared': path.resolve(__dirname, '../src/shared'),
+      '@main': path.resolve(__dirname, '../src/main'),
+      '@renderer': path.resolve(__dirname, '../src/renderer'),
     },
   },
   module: {
@@ -24,7 +24,18 @@ const commonConfig = {
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader', 'postcss-loader'],
+        use: [
+          'style-loader',
+          'css-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                config: path.resolve(__dirname, 'postcss.config.js'),
+              },
+            },
+          },
+        ],
       },
     ],
   },
@@ -33,9 +44,9 @@ const commonConfig = {
 const mainConfig = {
   ...commonConfig,
   target: 'electron-main',
-  entry: './src/main/index.ts',
+  entry: path.resolve(__dirname, '../src/main/index.ts'),
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, '../dist'),
     filename: 'main.js',
   },
   module: {
@@ -45,7 +56,7 @@ const mainConfig = {
         use: {
           loader: 'ts-loader',
           options: {
-            configFile: 'tsconfig.main.json',
+            configFile: path.resolve(__dirname, 'tsconfig.main.json'),
           },
         },
         exclude: /node_modules/,
@@ -57,9 +68,9 @@ const mainConfig = {
 const preloadConfig = {
   ...commonConfig,
   target: 'electron-preload',
-  entry: './src/preload.ts',
+  entry: path.resolve(__dirname, '../src/preload.ts'),
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, '../dist'),
     filename: 'preload.js',
   },
   module: {
@@ -69,7 +80,7 @@ const preloadConfig = {
         use: {
           loader: 'ts-loader',
           options: {
-            configFile: 'tsconfig.main.json',
+            configFile: path.resolve(__dirname, 'tsconfig.main.json'),
           },
         },
         exclude: /node_modules/,
@@ -81,9 +92,9 @@ const preloadConfig = {
 const rendererConfig = {
   ...commonConfig,
   target: 'electron-renderer',
-  entry: './src/renderer/index.tsx',
+  entry: path.resolve(__dirname, '../src/renderer/index.tsx'),
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, '../dist'),
     filename: 'renderer.js',
   },
   module: {
@@ -93,20 +104,31 @@ const rendererConfig = {
         use: {
           loader: 'ts-loader',
           options: {
-            configFile: 'tsconfig.renderer.json',
+            configFile: path.resolve(__dirname, 'tsconfig.renderer.json'),
           },
         },
         exclude: /node_modules/,
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader', 'postcss-loader'],
+        use: [
+          'style-loader',
+          'css-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                config: path.resolve(__dirname, 'postcss.config.js'),
+              },
+            },
+          },
+        ],
       },
     ],
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './src/renderer/index.html',
+      template: path.resolve(__dirname, '../src/renderer/index.html'),
       filename: 'index.html',
     }),
   ],
