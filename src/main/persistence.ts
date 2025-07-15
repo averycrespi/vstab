@@ -1,10 +1,10 @@
-import { app } from 'electron';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as os from 'os';
 import { logger } from '@shared/logger';
 
-const USER_DATA_PATH = app.getPath('userData');
-const TAB_ORDER_FILE = path.join(USER_DATA_PATH, 'tab-order.json');
+const CONFIG_DIR = path.join(os.homedir(), '.config', 'vstab');
+const TAB_ORDER_FILE = path.join(CONFIG_DIR, 'tab_order.json');
 
 export async function loadTabOrder(): Promise<string[]> {
   try {
@@ -43,7 +43,7 @@ export async function saveTabOrder(windowIds: string[]): Promise<void> {
       order: windowIds,
       file: TAB_ORDER_FILE,
     });
-    await fs.mkdir(USER_DATA_PATH, { recursive: true });
+    await fs.mkdir(CONFIG_DIR, { recursive: true });
     await fs.writeFile(TAB_ORDER_FILE, JSON.stringify(windowIds, null, 2));
     logger.info('Tab order saved successfully', 'persistence', {
       windowCount: windowIds.length,

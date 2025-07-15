@@ -1,22 +1,32 @@
 // Mock modules BEFORE importing
-jest.mock('electron');
 jest.mock('fs/promises');
 jest.mock('path');
+jest.mock('os');
 
-import { app } from 'electron';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as os from 'os';
 
-const mockApp = jest.mocked(app);
 const mockFs = jest.mocked(fs);
 const mockPath = jest.mocked(path);
+const mockOs = jest.mocked(os);
 
 // Setup mocks before importing the module under test
-const mockUserDataPath = '/tmp/test-userData';
-const mockTabOrderFile = '/tmp/test-userData/tab-order.json';
+const mockHomeDir = '/tmp/test-home';
+const mockConfigDir = '/tmp/test-home/.config/vstab';
+const mockTabOrderFile = '/tmp/test-home/.config/vstab/tab_order.json';
 
-mockApp.getPath.mockReturnValue(mockUserDataPath);
-mockPath.join.mockReturnValue(mockTabOrderFile);
+mockOs.homedir.mockReturnValue(mockHomeDir);
+// Mock path.join to return the expected paths
+mockPath.join.mockImplementation((...args) => {
+  if (args.includes('.config') && args.includes('vstab')) {
+    if (args.includes('tab_order.json')) {
+      return mockTabOrderFile;
+    }
+    return mockConfigDir;
+  }
+  return args.join('/');
+});
 
 // Now import the module under test
 import { loadTabOrder, saveTabOrder } from '../../../src/main/persistence';
@@ -26,8 +36,16 @@ describe('Persistence Module', () => {
     jest.clearAllMocks();
 
     // Re-setup mocks for each test
-    mockApp.getPath.mockReturnValue(mockUserDataPath);
-    mockPath.join.mockReturnValue(mockTabOrderFile);
+    mockOs.homedir.mockReturnValue(mockHomeDir);
+    mockPath.join.mockImplementation((...args) => {
+      if (args.includes('.config') && args.includes('vstab')) {
+        if (args.includes('tab_order.json')) {
+          return mockTabOrderFile;
+        }
+        return mockConfigDir;
+      }
+      return args.join('/');
+    });
   });
 
   describe('loadTabOrder', () => {
@@ -100,7 +118,7 @@ describe('Persistence Module', () => {
 
       await saveTabOrder(windowIds);
 
-      expect(mockFs.mkdir).toHaveBeenCalledWith(mockUserDataPath, {
+      expect(mockFs.mkdir).toHaveBeenCalledWith(mockConfigDir, {
         recursive: true,
       });
       expect(mockFs.writeFile).toHaveBeenCalledWith(
@@ -142,7 +160,7 @@ describe('Persistence Module', () => {
 
       await saveTabOrder(windowIds);
 
-      expect(mockFs.mkdir).toHaveBeenCalledWith(mockUserDataPath, {
+      expect(mockFs.mkdir).toHaveBeenCalledWith(mockConfigDir, {
         recursive: true,
       });
     });
