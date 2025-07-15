@@ -153,6 +153,17 @@ async function openLogsFolder() {
   }
 }
 
+async function openSettingsDirectory() {
+  logger.debug('Opening settings directory', 'main');
+  try {
+    const settingsDir = path.join(require('os').homedir(), '.config', 'vstab');
+    await shell.openPath(settingsDir);
+    logger.info('Settings directory opened', 'main', { settingsDir });
+  } catch (error) {
+    logger.error('Failed to open settings directory', 'main', error);
+  }
+}
+
 async function updateTrayMenu() {
   if (!tray) return;
 
@@ -246,6 +257,11 @@ async function updateTrayMenu() {
         {
           label: 'Open Logs Folder',
           click: openLogsFolder,
+        },
+        { type: 'separator' },
+        {
+          label: 'Show Settings File',
+          click: openSettingsDirectory,
         },
       ],
     },
