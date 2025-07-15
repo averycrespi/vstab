@@ -12,7 +12,7 @@ import { loadSettings, saveSettings } from './settings';
 import { debugLog } from '@shared/debug';
 import { AppSettings } from '@shared/types';
 
-export function setupIPCHandlers(_mainWindow: BrowserWindow) {
+export function setupIPCHandlers(mainWindow: BrowserWindow) {
   debugLog('Setting up IPC handlers');
 
   // Window focus
@@ -150,6 +150,10 @@ export function setupIPCHandlers(_mainWindow: BrowserWindow) {
         if ('showTrayIcon' in settings || 'trayClickAction' in settings) {
           (process as any).emit('tray-settings-changed', settings);
         }
+
+        // Notify renderer about settings change
+        mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, settings);
+        debugLog('Settings change notification sent to renderer');
 
         return settings;
       } catch (error) {

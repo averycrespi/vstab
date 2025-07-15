@@ -64,19 +64,26 @@ Follow the installation instructions in the [README](README.md).
 - Stable tab order maintained across window switches and closures
 - Tab order persisted to `userData/tab-order.json`
 - No automatic reordering on tab switches or window focus changes
+- **Tab Click Behavior**: Clicking tabs now triggers window resizing when auto-resize settings are enabled
+- **Window Positioning**: VS Code windows are automatically repositioned and resized on every tab click (respects auto-resize settings)
 
 ### Auto-Hide Behavior
 
-- Polls frontmost app every 500ms via yabai window focus detection
-- Shows tab bar only when VS Code is active
+- Polls frontmost app every 250ms via yabai window focus detection for improved responsiveness
+- Shows tab bar only when VS Code is active (when `autoHide` setting is enabled)
+- Automatically shows tab bar when `autoHide` setting is disabled
 - Hides when switching to other applications
 - Windows remain visible (no minimizing) for fast tab switching
+- Enhanced error handling with retry logic for failed yabai queries
+- Improved app name matching for various VS Code process names
 
 ### IPC Communication
 
 - Main process handles yabai operations and file persistence
 - Renderer process handles UI and user interactions
 - Preload script provides secure IPC bridge
+- **Real-time Settings**: `SETTINGS_CHANGED` event broadcasts setting updates across the app for immediate application
+- **Settings Synchronization**: All components automatically update when settings change via IPC notifications
 
 ## Build System
 
@@ -171,9 +178,12 @@ __tests__/
 ### Manual Testing Checklist
 
 - Manual testing with multiple VS Code workspaces
-- Check auto-hide behavior by switching apps
+- Check auto-hide behavior by switching apps (verify improved responsiveness)
+- Test auto-hide setting toggle (disabled should always show tab bar)
+- Test settings changes apply immediately without restart
 - Test drag-and-drop reordering
 - Verify tab order stability during window switches
+- Test window resizing on tab clicks (when auto-resize is enabled)
 - Test full-screen window resizing
 - Verify persistence across app restarts
 

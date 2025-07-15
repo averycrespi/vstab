@@ -5,8 +5,8 @@ A macOS workspace tab switcher for VS Code.
 ## Features
 
 - **Persistent Tab Bar**: Always-on-top tab bar showing all VS Code workspaces.
-- **Smart Auto-Hide**: Only appears when VS Code is active, automatically hides when switching to other apps.
-- **Window Management**: Click tabs to focus windows, keeps all windows visible for fast switching.
+- **Smart Auto-Hide**: Only appears when VS Code is active, automatically hides when switching to other apps (configurable).
+- **Window Management**: Click tabs to focus windows, with automatic window resizing and positioning, keeps all windows visible for fast switching.
 - **Drag-and-Drop**: Reorder tabs by dragging, with persistent tab order between sessions.
 - **Space-Aware**: Automatically resizes VS Code windows to use full screen below the tab bar.
 - **yabai Integration**: Native window management using [yabai](https://github.com/koekeishiya/yabai)'s JSON API for stable, multi-window support.
@@ -31,6 +31,7 @@ yabai --start-service
 ```
 
 To grant accessibility access:
+
 - Open macOS Settings > Privacy and Security > Accessibility
 - Click the "+" icon and add yabai
 - Toggle yabai on
@@ -64,7 +65,15 @@ npm start
 
 ## Settings
 
-Settings can be modified from the tray menu, and are persisted to `~/.config/vstab/settings.json`.
+Settings can be modified from the tray menu or gear icon in the tab bar, and are persisted to `~/.config/vstab/settings.json`. All settings apply immediately without requiring an application restart.
+
+Key settings include:
+
+- **Auto-Hide**: Toggle whether the tab bar hides when VS Code is not active
+- **Auto-Resize**: Control automatic window positioning (vertical and horizontal independently)
+- **Theme**: Choose between Light, Dark, or System theme
+- **Tab Bar Height**: Customize the height of the tab bar
+- **Tray Integration**: Configure tray icon visibility and click behavior
 
 ## Troubleshooting
 
@@ -75,6 +84,12 @@ Settings can be modified from the tray menu, and are persisted to `~/.config/vst
 - Ensure VS Code is running and focused
 - Check that yabai service is running: `yabai --start-service`
 - Verify yabai can query windows: `yabai -m query --windows`
+- If auto-hide is enabled, the tab bar only appears when VS Code is active
+
+**Tab bar not reappearing when switching back to VS Code:**
+
+- Check the auto-hide setting - when disabled, the tab bar should always be visible
+- Restart the application if visibility detection seems stuck
 
 **Windows not switching:**
 

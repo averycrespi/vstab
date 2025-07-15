@@ -64,6 +64,8 @@ vstab/
 - Tab order persisted to `userData/tab-order.json`
 - No automatic reordering on tab switches or window focus changes
 - Settings button provides access to configuration modal
+- **Tab Click Behavior**: Clicking tabs now triggers window resizing when auto-resize settings are enabled
+- **Window Positioning**: VS Code windows are automatically repositioned and resized on every tab click (respects auto-resize settings)
 
 ### User Settings
 
@@ -80,10 +82,13 @@ vstab/
 
 ### Auto-Hide Behavior
 
-- Polls frontmost app every 500ms via yabai window focus detection
-- Shows tab bar only when VS Code is active
+- Polls frontmost app every 250ms via yabai window focus detection for improved responsiveness
+- Shows tab bar only when VS Code is active (when `autoHide` setting is enabled)
+- Automatically shows tab bar when `autoHide` setting is disabled
 - Hides when switching to other applications
 - Windows remain visible (no minimizing) for fast tab switching
+- Enhanced error handling with retry logic for failed yabai queries
+- Improved app name matching for various VS Code process names
 
 ### Tray Menu System
 
@@ -228,7 +233,8 @@ yabai -m window 12345 --resize abs:1920:1025
 - Defined in `src/shared/ipc-channels.ts`
 - Type-safe with TypeScript interfaces
 - Handles window management, tab reordering, user settings, and tray communication
-- **Settings IPC**: `SETTINGS_GET` and `SETTINGS_UPDATE` for configuration management
+- **Settings IPC**: `SETTINGS_GET`, `SETTINGS_UPDATE`, and `SETTINGS_CHANGED` for configuration management
+- **Real-time Settings**: `SETTINGS_CHANGED` event broadcasts setting updates across the app for immediate application
 - **Tray IPC**: `TRAY_UPDATE_MENU` for tray menu operations
 
 ### Settings Architecture
@@ -238,6 +244,8 @@ yabai -m window 12345 --resize abs:1920:1025
 - **Settings Types**: All settings defined in `src/shared/types.ts` with TypeScript interfaces
 - **IPC Communication**: Settings loaded/saved via `SETTINGS_GET` and `SETTINGS_UPDATE` channels
 - **Real-time Updates**: Settings changes apply immediately without restart required
+- **Settings Change Broadcasting**: `SETTINGS_CHANGED` IPC event notifies all components when settings are updated
+- **Reactive Components**: App components automatically update when settings change via IPC notifications
 - **Theme Integration**: Theme setting controls CSS variables via `data-theme` attribute
 - **Window Resize Integration**: Auto-resize settings control yabai window positioning behavior
 - **Tray Integration**: Tray-specific settings control menu visibility and click behavior
@@ -251,6 +259,8 @@ yabai -m window 12345 --resize abs:1920:1025
 - Fallback mechanisms for failed yabai commands
 - Settings file creation/read errors handled gracefully with defaults
 - TypeScript strict mode for compile-time safety
+- **Auto-hide Error Recovery**: Retry logic for failed yabai queries with fallback to visible state
+- **Visibility Polling Resilience**: Enhanced error handling in visibility detection with automatic recovery
 
 ## Development Workflow
 
@@ -364,11 +374,14 @@ npm run test:watch
 ### Runtime Issues
 
 - **No tab bar**: Check VS Code is running and yabai service is active
+- **Tab bar not reappearing**: Check `autoHide` setting - when disabled, tab bar should always be visible
 - **yabai errors**: Verify yabai installation and Accessibility permissions
 - **Window operations fail**: Check yabai can query and control windows
 - **IPC errors**: Check channel names match between main/renderer
 - **Settings not persisting**: Check `~/.config/vstab/` directory permissions
+- **Settings not applying immediately**: Settings now apply in real-time without restart - check browser console for IPC errors
 - **Theme not applying**: Verify settings are loaded and theme hook is working
+- **Window resizing issues**: Check `autoResizeVertical` and `autoResizeHorizontal` settings - resizing now happens on every tab click
 - **Tray icon not appearing**: Check `showTrayIcon` setting is `true` and icon assets exist
 - **Tray menu not updating**: Verify settings changes trigger `TRAY_UPDATE_MENU` IPC calls
 - **Tray click not working**: Check `trayClickAction` setting and window visibility state

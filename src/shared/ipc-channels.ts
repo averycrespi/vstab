@@ -16,6 +16,7 @@ export const IPC_CHANNELS = {
   // Settings
   SETTINGS_GET: 'settings:get',
   SETTINGS_UPDATE: 'settings:update',
+  SETTINGS_CHANGED: 'settings:changed',
 
   // Tray
   TRAY_TOGGLE_VISIBILITY: 'tray:toggle-visibility',

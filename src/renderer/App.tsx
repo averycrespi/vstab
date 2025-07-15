@@ -38,6 +38,23 @@ function App() {
       });
   }, [setTheme]);
 
+  // Listen for settings changes
+  useEffect(() => {
+    debugLog('Setting up settings change listener');
+    window.vstab.onSettingsChanged((updatedSettings: AppSettings) => {
+      debugLog('Received settings change notification:', updatedSettings);
+      setSettings(updatedSettings);
+      setTheme(updatedSettings.theme);
+
+      // Update debug mode
+      if (updatedSettings.debugLogging) {
+        (global as any).DEBUG_MODE = true;
+      } else {
+        (global as any).DEBUG_MODE = false;
+      }
+    });
+  }, [setTheme]);
+
   useEffect(() => {
     debugLog('Setting up window update listener');
     // Listen for window updates
@@ -73,17 +90,30 @@ function App() {
     }
   }, [settings]);
 
-  const handleTabClick = useCallback(async (windowId: string) => {
-    debugLog('Tab clicked:', windowId);
-    setActiveWindowId(windowId);
-    try {
-      await window.vstab.focusWindow(windowId);
-      debugLog('Tab focus completed for:', windowId);
-    } catch (error) {
-      debugLog('Error focusing window:', error);
-      console.error('Error focusing window:', error);
-    }
-  }, []);
+  const handleTabClick = useCallback(
+    async (windowId: string) => {
+      debugLog('Tab clicked:', windowId);
+      setActiveWindowId(windowId);
+      try {
+        await window.vstab.focusWindow(windowId);
+        debugLog('Tab focus completed for:', windowId);
+
+        // Resize windows after focusing if auto-resize is enabled
+        if (
+          settings &&
+          (settings.autoResizeVertical || settings.autoResizeHorizontal)
+        ) {
+          debugLog('Triggering window resize after tab click');
+          await window.vstab.resizeWindows(settings.tabBarHeight);
+          debugLog('Window resize completed after tab click');
+        }
+      } catch (error) {
+        debugLog('Error in tab click handler:', error);
+        console.error('Error in tab click handler:', error);
+      }
+    },
+    [settings]
+  );
 
   const handleDragStart = useCallback(
     (e: React.DragEvent, windowId: string) => {

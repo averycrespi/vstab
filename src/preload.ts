@@ -48,6 +48,12 @@ contextBridge.exposeInMainWorld('vstab', {
     return ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_UPDATE, settings);
   },
 
+  onSettingsChanged: (callback: (settings: AppSettings) => void) => {
+    ipcRenderer.on(IPC_CHANNELS.SETTINGS_CHANGED, (_, settings) =>
+      callback(settings)
+    );
+  },
+
   // Tray management
   updateTrayMenu: () => {
     return ipcRenderer.invoke(IPC_CHANNELS.TRAY_UPDATE_MENU);
@@ -65,6 +71,7 @@ export interface VstabAPI {
   resizeWindows: (tabBarHeight: number) => Promise<void>;
   getSettings: () => Promise<AppSettings>;
   updateSettings: (settings: AppSettings) => Promise<AppSettings>;
+  onSettingsChanged: (callback: (settings: AppSettings) => void) => void;
   updateTrayMenu: () => Promise<void>;
 }
 
