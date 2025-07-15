@@ -58,13 +58,6 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
     updateSettings({ ...settings, showTrayIcon: enabled });
   };
 
-  const handleTrayClickActionChange = (
-    action: 'toggle-window' | 'show-menu'
-  ) => {
-    if (!settings) return;
-    updateSettings({ ...settings, trayClickAction: action });
-  };
-
   const updateSettings = async (newSettings: AppSettings) => {
     setSaving(true);
     try {
@@ -90,11 +83,7 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
       }
 
       // Trigger tray menu update if needed
-      if (
-        settings &&
-        (settings.showTrayIcon !== updatedSettings.showTrayIcon ||
-          settings.trayClickAction !== updatedSettings.trayClickAction)
-      ) {
+      if (settings && settings.showTrayIcon !== updatedSettings.showTrayIcon) {
         try {
           await window.vstab.updateTrayMenu();
         } catch (error) {
@@ -212,27 +201,6 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
             Show Tray Icon
           </label>
         </div>
-
-        {settings.showTrayIcon && (
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-2 text-[var(--color-vscode-text)]">
-              Tray Click Action
-            </label>
-            <select
-              value={settings.trayClickAction}
-              onChange={e =>
-                handleTrayClickActionChange(
-                  e.target.value as 'toggle-window' | 'show-menu'
-                )
-              }
-              className="w-full px-3 py-2 bg-[var(--color-vscode-dark)] border border-[var(--color-vscode-border)] rounded text-[var(--color-vscode-text)]"
-              disabled={saving}
-            >
-              <option value="toggle-window">Toggle Window</option>
-              <option value="show-menu">Show Menu</option>
-            </select>
-          </div>
-        )}
 
         {/* Close Button */}
         <div className="flex justify-end">

@@ -147,7 +147,7 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
         }
 
         // Handle tray icon changes
-        if ('showTrayIcon' in settings || 'trayClickAction' in settings) {
+        if ('showTrayIcon' in settings) {
           (process as any).emit('tray-settings-changed', settings);
         }
 

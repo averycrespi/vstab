@@ -10,12 +10,10 @@ const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
   tabBarHeight: 45,
   autoHide: true,
-  persistTabOrder: true,
   autoResizeVertical: true,
   autoResizeHorizontal: true,
   debugLogging: false,
   showTrayIcon: true,
-  trayClickAction: 'toggle-window',
 };
 
 export async function loadSettings(): Promise<AppSettings> {

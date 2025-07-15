@@ -9,7 +9,7 @@ const { ipcMain, ipcRenderer } = require('electron-mock-ipc');
 // Set up global mocks for integration tests
 global.mockIPC = {
   main: ipcMain,
-  renderer: ipcRenderer
+  renderer: ipcRenderer,
 };
 
 // Mock yabai with more realistic responses
@@ -24,7 +24,7 @@ const mockYabaiWindows = [
     display: 1,
     'has-focus': true,
     'is-visible': true,
-    'is-minimized': false
+    'is-minimized': false,
   },
   {
     id: 1002,
@@ -36,23 +36,23 @@ const mockYabaiWindows = [
     display: 1,
     'has-focus': false,
     'is-visible': true,
-    'is-minimized': false
-  }
+    'is-minimized': false,
+  },
 ];
 
 const mockYabaiDisplays = [
   {
     index: 1,
     frame: { x: 0, y: 0, w: 1920, h: 1080 },
-    'has-focus': true
-  }
+    'has-focus': true,
+  },
 ];
 
 // Mock child_process.exec for yabai commands
 jest.mock('child_process', () => ({
   exec: jest.fn((command, callback) => {
     const { exec } = jest.requireActual('child_process');
-    
+
     // Mock different yabai commands
     if (command.includes('which yabai')) {
       callback(null, { stdout: '/usr/local/bin/yabai', stderr: '' });
@@ -62,20 +62,23 @@ jest.mock('child_process', () => ({
       callback(null, { stdout: JSON.stringify(mockYabaiDisplays), stderr: '' });
     } else if (command.includes('window --focus')) {
       callback(null, { stdout: '', stderr: '' });
-    } else if (command.includes('window') && (command.includes('--move') || command.includes('--resize'))) {
+    } else if (
+      command.includes('window') &&
+      (command.includes('--move') || command.includes('--resize'))
+    ) {
       callback(null, { stdout: '', stderr: '' });
     } else {
       // For any other command, use the actual exec
       return exec(command, callback);
     }
-  })
+  }),
 }));
 
 // Mock fs/promises with in-memory storage
 const mockFileSystem = new Map();
 
 jest.mock('fs/promises', () => ({
-  readFile: jest.fn((filePath) => {
+  readFile: jest.fn(filePath => {
     if (mockFileSystem.has(filePath)) {
       return Promise.resolve(mockFileSystem.get(filePath));
     }
@@ -85,7 +88,7 @@ jest.mock('fs/promises', () => ({
     mockFileSystem.set(filePath, data);
     return Promise.resolve();
   }),
-  mkdir: jest.fn(() => Promise.resolve())
+  mkdir: jest.fn(() => Promise.resolve()),
 }));
 
 // Helper to reset mock file system between tests
@@ -94,7 +97,7 @@ global.resetMockFileSystem = () => {
 };
 
 // Helper to set mock yabai windows
-global.setMockYabaiWindows = (windows) => {
+global.setMockYabaiWindows = windows => {
   mockYabaiWindows.splice(0, mockYabaiWindows.length, ...windows);
 };
 

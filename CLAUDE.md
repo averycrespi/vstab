@@ -61,7 +61,7 @@ vstab/
 - React components render tabs based on discovered windows
 - Drag-and-drop reordering with HTML5 API
 - Stable tab order maintained across window switches and closures
-- Tab order persisted to `userData/tab-order.json`
+- Tab order always persisted to `userData/tab-order.json`
 - No automatic reordering on tab switches or window focus changes
 - Settings button provides access to configuration modal
 - **Tab Click Behavior**: Clicking tabs now triggers window resizing when auto-resize settings are enabled
@@ -75,7 +75,6 @@ vstab/
 - **Auto Resize Vertical**: Toggle vertical window resizing - default: `true`
 - **Auto Resize Horizontal**: Toggle horizontal window resizing - default: `true`
 - **Auto Hide**: Show tab bar only when VS Code is active - default: `true`
-- **Persist Tab Order**: Maintain tab order across sessions - default: `true`
 - **Debug Logging**: Enable/disable debug output - default: `false`
 - Settings UI accessible via gear icon in tab bar
 - Real-time settings updates with immediate effect
@@ -194,9 +193,7 @@ yabai -m window 12345 --resize abs:1920:1025
 
 #### Event Handling Patterns
 
-- **Left-click Behavior**: Configurable via `trayClickAction` setting
-  - `'toggle-window'`: Shows/hides main tab bar window
-  - `'show-menu'`: Displays context menu instead
+- **Left-click Behavior**: Always shows context menu when clicking tray icon
 - **Status Updates**: Menu rebuilds on settings changes via IPC events
 - **yabai Status**: Real-time detection with ✅/❌ indicators
 
@@ -248,9 +245,8 @@ yabai -m window 12345 --resize abs:1920:1025
 - **Reactive Components**: App components automatically update when settings change via IPC notifications
 - **Theme Integration**: Theme setting controls CSS variables via `data-theme` attribute
 - **Window Resize Integration**: Auto-resize settings control yabai window positioning behavior
-- **Tray Integration**: Tray-specific settings control menu visibility and click behavior
+- **Tray Integration**: Tray-specific settings control menu visibility
   - `showTrayIcon: boolean` - Controls tray icon visibility (default: `true`)
-  - `trayClickAction: 'toggle-window' | 'show-menu'` - Left-click action (default: `'toggle-window'`)
 
 ### Error Handling
 
@@ -384,7 +380,6 @@ npm run test:watch
 - **Window resizing issues**: Check `autoResizeVertical` and `autoResizeHorizontal` settings - resizing now happens on every tab click
 - **Tray icon not appearing**: Check `showTrayIcon` setting is `true` and icon assets exist
 - **Tray menu not updating**: Verify settings changes trigger `TRAY_UPDATE_MENU` IPC calls
-- **Tray click not working**: Check `trayClickAction` setting and window visibility state
 
 ### Platform Requirements
 

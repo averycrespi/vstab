@@ -9,15 +9,15 @@ module.exports = {
       moduleNameMapper: {
         '^@shared/(.*)$': '<rootDir>/src/shared/$1',
         '^@main/(.*)$': '<rootDir>/src/main/$1',
-        '^@renderer/(.*)$': '<rootDir>/src/renderer/$1'
+        '^@renderer/(.*)$': '<rootDir>/src/renderer/$1',
       },
       setupFilesAfterEnv: ['<rootDir>/jest.setup.main.js'],
       collectCoverageFrom: [
         'src/main/**/*.ts',
-        '!src/main/index.ts' // Skip main entry point
-      ]
+        '!src/main/index.ts', // Skip main entry point
+      ],
     },
-    
+
     // Renderer process (JSDOM environment)
     {
       displayName: 'renderer',
@@ -27,17 +27,17 @@ module.exports = {
       moduleNameMapper: {
         '^@shared/(.*)$': '<rootDir>/src/shared/$1',
         '^@main/(.*)$': '<rootDir>/src/main/$1',
-        '^@renderer/(.*)$': '<rootDir>/src/renderer/$1'
+        '^@renderer/(.*)$': '<rootDir>/src/renderer/$1',
       },
       setupFilesAfterEnv: ['<rootDir>/jest.setup.renderer.js'],
       moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
       collectCoverageFrom: [
         'src/renderer/**/*.{ts,tsx}',
         '!src/renderer/index.tsx', // Skip entry point
-        '!src/renderer/**/*.d.ts'
-      ]
+        '!src/renderer/**/*.d.ts',
+      ],
     },
-    
+
     // Shared modules (Node.js environment)
     {
       displayName: 'shared',
@@ -47,14 +47,11 @@ module.exports = {
       moduleNameMapper: {
         '^@shared/(.*)$': '<rootDir>/src/shared/$1',
         '^@main/(.*)$': '<rootDir>/src/main/$1',
-        '^@renderer/(.*)$': '<rootDir>/src/renderer/$1'
+        '^@renderer/(.*)$': '<rootDir>/src/renderer/$1',
       },
-      collectCoverageFrom: [
-        'src/shared/**/*.ts',
-        '!src/shared/**/*.d.ts'
-      ]
+      collectCoverageFrom: ['src/shared/**/*.ts', '!src/shared/**/*.d.ts'],
     },
-    
+
     // Integration tests (Node.js environment)
     {
       displayName: 'integration',
@@ -64,12 +61,12 @@ module.exports = {
       moduleNameMapper: {
         '^@shared/(.*)$': '<rootDir>/src/shared/$1',
         '^@main/(.*)$': '<rootDir>/src/main/$1',
-        '^@renderer/(.*)$': '<rootDir>/src/renderer/$1'
+        '^@renderer/(.*)$': '<rootDir>/src/renderer/$1',
       },
-      setupFilesAfterEnv: ['<rootDir>/jest.setup.integration.js']
-    }
+      setupFilesAfterEnv: ['<rootDir>/jest.setup.integration.js'],
+    },
   ],
-  
+
   // Global coverage settings
   collectCoverage: true,
   coverageDirectory: 'coverage',
@@ -79,12 +76,12 @@ module.exports = {
       branches: 70,
       functions: 80,
       lines: 80,
-      statements: 80
-    }
+      statements: 80,
+    },
   },
-  
+
   // Global test settings
   verbose: true,
   clearMocks: true,
-  restoreMocks: true
+  restoreMocks: true,
 };

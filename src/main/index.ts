@@ -54,21 +54,10 @@ async function createTrayIcon() {
     // Set tooltip
     tray.setToolTip('vstab - VS Code Tab Switcher');
 
-    // Handle tray click based on settings
+    // Handle tray click - always show context menu
     tray.on('click', () => {
-      debugLog('Tray icon clicked');
-      if (settings.trayClickAction === 'toggle-window') {
-        if (mainWindow) {
-          if (mainWindow.isVisible()) {
-            mainWindow.hide();
-          } else {
-            mainWindow.show();
-          }
-        }
-      } else if (settings.trayClickAction === 'show-menu') {
-        // Menu is shown automatically on right-click, so for left-click we can show it too
-        tray?.popUpContextMenu();
-      }
+      debugLog('Tray icon clicked - showing context menu');
+      tray?.popUpContextMenu();
     });
   } catch (error) {
     debugLog('Error creating tray icon:', error);
@@ -113,18 +102,6 @@ async function toggleAutoResizeHorizontal() {
   );
 }
 
-async function togglePersistTabOrder() {
-  debugLog('Toggling persist tab order setting');
-  const settings = await loadSettings();
-  const newSettings = {
-    ...settings,
-    persistTabOrder: !settings.persistTabOrder,
-  };
-  await saveSettings(newSettings);
-  await updateTrayMenu();
-  debugLog('Persist tab order toggled to:', newSettings.persistTabOrder);
-}
-
 async function toggleDebugLogging() {
   debugLog('Toggling debug logging setting');
   const settings = await loadSettings();
@@ -134,34 +111,6 @@ async function toggleDebugLogging() {
   setDebugMode(newSettings.debugLogging);
   await updateTrayMenu();
   debugLog('Debug logging toggled to:', newSettings.debugLogging);
-}
-
-async function toggleTrayIcon() {
-  debugLog('Toggling tray icon setting');
-  const settings = await loadSettings();
-  const newSettings = { ...settings, showTrayIcon: !settings.showTrayIcon };
-  await saveSettings(newSettings);
-
-  // Handle tray icon visibility change with a slight delay
-  // to allow menu interaction to complete
-  setTimeout(() => {
-    (process as any).emit('tray-settings-changed', newSettings);
-  }, 100);
-
-  debugLog('Tray icon toggled to:', newSettings.showTrayIcon);
-}
-
-async function cycleTrayClickAction() {
-  debugLog('Cycling tray click action setting');
-  const settings = await loadSettings();
-  const newAction: 'toggle-window' | 'show-menu' =
-    settings.trayClickAction === 'toggle-window'
-      ? 'show-menu'
-      : 'toggle-window';
-  const newSettings = { ...settings, trayClickAction: newAction };
-  await saveSettings(newSettings);
-  await updateTrayMenu();
-  debugLog('Tray click action cycled to:', newAction);
 }
 
 async function updateTrayMenu() {
@@ -225,27 +174,10 @@ async function updateTrayMenu() {
           click: toggleAutoResizeHorizontal,
         },
         {
-          label: 'Persist Tab Order',
-          type: 'checkbox',
-          checked: settings.persistTabOrder,
-          click: togglePersistTabOrder,
-        },
-        {
           label: 'Debug Logging',
           type: 'checkbox',
           checked: settings.debugLogging,
           click: toggleDebugLogging,
-        },
-        { type: 'separator' },
-        {
-          label: 'Show Tray Icon',
-          type: 'checkbox',
-          checked: settings.showTrayIcon,
-          click: toggleTrayIcon,
-        },
-        {
-          label: `Tray Click: ${settings.trayClickAction === 'toggle-window' ? 'Toggle Window' : 'Show Menu'}`,
-          click: cycleTrayClickAction,
         },
       ],
     },

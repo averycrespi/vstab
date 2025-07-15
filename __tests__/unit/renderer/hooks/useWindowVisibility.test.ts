@@ -8,7 +8,6 @@ const mockVstab = {
     theme: 'system',
     tabBarHeight: 45,
     autoHide: true,
-    persistTabOrder: true,
     autoResizeVertical: true,
     autoResizeHorizontal: true,
     debugLogging: false,
