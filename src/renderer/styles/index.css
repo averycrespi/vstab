@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   /* Dark theme (default) */
@@ -12,7 +12,7 @@
 }
 
 /* Light theme */
-[data-theme="light"] {
+[data-theme='light'] {
   --color-vscode-dark: #f3f3f3;
   --color-vscode-light: #424242;
   --color-vscode-tab-active: #ffffff;
@@ -24,7 +24,7 @@
 
 /* System theme (follows macOS preference) */
 @media (prefers-color-scheme: light) {
-  [data-theme="system"] {
+  [data-theme='system'] {
     --color-vscode-dark: #f3f3f3;
     --color-vscode-light: #424242;
     --color-vscode-tab-active: #ffffff;
@@ -38,9 +38,9 @@
 body {
   background-color: var(--color-vscode-dark);
   color: var(--color-vscode-text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

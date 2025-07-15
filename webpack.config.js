@@ -12,22 +12,22 @@ const commonConfig = {
     alias: {
       '@shared': path.resolve(__dirname, 'src/shared'),
       '@main': path.resolve(__dirname, 'src/main'),
-      '@renderer': path.resolve(__dirname, 'src/renderer')
-    }
+      '@renderer': path.resolve(__dirname, 'src/renderer'),
+    },
   },
   module: {
     rules: [
       {
         test: /\.tsx?$/,
         use: 'ts-loader',
-        exclude: /node_modules/
+        exclude: /node_modules/,
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader', 'postcss-loader']
-      }
-    ]
-  }
+        use: ['style-loader', 'css-loader', 'postcss-loader'],
+      },
+    ],
+  },
 };
 
 const mainConfig = {
@@ -36,7 +36,7 @@ const mainConfig = {
   entry: './src/main/index.ts',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'main.js'
+    filename: 'main.js',
   },
   module: {
     rules: [
@@ -45,13 +45,13 @@ const mainConfig = {
         use: {
           loader: 'ts-loader',
           options: {
-            configFile: 'tsconfig.main.json'
-          }
+            configFile: 'tsconfig.main.json',
+          },
         },
-        exclude: /node_modules/
-      }
-    ]
-  }
+        exclude: /node_modules/,
+      },
+    ],
+  },
 };
 
 const preloadConfig = {
@@ -60,7 +60,7 @@ const preloadConfig = {
   entry: './src/preload.ts',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'preload.js'
+    filename: 'preload.js',
   },
   module: {
     rules: [
@@ -69,13 +69,13 @@ const preloadConfig = {
         use: {
           loader: 'ts-loader',
           options: {
-            configFile: 'tsconfig.main.json'
-          }
+            configFile: 'tsconfig.main.json',
+          },
         },
-        exclude: /node_modules/
-      }
-    ]
-  }
+        exclude: /node_modules/,
+      },
+    ],
+  },
 };
 
 const rendererConfig = {
@@ -84,7 +84,7 @@ const rendererConfig = {
   entry: './src/renderer/index.tsx',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'renderer.js'
+    filename: 'renderer.js',
   },
   module: {
     rules: [
@@ -93,23 +93,23 @@ const rendererConfig = {
         use: {
           loader: 'ts-loader',
           options: {
-            configFile: 'tsconfig.renderer.json'
-          }
+            configFile: 'tsconfig.renderer.json',
+          },
         },
-        exclude: /node_modules/
+        exclude: /node_modules/,
       },
       {
         test: /\.css$/,
-        use: ['style-loader', 'css-loader', 'postcss-loader']
-      }
-    ]
+        use: ['style-loader', 'css-loader', 'postcss-loader'],
+      },
+    ],
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: './src/renderer/index.html',
-      filename: 'index.html'
-    })
-  ]
+      filename: 'index.html',
+    }),
+  ],
 };
 
 module.exports = [mainConfig, preloadConfig, rendererConfig];

@@ -26,12 +26,12 @@ Object.assign(windows, {
   focusWindow: mockFocusWindow,
   hideWindow: mockHideWindow,
   getFrontmostApp: mockGetFrontmostApp,
-  resizeVSCodeWindows: mockResizeVSCodeWindows
+  resizeVSCodeWindows: mockResizeVSCodeWindows,
 });
 
 Object.assign(persistence, {
   loadTabOrder: mockLoadTabOrder,
-  saveTabOrder: mockSaveTabOrder
+  saveTabOrder: mockSaveTabOrder,
 });
 
 describe('IPC Module', () => {
@@ -40,13 +40,15 @@ describe('IPC Module', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockMainWindow = new BrowserWindow();
     ipcHandlers = new Map();
 
-    mockIpcMain.handle.mockImplementation((channel: string, handler: Function) => {
-      ipcHandlers.set(channel, handler);
-    });
+    mockIpcMain.handle.mockImplementation(
+      (channel: string, handler: Function) => {
+        ipcHandlers.set(channel, handler);
+      }
+    );
 
     setupIPCHandlers(mockMainWindow);
   });
@@ -79,7 +81,7 @@ describe('IPC Module', () => {
       const targetWindowId = 'window1';
       const mockWindowList = [
         { id: 'window1', title: 'Window 1' },
-        { id: 'window2', title: 'Window 2' }
+        { id: 'window2', title: 'Window 2' },
       ];
 
       mockFocusWindow.mockResolvedValue(undefined);
@@ -103,7 +105,9 @@ describe('IPC Module', () => {
 
       const mockEvent = { sender: { send: jest.fn() } };
 
-      await expect(focusHandler(mockEvent, targetWindowId)).rejects.toThrow('Window not found');
+      await expect(focusHandler(mockEvent, targetWindowId)).rejects.toThrow(
+        'Window not found'
+      );
 
       expect(mockFocusWindow).toHaveBeenCalledWith(targetWindowId);
       expect(mockDiscoverVSCodeWindows).not.toHaveBeenCalled();
@@ -135,7 +139,9 @@ describe('IPC Module', () => {
 
       const mockEvent = { sender: { send: jest.fn() } };
 
-      await expect(reorderHandler(mockEvent, windowIds)).rejects.toThrow('Save failed');
+      await expect(reorderHandler(mockEvent, windowIds)).rejects.toThrow(
+        'Save failed'
+      );
 
       expect(mockSaveTabOrder).toHaveBeenCalledWith(windowIds);
     });
@@ -226,7 +232,9 @@ describe('IPC Module', () => {
 
       const mockEvent = { sender: { send: jest.fn() } };
 
-      await expect(resizeHandler(mockEvent, tabBarHeight)).rejects.toThrow('Resize failed');
+      await expect(resizeHandler(mockEvent, tabBarHeight)).rejects.toThrow(
+        'Resize failed'
+      );
 
       expect(mockResizeVSCodeWindows).toHaveBeenCalledWith(tabBarHeight);
     });

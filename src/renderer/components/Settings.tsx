@@ -14,13 +14,16 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
   useEffect(() => {
     if (isOpen) {
       debugLog('Loading settings');
-      window.vstab.getSettings().then((loadedSettings: AppSettings) => {
-        debugLog('Settings loaded:', loadedSettings);
-        setSettings(loadedSettings);
-      }).catch((error: any) => {
-        debugLog('Error loading settings:', error);
-        console.error('Error loading settings:', error);
-      });
+      window.vstab
+        .getSettings()
+        .then((loadedSettings: AppSettings) => {
+          debugLog('Settings loaded:', loadedSettings);
+          setSettings(loadedSettings);
+        })
+        .catch((error: any) => {
+          debugLog('Error loading settings:', error);
+          console.error('Error loading settings:', error);
+        });
     }
   }, [isOpen]);
 
@@ -55,14 +58,21 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
       debugLog('Updating settings:', newSettings);
       const updatedSettings = await window.vstab.updateSettings(newSettings);
       setSettings(updatedSettings);
-      
+
       // Apply theme immediately
-      document.documentElement.setAttribute('data-theme', updatedSettings.theme);
-      
+      document.documentElement.setAttribute(
+        'data-theme',
+        updatedSettings.theme
+      );
+
       // Trigger window resize if needed
-      if (settings && (settings.tabBarHeight !== updatedSettings.tabBarHeight ||
+      if (
+        settings &&
+        (settings.tabBarHeight !== updatedSettings.tabBarHeight ||
           settings.autoResizeVertical !== updatedSettings.autoResizeVertical ||
-          settings.autoResizeHorizontal !== updatedSettings.autoResizeHorizontal)) {
+          settings.autoResizeHorizontal !==
+            updatedSettings.autoResizeHorizontal)
+      ) {
         await window.vstab.resizeWindows(updatedSettings.tabBarHeight);
       }
     } catch (error: any) {
@@ -76,16 +86,18 @@ export default function Settings({ isOpen, onClose }: SettingsProps) {
   if (!isOpen || !settings) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-[var(--color-vscode-tab-inactive)] border border-[var(--color-vscode-border)] rounded-lg p-6 w-96"
         onClick={e => e.stopPropagation()}
       >
-        <h2 className="text-lg font-semibold mb-4 text-[var(--color-vscode-text)]">Settings</h2>
-        
+        <h2 className="text-lg font-semibold mb-4 text-[var(--color-vscode-text)]">
+          Settings
+        </h2>
+
         {/* Theme Selection */}
         <div className="mb-6">
           <label className="block text-sm font-medium mb-2 text-[var(--color-vscode-text)]">

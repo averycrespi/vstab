@@ -76,7 +76,7 @@ vstab integrates with macOS's yabai window manager to provide seamless workspace
 The application uses sensible defaults:
 
 - **Tab Bar Height**: 35px
-- **Polling Interval**: 1 second for window discovery  
+- **Polling Interval**: 1 second for window discovery
 - **Auto-Hide**: 500ms for frontmost app detection
 
 For advanced configuration options, see [DEVELOPERS.md](DEVELOPERS.md).
@@ -96,16 +96,19 @@ yabai provides the window control needed for seamless tab switching and automati
 ### Common Issues
 
 **Tab bar not appearing:**
+
 - Ensure VS Code is running and focused
 - Check that yabai service is running: `yabai --start-service`
 - Verify yabai can query windows: `yabai -m query --windows`
 
 **Windows not switching:**
+
 - Grant Accessibility permissions to yabai and vstab
 - Ensure yabai has window management permissions
 - Check Console.app for yabai connection errors
 
 **Build errors:**
+
 - Ensure Node.js 18+ is installed
 - Clear node_modules and reinstall: `rm -rf node_modules package-lock.json && npm install`
 

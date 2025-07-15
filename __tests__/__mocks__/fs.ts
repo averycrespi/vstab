@@ -34,11 +34,11 @@ class FileSystemMock {
     if (!path.startsWith('/')) {
       path = `${this.currentWorkingDirectory}/${path}`;
     }
-    
+
     // Normalize path (remove ./ and ../ etc)
     const parts = path.split('/').filter(part => part !== '');
     const normalizedParts: string[] = [];
-    
+
     for (const part of parts) {
       if (part === '.') {
         continue;
@@ -48,7 +48,7 @@ class FileSystemMock {
         normalizedParts.push(part);
       }
     }
-    
+
     return '/' + normalizedParts.join('/');
   }
 
@@ -56,7 +56,7 @@ class FileSystemMock {
     const normalizedPath = this.normalizePath(path);
     const parts = normalizedPath.split('/').filter(part => part !== '');
     let currentPath = '';
-    
+
     for (const part of parts) {
       currentPath += '/' + part;
       if (!this.fs.has(currentPath)) {
@@ -68,8 +68,8 @@ class FileSystemMock {
             mtime: new Date(),
             ctime: new Date(),
             isFile: () => false,
-            isDirectory: () => true
-          }
+            isDirectory: () => true,
+          },
         });
       }
     }
@@ -82,48 +82,56 @@ class FileSystemMock {
   }
 
   // Mock fs/promises methods
-  readFile = jest.fn(async (path: string, encoding?: string): Promise<string | Buffer> => {
-    const normalizedPath = this.normalizePath(path);
-    const entry = this.fs.get(normalizedPath);
-    
-    if (!entry) {
-      throw new Error(`ENOENT: no such file or directory, open '${path}'`);
-    }
-    
-    if (entry.type !== 'file') {
-      throw new Error(`EISDIR: illegal operation on a directory, read`);
-    }
-    
-    if (encoding === 'utf-8' || encoding === 'utf8') {
-      return entry.content as string || '';
-    }
-    
-    return entry.content as Buffer || Buffer.from('');
-  });
+  readFile = jest.fn(
+    async (path: string, encoding?: string): Promise<string | Buffer> => {
+      const normalizedPath = this.normalizePath(path);
+      const entry = this.fs.get(normalizedPath);
 
-  writeFile = jest.fn(async (path: string, data: string | Buffer, options?: any): Promise<void> => {
-    const normalizedPath = this.normalizePath(path);
-    const parentPath = this.getParentPath(normalizedPath);
-    
-    // Ensure parent directory exists
-    this.ensureDirectory(parentPath);
-    
-    this.fs.set(normalizedPath, {
-      type: 'file',
-      content: data,
-      stats: {
-        size: typeof data === 'string' ? data.length : data.length,
-        mtime: new Date(),
-        ctime: new Date(),
-        isFile: () => true,
-        isDirectory: () => false
+      if (!entry) {
+        throw new Error(`ENOENT: no such file or directory, open '${path}'`);
       }
-    });
-  });
+
+      if (entry.type !== 'file') {
+        throw new Error(`EISDIR: illegal operation on a directory, read`);
+      }
+
+      if (encoding === 'utf-8' || encoding === 'utf8') {
+        return (entry.content as string) || '';
+      }
+
+      return (entry.content as Buffer) || Buffer.from('');
+    }
+  );
+
+  writeFile = jest.fn(
+    async (
+      path: string,
+      data: string | Buffer,
+      options?: any
+    ): Promise<void> => {
+      const normalizedPath = this.normalizePath(path);
+      const parentPath = this.getParentPath(normalizedPath);
+
+      // Ensure parent directory exists
+      this.ensureDirectory(parentPath);
+
+      this.fs.set(normalizedPath, {
+        type: 'file',
+        content: data,
+        stats: {
+          size: typeof data === 'string' ? data.length : data.length,
+          mtime: new Date(),
+          ctime: new Date(),
+          isFile: () => true,
+          isDirectory: () => false,
+        },
+      });
+    }
+  );
 
   mkdir = jest.fn(async (path: string, options?: any): Promise<void> => {
     const normalizedPath = this.normalizePath(path);
-    
+
     if (options?.recursive) {
       this.ensureDirectory(normalizedPath);
     } else {
@@ -131,7 +139,7 @@ class FileSystemMock {
       if (!this.fs.has(parentPath)) {
         throw new Error(`ENOENT: no such file or directory, mkdir '${path}'`);
       }
-      
+
       this.fs.set(normalizedPath, {
         type: 'directory',
         children: new Map(),
@@ -140,8 +148,8 @@ class FileSystemMock {
           mtime: new Date(),
           ctime: new Date(),
           isFile: () => false,
-          isDirectory: () => true
-        }
+          isDirectory: () => true,
+        },
       });
     }
   });
@@ -149,30 +157,30 @@ class FileSystemMock {
   rmdir = jest.fn(async (path: string, options?: any): Promise<void> => {
     const normalizedPath = this.normalizePath(path);
     const entry = this.fs.get(normalizedPath);
-    
+
     if (!entry) {
       throw new Error(`ENOENT: no such file or directory, rmdir '${path}'`);
     }
-    
+
     if (entry.type !== 'directory') {
       throw new Error(`ENOTDIR: not a directory, rmdir '${path}'`);
     }
-    
+
     this.fs.delete(normalizedPath);
   });
 
   unlink = jest.fn(async (path: string): Promise<void> => {
     const normalizedPath = this.normalizePath(path);
     const entry = this.fs.get(normalizedPath);
-    
+
     if (!entry) {
       throw new Error(`ENOENT: no such file or directory, unlink '${path}'`);
     }
-    
+
     if (entry.type !== 'file') {
       throw new Error(`EPERM: operation not permitted, unlink '${path}'`);
     }
-    
+
     this.fs.delete(normalizedPath);
   });
 
@@ -186,26 +194,26 @@ class FileSystemMock {
   stat = jest.fn(async (path: string): Promise<any> => {
     const normalizedPath = this.normalizePath(path);
     const entry = this.fs.get(normalizedPath);
-    
+
     if (!entry) {
       throw new Error(`ENOENT: no such file or directory, stat '${path}'`);
     }
-    
+
     return entry.stats;
   });
 
   readdir = jest.fn(async (path: string): Promise<string[]> => {
     const normalizedPath = this.normalizePath(path);
     const entry = this.fs.get(normalizedPath);
-    
+
     if (!entry) {
       throw new Error(`ENOENT: no such file or directory, scandir '${path}'`);
     }
-    
+
     if (entry.type !== 'directory') {
       throw new Error(`ENOTDIR: not a directory, scandir '${path}'`);
     }
-    
+
     const files: string[] = [];
     for (const [filePath] of this.fs) {
       if (filePath.startsWith(normalizedPath + '/')) {
@@ -215,7 +223,7 @@ class FileSystemMock {
         }
       }
     }
-    
+
     return files;
   });
 
@@ -224,7 +232,7 @@ class FileSystemMock {
     const normalizedPath = this.normalizePath(path);
     const parentPath = this.getParentPath(normalizedPath);
     this.ensureDirectory(parentPath);
-    
+
     this.fs.set(normalizedPath, {
       type: 'file',
       content,
@@ -233,8 +241,8 @@ class FileSystemMock {
         mtime: new Date(),
         ctime: new Date(),
         isFile: () => true,
-        isDirectory: () => false
-      }
+        isDirectory: () => false,
+      },
     });
   }
 
@@ -284,5 +292,5 @@ export const {
   unlink,
   access,
   stat,
-  readdir
+  readdir,
 } = fsMock;

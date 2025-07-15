@@ -33,8 +33,8 @@ async function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
-    }
+      preload: path.join(__dirname, 'preload.js'),
+    },
   });
 
   const htmlPath = path.join(__dirname, 'index.html');
@@ -53,7 +53,7 @@ async function createWindow() {
   // Start polling for VS Code windows
   debugLog('Starting window polling');
   startWindowPolling();
-  
+
   // Set up IPC handlers
   debugLog('Setting up IPC handlers');
   setupIPCHandlers(mainWindow);
@@ -65,7 +65,7 @@ function startWindowPolling() {
       debugLog('Main window not available, skipping poll');
       return;
     }
-    
+
     try {
       debugLog('Polling for VS Code windows');
       const windows = await discoverVSCodeWindows();
@@ -80,7 +80,7 @@ function startWindowPolling() {
   // Poll immediately
   debugLog('Starting initial window poll');
   pollWindows();
-  
+
   // Then poll every 1 second
   debugLog('Setting up window polling interval (1000ms)');
   pollInterval = setInterval(pollWindows, 1000);
@@ -90,13 +90,13 @@ app.whenReady().then(async () => {
   // Initialize settings and set debug mode
   const settings = await initializeSettings();
   setDebugMode(settings.debugLogging || process.env.NODE_ENV === 'development');
-  
+
   if (settings.debugLogging) {
     debugLog('Debug mode enabled from settings');
   } else if (process.env.NODE_ENV === 'development') {
     debugLog('Debug mode enabled for development');
   }
-  
+
   debugLog('App ready, creating window');
   createWindow();
 });

@@ -9,25 +9,28 @@ export function useTabOrder(windows: VSCodeWindow[]) {
   useEffect(() => {
     // Load saved tab order on mount
     debugLog('Loading saved tab order');
-    window.vstab.getTabOrder().then((order) => {
-      debugLog('Loaded tab order:', order);
-      setTabOrder(order);
-    }).catch((error) => {
-      debugLog('Error loading tab order:', error);
-      console.error('Error loading tab order:', error);
-      // Keep default empty array on error
-    });
+    window.vstab
+      .getTabOrder()
+      .then(order => {
+        debugLog('Loaded tab order:', order);
+        setTabOrder(order);
+      })
+      .catch(error => {
+        debugLog('Error loading tab order:', error);
+        console.error('Error loading tab order:', error);
+        // Keep default empty array on error
+      });
   }, []);
 
   const orderedWindows = useCallback(() => {
     debugLog('Computing ordered windows - current tab order:', tabOrder);
-    
+
     // If no saved order, just return windows as-is to maintain their natural order
     if (tabOrder.length === 0) {
       debugLog('No saved order, returning windows in natural order');
       return windows;
     }
-    
+
     // Sort windows based on saved order, maintaining order for closed windows
     const ordered: VSCodeWindow[] = [];
     const newWindows: VSCodeWindow[] = [];
@@ -49,8 +52,11 @@ export function useTabOrder(windows: VSCodeWindow[]) {
     }
 
     const result = [...ordered, ...newWindows];
-    debugLog('Ordered windows result:', result.map(w => w.id));
-    
+    debugLog(
+      'Ordered windows result:',
+      result.map(w => w.id)
+    );
+
     // Update saved order if there are new windows
     if (newWindows.length > 0) {
       const newOrder = result.map(w => w.id);
@@ -62,7 +68,7 @@ export function useTabOrder(windows: VSCodeWindow[]) {
         console.error('Error auto-saving tab order:', err);
       });
     }
-    
+
     return result;
   }, [windows, tabOrder]);
 
@@ -81,6 +87,6 @@ export function useTabOrder(windows: VSCodeWindow[]) {
 
   return {
     orderedWindows: orderedWindows(),
-    reorderWindows
+    reorderWindows,
   };
 }

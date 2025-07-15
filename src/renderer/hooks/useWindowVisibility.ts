@@ -12,11 +12,17 @@ export function useWindowVisibility() {
       try {
         const frontmostApp = await window.vstab.getFrontmostApp();
         const appLower = frontmostApp.toLowerCase();
-        const shouldShow = appLower.includes('code') || 
-                          appLower.includes('vstab') || 
-                          appLower.includes('electron') ||
-                          appLower.includes('vscode');
-        debugLog('Visibility check - frontmost:', frontmostApp, 'shouldShow:', shouldShow);
+        const shouldShow =
+          appLower.includes('code') ||
+          appLower.includes('vstab') ||
+          appLower.includes('electron') ||
+          appLower.includes('vscode');
+        debugLog(
+          'Visibility check - frontmost:',
+          frontmostApp,
+          'shouldShow:',
+          shouldShow
+        );
         setIsVisible(shouldShow);
       } catch (error) {
         debugLog('Error checking visibility:', error);

@@ -5,9 +5,5 @@
     "module": "esnext",
     "jsx": "react-jsx"
   },
-  "include": [
-    "src/renderer/**/*",
-    "src/shared/**/*",
-    "src/types/**/*"
-  ]
+  "include": ["src/renderer/**/*", "src/shared/**/*", "src/types/**/*"]
 }

@@ -9,14 +9,6 @@
     "resolveJsonModule": true,
     "types": ["jest", "@testing-library/jest-dom", "node"]
   },
-  "include": [
-    "src/**/*",
-    "__tests__/**/*",
-    "jest.setup.*.js"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "release"
-  ]
+  "include": ["src/**/*", "__tests__/**/*", "jest.setup.*.js"],
+  "exclude": ["node_modules", "dist", "release"]
 }

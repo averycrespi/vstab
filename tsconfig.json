@@ -30,14 +30,6 @@
       "@renderer/*": ["renderer/*"]
     }
   },
-  "include": [
-    "src/**/*",
-    "__tests__/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "out",
-    "release"
-  ]
+  "include": ["src/**/*", "__tests__/**/*"],
+  "exclude": ["node_modules", "dist", "out", "release"]
 }

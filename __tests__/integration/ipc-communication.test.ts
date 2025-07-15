@@ -22,19 +22,21 @@ describe('IPC Communication Integration', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Setup mock main window
     mockMainWindow = {
       webContents: {
-        send: jest.fn()
-      }
+        send: jest.fn(),
+      },
     };
 
     // Track IPC handlers
     ipcHandlers = new Map();
-    mockIpcMain.handle.mockImplementation((channel: string, handler: Function) => {
-      ipcHandlers.set(channel, handler);
-    });
+    mockIpcMain.handle.mockImplementation(
+      (channel: string, handler: Function) => {
+        ipcHandlers.set(channel, handler);
+      }
+    );
 
     // Setup IPC handlers
     setupIPCHandlers(mockMainWindow);
@@ -56,15 +58,15 @@ describe('IPC Communication Integration', () => {
           title: 'main.ts — vstab',
           path: 'vstab',
           isActive: false,
-          position: { x: 0, y: 45, width: 1920, height: 1035 }
+          position: { x: 0, y: 45, width: 1920, height: 1035 },
         },
         {
           id: 'window2',
           title: 'App.tsx — project',
           path: 'project',
           isActive: false,
-          position: { x: 0, y: 45, width: 1920, height: 1035 }
-        }
+          position: { x: 0, y: 45, width: 1920, height: 1035 },
+        },
       ];
 
       // Setup mocks
@@ -91,7 +93,7 @@ describe('IPC Communication Integration', () => {
       mockWindows.focusWindow.mockRejectedValue(focusError);
 
       const focusHandler = ipcHandlers.get(IPC_CHANNELS.VSCODE_WINDOW_FOCUS)!;
-      
+
       await expect(
         focusHandler(createMockEvent(), targetWindowId)
       ).rejects.toThrow('Window not found');
@@ -126,9 +128,9 @@ describe('IPC Communication Integration', () => {
       mockPersistence.saveTabOrder.mockRejectedValue(saveError);
       const reorderHandler = ipcHandlers.get(IPC_CHANNELS.TABS_REORDER)!;
 
-      await expect(
-        reorderHandler(createMockEvent(), tabOrder)
-      ).rejects.toThrow('Save failed');
+      await expect(reorderHandler(createMockEvent(), tabOrder)).rejects.toThrow(
+        'Save failed'
+      );
 
       expect(mockPersistence.saveTabOrder).toHaveBeenCalledWith(tabOrder);
     });
@@ -150,7 +152,7 @@ describe('IPC Communication Integration', () => {
         { app: 'Visual Studio Code', expected: true },
         { app: 'Code', expected: true },
         { app: 'Chrome', expected: false },
-        { app: '', expected: false }
+        { app: '', expected: false },
       ];
 
       const shouldShowHandler = ipcHandlers.get(IPC_CHANNELS.APP_SHOULD_SHOW)!;
@@ -169,7 +171,9 @@ describe('IPC Communication Integration', () => {
       const expectedApp = 'Visual Studio Code';
       mockWindows.getFrontmostApp.mockResolvedValue(expectedApp);
 
-      const frontmostHandler = ipcHandlers.get(IPC_CHANNELS.SYSTEM_FRONTMOST_APP)!;
+      const frontmostHandler = ipcHandlers.get(
+        IPC_CHANNELS.SYSTEM_FRONTMOST_APP
+      )!;
       const result = await frontmostHandler(createMockEvent());
 
       expect(result).toBe(expectedApp);
@@ -182,10 +186,14 @@ describe('IPC Communication Integration', () => {
       const tabBarHeight = 35;
       mockWindows.resizeVSCodeWindows.mockResolvedValue(undefined);
 
-      const resizeHandler = ipcHandlers.get(IPC_CHANNELS.VSCODE_WINDOWS_RESIZE)!;
+      const resizeHandler = ipcHandlers.get(
+        IPC_CHANNELS.VSCODE_WINDOWS_RESIZE
+      )!;
       await resizeHandler(createMockEvent(), tabBarHeight);
 
-      expect(mockWindows.resizeVSCodeWindows).toHaveBeenCalledWith(tabBarHeight);
+      expect(mockWindows.resizeVSCodeWindows).toHaveBeenCalledWith(
+        tabBarHeight
+      );
     });
 
     it('should handle resize errors', async () => {
@@ -193,7 +201,9 @@ describe('IPC Communication Integration', () => {
       const resizeError = new Error('Resize failed');
       mockWindows.resizeVSCodeWindows.mockRejectedValue(resizeError);
 
-      const resizeHandler = ipcHandlers.get(IPC_CHANNELS.VSCODE_WINDOWS_RESIZE)!;
+      const resizeHandler = ipcHandlers.get(
+        IPC_CHANNELS.VSCODE_WINDOWS_RESIZE
+      )!;
 
       await expect(
         resizeHandler(createMockEvent(), tabBarHeight)
@@ -209,11 +219,14 @@ describe('IPC Communication Integration', () => {
         IPC_CHANNELS.TABS_GET_ORDER,
         IPC_CHANNELS.APP_SHOULD_SHOW,
         IPC_CHANNELS.SYSTEM_FRONTMOST_APP,
-        IPC_CHANNELS.VSCODE_WINDOWS_RESIZE
+        IPC_CHANNELS.VSCODE_WINDOWS_RESIZE,
       ];
 
       for (const channel of expectedChannels) {
-        expect(mockIpcMain.handle).toHaveBeenCalledWith(channel, expect.any(Function));
+        expect(mockIpcMain.handle).toHaveBeenCalledWith(
+          channel,
+          expect.any(Function)
+        );
         expect(ipcHandlers.has(channel)).toBe(true);
       }
     });

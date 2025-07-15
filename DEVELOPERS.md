@@ -164,18 +164,21 @@ __tests__/
 ### Test Types
 
 **Unit Tests (40+ tests)**
+
 - Main process: Window discovery, persistence, IPC handlers
 - Renderer process: React components, hooks, UI interactions
 - Shared modules: Type definitions and utilities
 - Test individual functions and components in isolation
 
 **Integration Tests (15+ tests)**
+
 - IPC communication between main and renderer processes
 - yabai integration with mocked commands
 - File persistence workflows
 - Error handling and recovery scenarios
 
 **End-to-End Tests (5+ tests)**
+
 - Complete user workflows (tab switching, reordering)
 - Application lifecycle (startup, shutdown, restart)
 - Auto-hide behavior based on frontmost application

@@ -24,7 +24,7 @@ import { loadTabOrder, saveTabOrder } from '../../../src/main/persistence';
 describe('Persistence Module', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Re-setup mocks for each test
     mockApp.getPath.mockReturnValue(mockUserDataPath);
     mockPath.join.mockReturnValue(mockTabOrderFile);
@@ -42,7 +42,9 @@ describe('Persistence Module', () => {
     });
 
     it('should return empty array when file does not exist', async () => {
-      mockFs.readFile.mockRejectedValue(new Error('ENOENT: no such file or directory'));
+      mockFs.readFile.mockRejectedValue(
+        new Error('ENOENT: no such file or directory')
+      );
 
       const result = await loadTabOrder();
 
@@ -98,7 +100,9 @@ describe('Persistence Module', () => {
 
       await saveTabOrder(windowIds);
 
-      expect(mockFs.mkdir).toHaveBeenCalledWith(mockUserDataPath, { recursive: true });
+      expect(mockFs.mkdir).toHaveBeenCalledWith(mockUserDataPath, {
+        recursive: true,
+      });
       expect(mockFs.writeFile).toHaveBeenCalledWith(
         mockTabOrderFile,
         JSON.stringify(windowIds, null, 2)
@@ -138,7 +142,9 @@ describe('Persistence Module', () => {
 
       await saveTabOrder(windowIds);
 
-      expect(mockFs.mkdir).toHaveBeenCalledWith(mockUserDataPath, { recursive: true });
+      expect(mockFs.mkdir).toHaveBeenCalledWith(mockUserDataPath, {
+        recursive: true,
+      });
     });
 
     it('should handle mkdir error gracefully and still throw', async () => {
@@ -148,10 +154,15 @@ describe('Persistence Module', () => {
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      await expect(saveTabOrder(windowIds)).rejects.toThrow('Permission denied');
+      await expect(saveTabOrder(windowIds)).rejects.toThrow(
+        'Permission denied'
+      );
 
-      expect(consoleSpy).toHaveBeenCalledWith('Error saving tab order:', mkdirError);
-      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Error saving tab order:',
+        mkdirError
+      );
+
       consoleSpy.mockRestore();
     });
 
@@ -165,8 +176,11 @@ describe('Persistence Module', () => {
 
       await expect(saveTabOrder(windowIds)).rejects.toThrow('Disk full');
 
-      expect(consoleSpy).toHaveBeenCalledWith('Error saving tab order:', writeError);
-      
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Error saving tab order:',
+        writeError
+      );
+
       consoleSpy.mockRestore();
     });
 
@@ -174,7 +188,7 @@ describe('Persistence Module', () => {
       const windowIds = [
         'hash-abc123',
         'hash-def456',
-        'hash-ghi789-with-longer-name'
+        'hash-ghi789-with-longer-name',
       ];
       mockFs.mkdir.mockResolvedValue(undefined);
       mockFs.writeFile.mockResolvedValue(undefined);
@@ -205,7 +219,7 @@ describe('Persistence Module', () => {
         'window-with-dash',
         'window_with_underscore',
         'window.with.dots',
-        'window@with@symbols'
+        'window@with@symbols',
       ];
       mockFs.mkdir.mockResolvedValue(undefined);
       mockFs.writeFile.mockResolvedValue(undefined);
@@ -222,7 +236,7 @@ describe('Persistence Module', () => {
   describe('Integration scenarios', () => {
     it('should handle save and load cycle correctly', async () => {
       const originalOrder = ['window1', 'window2', 'window3'];
-      
+
       // Save
       mockFs.mkdir.mockResolvedValue(undefined);
       mockFs.writeFile.mockResolvedValue(undefined);
@@ -244,7 +258,7 @@ describe('Persistence Module', () => {
 
       // Save first order
       await saveTabOrder(firstOrder);
-      
+
       // Save second order (overwrite)
       await saveTabOrder(secondOrder);
 

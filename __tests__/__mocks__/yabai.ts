@@ -35,8 +35,8 @@ class YabaiMock {
     {
       index: 1,
       frame: { x: 0, y: 0, w: 1920, h: 1080 },
-      'has-focus': true
-    }
+      'has-focus': true,
+    },
   ];
   private isAvailable = true;
   private commandHistory: string[] = [];
@@ -58,7 +58,7 @@ class YabaiMock {
         display: 1,
         'has-focus': true,
         'is-visible': true,
-        'is-minimized': false
+        'is-minimized': false,
       },
       {
         id: 1002,
@@ -70,8 +70,8 @@ class YabaiMock {
         display: 1,
         'has-focus': false,
         'is-visible': true,
-        'is-minimized': false
-      }
+        'is-minimized': false,
+      },
     ];
     this.commandHistory = [];
   }
@@ -127,7 +127,7 @@ class YabaiMock {
         const window = this.windows.find(w => w.id === windowId);
         if (window) {
           // Update focus state
-          this.windows.forEach(w => w['has-focus'] = false);
+          this.windows.forEach(w => (w['has-focus'] = false));
           window['has-focus'] = true;
           return { stdout: '', stderr: '' };
         } else {
@@ -182,7 +182,7 @@ class YabaiMock {
 
   // Update window focus
   focusWindow(windowId: number) {
-    this.windows.forEach(w => w['has-focus'] = false);
+    this.windows.forEach(w => (w['has-focus'] = false));
     const window = this.windows.find(w => w.id === windowId);
     if (window) {
       window['has-focus'] = true;
@@ -196,8 +196,8 @@ class YabaiMock {
 
   // Get VS Code windows
   getVSCodeWindows(): MockYabaiWindow[] {
-    return this.windows.filter(w => 
-      w.app.includes('Visual Studio Code') || w.app.includes('Code')
+    return this.windows.filter(
+      w => w.app.includes('Visual Studio Code') || w.app.includes('Code')
     );
   }
 }

@@ -40,31 +40,31 @@ class ElectronMock {
         userData: this.userData,
         temp: '/tmp/test-temp',
         home: '/tmp/test-home',
-        documents: '/tmp/test-documents'
+        documents: '/tmp/test-documents',
       };
       return paths[name] || `/tmp/test-${name}`;
     }),
-    
+
     quit: jest.fn(() => {
       this.windows.forEach(win => win.destroy());
       this.windows = [];
     }),
-    
+
     on: jest.fn((event: string, callback: Function) => {
       if (event === 'ready' && this.appReady) {
         callback();
       }
     }),
-    
+
     whenReady: jest.fn(() => {
       this.appReady = true;
       return Promise.resolve();
     }),
-    
+
     isReady: jest.fn(() => this.appReady),
-    
+
     getName: jest.fn(() => 'vstab'),
-    getVersion: jest.fn(() => '1.0.0')
+    getVersion: jest.fn(() => '1.0.0'),
   };
 
   // BrowserWindow mock constructor
@@ -74,35 +74,41 @@ class ElectronMock {
       isDestroyed: false,
       isVisible: false,
       bounds: options.bounds || { x: 0, y: 0, width: 800, height: 600 },
-      
+
       webContents: {
         send: jest.fn(),
         on: jest.fn(),
-        removeAllListeners: jest.fn()
+        removeAllListeners: jest.fn(),
       },
-      
+
       loadFile: jest.fn().mockResolvedValue(undefined),
-      show: jest.fn(() => { window.isVisible = true; }),
-      hide: jest.fn(() => { window.isVisible = false; }),
+      show: jest.fn(() => {
+        window.isVisible = true;
+      }),
+      hide: jest.fn(() => {
+        window.isVisible = false;
+      }),
       focus: jest.fn(),
       blur: jest.fn(),
-      close: jest.fn(() => { window.destroy(); }),
+      close: jest.fn(() => {
+        window.destroy();
+      }),
       destroy: jest.fn(() => {
         window.isDestroyed = true;
         this.windows = this.windows.filter(w => w.id !== window.id);
       }),
-      
+
       setBounds: jest.fn((bounds: any) => {
         window.bounds = { ...window.bounds, ...bounds };
       }),
       getBounds: jest.fn(() => window.bounds),
-      
+
       setAlwaysOnTop: jest.fn(),
       setVisibleOnAllWorkspaces: jest.fn(),
-      
+
       on: jest.fn(),
       once: jest.fn(),
-      removeAllListeners: jest.fn()
+      removeAllListeners: jest.fn(),
     };
 
     this.windows.push(window);
@@ -114,7 +120,7 @@ class ElectronMock {
     handle: jest.fn((channel: string, handler: Function) => {
       this.ipcHandlers.set(channel, handler);
     }),
-    
+
     on: jest.fn(),
     once: jest.fn(),
     removeAllListeners: jest.fn((channel?: string) => {
@@ -124,7 +130,7 @@ class ElectronMock {
         this.ipcHandlers.clear();
       }
     }),
-    
+
     // Helper method to simulate IPC call from renderer
     _triggerHandler: async (channel: string, ...args: any[]) => {
       const handler = this.ipcHandlers.get(channel);
@@ -133,7 +139,7 @@ class ElectronMock {
         return await handler(event, ...args);
       }
       throw new Error(`No handler for channel: ${channel}`);
-    }
+    },
   };
 
   // IPC Renderer mock (for preload script testing)
@@ -141,11 +147,11 @@ class ElectronMock {
     invoke: jest.fn((channel: string, ...args: any[]) => {
       return this.ipcMain._triggerHandler(channel, ...args);
     }),
-    
+
     send: jest.fn(),
     on: jest.fn(),
     once: jest.fn(),
-    removeAllListeners: jest.fn()
+    removeAllListeners: jest.fn(),
   };
 
   // Screen mock
@@ -156,9 +162,9 @@ class ElectronMock {
       workArea: { x: 0, y: 23, width: 1920, height: 1057 }, // macOS menu bar
       scaleFactor: 1,
       rotation: 0,
-      colorDepth: 24
+      colorDepth: 24,
     })),
-    
+
     getAllDisplays: jest.fn(() => [
       {
         id: 1,
@@ -166,9 +172,9 @@ class ElectronMock {
         workArea: { x: 0, y: 23, width: 1920, height: 1057 },
         scaleFactor: 1,
         rotation: 0,
-        colorDepth: 24
-      }
-    ])
+        colorDepth: 24,
+      },
+    ]),
   };
 
   // Helper methods for testing

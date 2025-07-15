@@ -5,12 +5,12 @@ import { VSCodeWindow } from '../../../../src/shared/types';
 // Mock the global window.vstab API
 const mockVstab = {
   getTabOrder: jest.fn(),
-  reorderTabs: jest.fn()
+  reorderTabs: jest.fn(),
 };
 
 Object.defineProperty(window, 'vstab', {
   value: mockVstab,
-  writable: true
+  writable: true,
 });
 
 describe('useTabOrder Hook', () => {
@@ -20,22 +20,22 @@ describe('useTabOrder Hook', () => {
       title: 'main.ts — vstab',
       path: 'vstab',
       isActive: true,
-      position: { x: 0, y: 45, width: 1920, height: 1035 }
+      position: { x: 0, y: 45, width: 1920, height: 1035 },
     },
     {
       id: 'window2',
       title: 'App.tsx — my-project',
       path: 'my-project',
       isActive: false,
-      position: { x: 0, y: 45, width: 1920, height: 1035 }
+      position: { x: 0, y: 45, width: 1920, height: 1035 },
     },
     {
       id: 'window3',
       title: 'utils.ts — helper-lib',
       path: 'helper-lib',
       isActive: false,
-      position: { x: 0, y: 45, width: 1920, height: 1035 }
-    }
+      position: { x: 0, y: 45, width: 1920, height: 1035 },
+    },
   ];
 
   beforeEach(() => {
@@ -57,7 +57,7 @@ describe('useTabOrder Hook', () => {
       });
 
       expect(mockVstab.getTabOrder).toHaveBeenCalled();
-      
+
       // Verify the windows are ordered according to saved order
       const orderedWindows = result.current.orderedWindows;
       expect(orderedWindows).toHaveLength(3);
@@ -92,7 +92,7 @@ describe('useTabOrder Hook', () => {
       // Should fall back to natural order
       const orderedWindows = result.current.orderedWindows;
       expect(orderedWindows).toEqual(mockWindows);
-      
+
       consoleErrorSpy.mockRestore();
     });
   });
@@ -109,7 +109,11 @@ describe('useTabOrder Hook', () => {
       });
 
       const orderedWindows = result.current.orderedWindows;
-      expect(orderedWindows.map(w => w.id)).toEqual(['window3', 'window1', 'window2']);
+      expect(orderedWindows.map(w => w.id)).toEqual([
+        'window3',
+        'window1',
+        'window2',
+      ]);
     });
 
     it('should append new windows to the end', async () => {
@@ -131,23 +135,26 @@ describe('useTabOrder Hook', () => {
         title: 'new.ts — new-project',
         path: 'new-project',
         isActive: false,
-        position: { x: 0, y: 45, width: 1920, height: 1035 }
+        position: { x: 0, y: 45, width: 1920, height: 1035 },
       };
 
       rerender({ windows: [...mockWindows.slice(0, 2), newWindow] });
 
       const orderedWindows = result.current.orderedWindows;
-      expect(orderedWindows.map(w => w.id)).toEqual(['window1', 'window2', 'window4']);
+      expect(orderedWindows.map(w => w.id)).toEqual([
+        'window1',
+        'window2',
+        'window4',
+      ]);
     });
 
     it('should auto-save order when new windows are added', async () => {
       const savedOrder = ['window1', 'window2'];
       mockVstab.getTabOrder.mockResolvedValue(savedOrder);
 
-      const { rerender } = renderHook(
-        ({ windows }) => useTabOrder(windows),
-        { initialProps: { windows: mockWindows.slice(0, 2) } }
-      );
+      const { rerender } = renderHook(({ windows }) => useTabOrder(windows), {
+        initialProps: { windows: mockWindows.slice(0, 2) },
+      });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 0));
@@ -161,7 +168,7 @@ describe('useTabOrder Hook', () => {
         title: 'new.ts — new-project',
         path: 'new-project',
         isActive: false,
-        position: { x: 0, y: 45, width: 1920, height: 1035 }
+        position: { x: 0, y: 45, width: 1920, height: 1035 },
       };
 
       rerender({ windows: [...mockWindows.slice(0, 2), newWindow] });
@@ -170,7 +177,11 @@ describe('useTabOrder Hook', () => {
         await new Promise(resolve => setTimeout(resolve, 0));
       });
 
-      expect(mockVstab.reorderTabs).toHaveBeenCalledWith(['window1', 'window2', 'window4']);
+      expect(mockVstab.reorderTabs).toHaveBeenCalledWith([
+        'window1',
+        'window2',
+        'window4',
+      ]);
     });
 
     it('should skip closed windows from saved order', async () => {
@@ -255,7 +266,7 @@ describe('useTabOrder Hook', () => {
       await act(async () => {
         await result.current.reorderWindows(newOrder);
       });
-      
+
       consoleErrorSpy.mockRestore();
 
       expect(mockVstab.reorderTabs).toHaveBeenCalledWith(newOrder);
@@ -367,10 +378,9 @@ describe('useTabOrder Hook', () => {
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      const { rerender } = renderHook(
-        ({ windows }) => useTabOrder(windows),
-        { initialProps: { windows: [mockWindows[0]] } }
-      );
+      const { rerender } = renderHook(({ windows }) => useTabOrder(windows), {
+        initialProps: { windows: [mockWindows[0]] },
+      });
 
       await act(async () => {
         await new Promise(resolve => setTimeout(resolve, 0));
@@ -385,7 +395,7 @@ describe('useTabOrder Hook', () => {
 
       // Auto-save should have been attempted
       expect(mockVstab.reorderTabs).toHaveBeenCalled();
-      
+
       consoleSpy.mockRestore();
     });
   });

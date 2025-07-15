@@ -1,6 +1,6 @@
 /**
  * End-to-End Tests for vstab Application
- * 
+ *
  * These tests simulate complete user workflows by testing the interaction
  * between main and renderer processes, yabai integration, and file persistence.
  */
@@ -29,18 +29,18 @@ describe('vstab E2E Workflows', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Reset all mocks to default state
     yabaiMock.resetToDefaults();
     fsMock.reset();
-    
+
     // Setup consistent crypto mocking
     let hashCounter = 0;
     mockCreateHash.mockImplementation(() => ({
       update: jest.fn().mockReturnThis(),
-      digest: jest.fn(() => `hash${hashCounter++}`)
+      digest: jest.fn(() => `hash${hashCounter++}`),
     }));
-    
+
     // Setup mockExec to use yabaiMock
     mockExec.mockImplementation((command: string, callback: Function) => {
       try {
@@ -53,7 +53,7 @@ describe('vstab E2E Workflows', () => {
 
     // Setup mock main window
     mockMainWindow = { webContents: { send: jest.fn() } };
-    
+
     // Setup IPC handlers
     setupIPCHandlers(mockMainWindow);
   });
@@ -66,20 +66,22 @@ describe('vstab E2E Workflows', () => {
   describe('Complete Tab Switching Workflow', () => {
     it('should discover windows, save order, and focus windows', async () => {
       // Step 1: Discover VS Code windows
-      const windows = await ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_LIST);
-      
+      const windows = await ipcRenderer.invoke(
+        IPC_CHANNELS.VSCODE_WINDOWS_LIST
+      );
+
       expect(windows).toHaveLength(2);
       expect(windows[0]).toMatchObject({
         id: 'hash0',
         title: 'main.ts — vstab',
         path: 'vstab',
-        isActive: true
+        isActive: true,
       });
       expect(windows[1]).toMatchObject({
         id: 'hash1',
         title: 'App.tsx — my-project',
         path: 'my-project',
-        isActive: false
+        isActive: false,
       });
 
       // Step 2: Save initial tab order
@@ -88,7 +90,9 @@ describe('vstab E2E Workflows', () => {
 
       // Verify order was saved to file system
       expect(fsMock.hasFile('/tmp/test-userData/tab-order.json')).toBe(true);
-      const savedContent = fsMock.getFileContent('/tmp/test-userData/tab-order.json');
+      const savedContent = fsMock.getFileContent(
+        '/tmp/test-userData/tab-order.json'
+      );
       expect(JSON.parse(savedContent as string)).toEqual(initialOrder);
 
       // Step 3: Focus second window
@@ -96,7 +100,7 @@ describe('vstab E2E Workflows', () => {
 
       // Verify window was focused in yabai
       expect(yabaiMock.getFocusedWindow()?.id).toBe(1002);
-      
+
       // Verify command history
       const commands = yabaiMock.getCommandHistory();
       expect(commands).toContain('yabai -m window --focus 1002');
@@ -106,7 +110,9 @@ describe('vstab E2E Workflows', () => {
       await ipcRenderer.invoke(IPC_CHANNELS.TABS_REORDER, newOrder);
 
       // Step 5: Verify new order was persisted
-      const newSavedContent = fsMock.getFileContent('/tmp/test-userData/tab-order.json');
+      const newSavedContent = fsMock.getFileContent(
+        '/tmp/test-userData/tab-order.json'
+      );
       expect(JSON.parse(newSavedContent as string)).toEqual(newOrder);
 
       // Step 6: Load tab order (simulating app restart)
@@ -146,7 +152,7 @@ describe('vstab E2E Workflows', () => {
         display: 1,
         'has-focus': false,
         'is-visible': true,
-        'is-minimized': false
+        'is-minimized': false,
       });
 
       // Discover windows again
@@ -161,7 +167,9 @@ describe('vstab E2E Workflows', () => {
       let shouldShow = await ipcRenderer.invoke(IPC_CHANNELS.APP_SHOULD_SHOW);
       expect(shouldShow).toBe(true);
 
-      let frontmostApp = await ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_FRONTMOST_APP);
+      let frontmostApp = await ipcRenderer.invoke(
+        IPC_CHANNELS.SYSTEM_FRONTMOST_APP
+      );
       expect(frontmostApp).toBe('Visual Studio Code');
 
       // Switch to Chrome
@@ -175,18 +183,20 @@ describe('vstab E2E Workflows', () => {
         frame: { x: 0, y: 45, w: 1920, h: 1035 },
         space: 1,
         display: 1,
-        pid: 99999
+        pid: 99999,
       };
 
       // Update yabai state
       const currentWindows = yabaiMock.getVSCodeWindows();
-      currentWindows.forEach(w => w['has-focus'] = false);
+      currentWindows.forEach(w => (w['has-focus'] = false));
       yabaiMock.addWindow(chromeWindow);
 
       shouldShow = await ipcRenderer.invoke(IPC_CHANNELS.APP_SHOULD_SHOW);
       expect(shouldShow).toBe(false);
 
-      frontmostApp = await ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_FRONTMOST_APP);
+      frontmostApp = await ipcRenderer.invoke(
+        IPC_CHANNELS.SYSTEM_FRONTMOST_APP
+      );
       expect(frontmostApp).toBe('Chrome');
 
       // Switch back to VS Code
@@ -196,7 +206,9 @@ describe('vstab E2E Workflows', () => {
       shouldShow = await ipcRenderer.invoke(IPC_CHANNELS.APP_SHOULD_SHOW);
       expect(shouldShow).toBe(true);
 
-      frontmostApp = await ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_FRONTMOST_APP);
+      frontmostApp = await ipcRenderer.invoke(
+        IPC_CHANNELS.SYSTEM_FRONTMOST_APP
+      );
       expect(frontmostApp).toBe('Visual Studio Code');
     });
 
@@ -205,7 +217,7 @@ describe('vstab E2E Workflows', () => {
         'Visual Studio Code',
         'Code',
         'Visual Studio Code - Insiders',
-        'Code - OSS'
+        'Code - OSS',
       ];
 
       for (const variant of vsCodeVariants) {
@@ -213,12 +225,16 @@ describe('vstab E2E Workflows', () => {
         const windows = yabaiMock.getVSCodeWindows();
         windows[0].app = variant;
         windows[0]['has-focus'] = true;
-        windows.forEach((w, i) => w['has-focus'] = i === 0);
+        windows.forEach((w, i) => (w['has-focus'] = i === 0));
 
-        const shouldShow = await ipcRenderer.invoke(IPC_CHANNELS.APP_SHOULD_SHOW);
+        const shouldShow = await ipcRenderer.invoke(
+          IPC_CHANNELS.APP_SHOULD_SHOW
+        );
         expect(shouldShow).toBe(true);
 
-        const frontmostApp = await ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_FRONTMOST_APP);
+        const frontmostApp = await ipcRenderer.invoke(
+          IPC_CHANNELS.SYSTEM_FRONTMOST_APP
+        );
         expect(frontmostApp).toBe(variant);
       }
     });
@@ -234,28 +250,40 @@ describe('vstab E2E Workflows', () => {
         await ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_RESIZE, height);
 
         const commands = yabaiMock.getCommandHistory();
-        
+
         // Should query windows and displays
-        expect(commands.some(cmd => cmd.includes('query --windows'))).toBe(true);
-        expect(commands.some(cmd => cmd.includes('query --displays'))).toBe(true);
+        expect(commands.some(cmd => cmd.includes('query --windows'))).toBe(
+          true
+        );
+        expect(commands.some(cmd => cmd.includes('query --displays'))).toBe(
+          true
+        );
 
         // Calculate expected values
         const expectedY = height + 10; // height + buffer
         const expectedHeight = 1080 - expectedY;
 
         // Should resize both VS Code windows
-        expect(commands.some(cmd => 
-          cmd.includes(`window 1001 --move abs:0:${expectedY}`)
-        )).toBe(true);
-        expect(commands.some(cmd => 
-          cmd.includes(`window 1001 --resize abs:1920:${expectedHeight}`)
-        )).toBe(true);
-        expect(commands.some(cmd => 
-          cmd.includes(`window 1002 --move abs:0:${expectedY}`)
-        )).toBe(true);
-        expect(commands.some(cmd => 
-          cmd.includes(`window 1002 --resize abs:1920:${expectedHeight}`)
-        )).toBe(true);
+        expect(
+          commands.some(cmd =>
+            cmd.includes(`window 1001 --move abs:0:${expectedY}`)
+          )
+        ).toBe(true);
+        expect(
+          commands.some(cmd =>
+            cmd.includes(`window 1001 --resize abs:1920:${expectedHeight}`)
+          )
+        ).toBe(true);
+        expect(
+          commands.some(cmd =>
+            cmd.includes(`window 1002 --move abs:0:${expectedY}`)
+          )
+        ).toBe(true);
+        expect(
+          commands.some(cmd =>
+            cmd.includes(`window 1002 --resize abs:1920:${expectedHeight}`)
+          )
+        ).toBe(true);
       }
     });
 
@@ -265,12 +293,20 @@ describe('vstab E2E Workflows', () => {
         if (command.includes('which yabai')) {
           callback(null, { stdout: '/usr/local/bin/yabai', stderr: '' });
         } else if (command.includes('query --windows')) {
-          callback(null, { stdout: JSON.stringify(yabaiMock.getVSCodeWindows()), stderr: '' });
+          callback(null, {
+            stdout: JSON.stringify(yabaiMock.getVSCodeWindows()),
+            stderr: '',
+          });
         } else if (command.includes('query --displays')) {
-          callback(null, { stdout: JSON.stringify([{
-            index: 1,
-            frame: { x: 0, y: 0, w: 1920, h: 1080 }
-          }]), stderr: '' });
+          callback(null, {
+            stdout: JSON.stringify([
+              {
+                index: 1,
+                frame: { x: 0, y: 0, w: 1920, h: 1080 },
+              },
+            ]),
+            stderr: '',
+          });
         } else if (command.includes('--move') || command.includes('--resize')) {
           if (command.includes('--grid')) {
             callback(null, { stdout: '', stderr: '' }); // Grid fallback succeeds
@@ -346,7 +382,10 @@ describe('vstab E2E Workflows', () => {
           if (callCount <= 2) {
             callback(new Error('Temporary failure'));
           } else {
-            callback(null, { stdout: JSON.stringify(yabaiMock.getVSCodeWindows()), stderr: '' });
+            callback(null, {
+              stdout: JSON.stringify(yabaiMock.getVSCodeWindows()),
+              stderr: '',
+            });
           }
         } else {
           callback(null, { stdout: '', stderr: '' });
@@ -378,7 +417,7 @@ describe('vstab E2E Workflows', () => {
         ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_LIST), // Should succeed
         ipcRenderer.invoke(IPC_CHANNELS.TABS_GET_ORDER), // Should succeed (empty array)
         ipcRenderer.invoke(IPC_CHANNELS.APP_SHOULD_SHOW), // Should succeed
-        ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_FRONTMOST_APP) // Should succeed
+        ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_FRONTMOST_APP), // Should succeed
       ]);
 
       expect(results[0].status).toBe('fulfilled');
@@ -396,7 +435,9 @@ describe('vstab E2E Workflows', () => {
   describe('Complete Application Lifecycle', () => {
     it('should simulate complete app usage session', async () => {
       // 1. App startup - discover windows
-      const initialWindows = await ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_LIST);
+      const initialWindows = await ipcRenderer.invoke(
+        IPC_CHANNELS.VSCODE_WINDOWS_LIST
+      );
       expect(initialWindows).toHaveLength(2);
 
       // 2. Initial resize on startup
@@ -407,7 +448,10 @@ describe('vstab E2E Workflows', () => {
       expect(shouldShow).toBe(true);
 
       // 4. User clicks on second tab
-      await ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOW_FOCUS, initialWindows[1].id);
+      await ipcRenderer.invoke(
+        IPC_CHANNELS.VSCODE_WINDOW_FOCUS,
+        initialWindows[1].id
+      );
 
       // 5. User drags first tab to second position
       const newOrder = [initialWindows[1].id, initialWindows[0].id];
@@ -424,9 +468,9 @@ describe('vstab E2E Workflows', () => {
         frame: { x: 0, y: 45, w: 1920, h: 1035 },
         space: 1,
         display: 1,
-        pid: 88888
+        pid: 88888,
       });
-      yabaiMock.getVSCodeWindows().forEach(w => w['has-focus'] = false);
+      yabaiMock.getVSCodeWindows().forEach(w => (w['has-focus'] = false));
 
       shouldShow = await ipcRenderer.invoke(IPC_CHANNELS.APP_SHOULD_SHOW);
       expect(shouldShow).toBe(false);
@@ -449,10 +493,12 @@ describe('vstab E2E Workflows', () => {
         display: 1,
         'has-focus': true,
         'is-visible': true,
-        'is-minimized': false
+        'is-minimized': false,
       });
 
-      const updatedWindows = await ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_LIST);
+      const updatedWindows = await ipcRenderer.invoke(
+        IPC_CHANNELS.VSCODE_WINDOWS_LIST
+      );
       expect(updatedWindows).toHaveLength(3);
 
       // 9. Load saved tab order (should still be persisted)
@@ -464,12 +510,16 @@ describe('vstab E2E Workflows', () => {
       await ipcRenderer.invoke(IPC_CHANNELS.TABS_REORDER, finalOrder);
 
       // 11. Verify final state
-      const finalSavedOrder = await ipcRenderer.invoke(IPC_CHANNELS.TABS_GET_ORDER);
+      const finalSavedOrder = await ipcRenderer.invoke(
+        IPC_CHANNELS.TABS_GET_ORDER
+      );
       expect(finalSavedOrder).toEqual(finalOrder);
 
       // Verify persistence
       expect(fsMock.hasFile('/tmp/test-userData/tab-order.json')).toBe(true);
-      const finalContent = fsMock.getFileContent('/tmp/test-userData/tab-order.json');
+      const finalContent = fsMock.getFileContent(
+        '/tmp/test-userData/tab-order.json'
+      );
       expect(JSON.parse(finalContent as string)).toEqual(finalOrder);
     });
   });

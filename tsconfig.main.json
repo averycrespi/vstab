@@ -4,9 +4,5 @@
     "target": "ES2020",
     "module": "commonjs"
   },
-  "include": [
-    "src/main/**/*",
-    "src/shared/**/*",
-    "src/preload.ts"
-  ]
+  "include": ["src/main/**/*", "src/shared/**/*", "src/preload.ts"]
 }

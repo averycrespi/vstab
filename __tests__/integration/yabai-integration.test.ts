@@ -1,4 +1,8 @@
-import { discoverVSCodeWindows, focusWindow, getFrontmostApp } from '../../src/main/windows';
+import {
+  discoverVSCodeWindows,
+  focusWindow,
+  getFrontmostApp,
+} from '../../src/main/windows';
 
 // Mock child_process
 jest.mock('child_process');
@@ -23,8 +27,8 @@ describe('Yabai Integration Tests', () => {
           display: 1,
           'has-focus': true,
           'is-visible': true,
-          'is-minimized': false
-        }
+          'is-minimized': false,
+        },
       ];
 
       mockExec.mockImplementation((command: string, callback: Function) => {
@@ -43,7 +47,7 @@ describe('Yabai Integration Tests', () => {
       expect(windows[0]).toMatchObject({
         title: 'main.ts — vstab',
         path: 'vstab',
-        isActive: true
+        isActive: true,
       });
       expect(windows[0].id).toBeDefined();
     });
@@ -57,7 +61,9 @@ describe('Yabai Integration Tests', () => {
         }
       });
 
-      await expect(discoverVSCodeWindows()).rejects.toThrow('yabai is required but not available');
+      await expect(discoverVSCodeWindows()).rejects.toThrow(
+        'yabai is required but not available'
+      );
     });
 
     it('should return empty array when yabai query fails', async () => {
@@ -82,8 +88,10 @@ describe('Yabai Integration Tests', () => {
       });
 
       // This test verifies the function doesn't throw - the actual yabai behavior is mocked
-      await expect(focusWindow('test-window-id')).rejects.toThrow('Window ID test-window-id not found');
-      
+      await expect(focusWindow('test-window-id')).rejects.toThrow(
+        'Window ID test-window-id not found'
+      );
+
       // The error is expected because we haven't set up the window map
       // In real usage, discoverVSCodeWindows would populate the map first
     });
@@ -95,13 +103,16 @@ describe('Yabai Integration Tests', () => {
         {
           id: 1001,
           app: 'Visual Studio Code',
-          'has-focus': true
-        }
+          'has-focus': true,
+        },
       ];
 
       mockExec.mockImplementation((command: string, callback: Function) => {
         if (command.includes('query --windows')) {
-          callback(null, { stdout: JSON.stringify(mockFocusedWindow), stderr: '' });
+          callback(null, {
+            stdout: JSON.stringify(mockFocusedWindow),
+            stderr: '',
+          });
         } else {
           callback(null, { stdout: '', stderr: '' });
         }
@@ -116,8 +127,8 @@ describe('Yabai Integration Tests', () => {
         {
           id: 1001,
           app: 'Visual Studio Code',
-          'has-focus': false
-        }
+          'has-focus': false,
+        },
       ];
 
       mockExec.mockImplementation((command: string, callback: Function) => {
@@ -158,9 +169,12 @@ describe('Yabai Integration Tests', () => {
       });
 
       await discoverVSCodeWindows();
-      
+
       // Verify yabai commands were called
-      expect(mockExec).toHaveBeenCalledWith('which yabai', expect.any(Function));
+      expect(mockExec).toHaveBeenCalledWith(
+        'which yabai',
+        expect.any(Function)
+      );
       expect(mockExec).toHaveBeenCalledWith(
         expect.stringContaining('yabai -m query --windows'),
         expect.any(Function)

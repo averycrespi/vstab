@@ -3,14 +3,13 @@ import { useWindowVisibility } from '../../../../src/renderer/hooks/useWindowVis
 
 // Mock the global window.vstab API
 const mockVstab = {
-  getFrontmostApp: jest.fn()
+  getFrontmostApp: jest.fn(),
 };
 
 Object.defineProperty(window, 'vstab', {
   value: mockVstab,
-  writable: true
+  writable: true,
 });
-
 
 describe('useWindowVisibility Hook', () => {
   beforeEach(() => {
@@ -22,7 +21,7 @@ describe('useWindowVisibility Hook', () => {
   afterEach(() => {
     jest.useRealTimers();
   });
-  
+
   beforeEach(() => {
     jest.useFakeTimers();
   });
@@ -30,7 +29,7 @@ describe('useWindowVisibility Hook', () => {
   describe('Initial state and setup', () => {
     it('should start with visible state as true', () => {
       const { result } = renderHook(() => useWindowVisibility());
-      
+
       expect(result.current.isVisible).toBe(true);
     });
 
@@ -167,7 +166,7 @@ describe('useWindowVisibility Hook', () => {
         'Visual Studio Code - Insiders',
         'Code - OSS',
         'VSCode',
-        'code'
+        'code',
       ];
 
       for (const appName of testCases) {
@@ -183,10 +182,10 @@ describe('useWindowVisibility Hook', () => {
         jest.useFakeTimers();
 
         expect(result.current.isVisible).toBe(true);
-        
+
         // Clean up each hook instance
         unmount();
-        
+
         // Clear the mock between iterations
         jest.clearAllMocks();
         mockVstab.getFrontmostApp.mockResolvedValue('Visual Studio Code');
@@ -197,8 +196,11 @@ describe('useWindowVisibility Hook', () => {
   describe('Dynamic visibility changes', () => {
     it('should update visibility when frontmost app changes', async () => {
       let resolveGetFrontmost: (value: string) => void;
-      mockVstab.getFrontmostApp.mockImplementation(() => 
-        new Promise(resolve => { resolveGetFrontmost = resolve; })
+      mockVstab.getFrontmostApp.mockImplementation(
+        () =>
+          new Promise(resolve => {
+            resolveGetFrontmost = resolve;
+          })
       );
 
       const { result } = renderHook(() => useWindowVisibility());
@@ -238,7 +240,13 @@ describe('useWindowVisibility Hook', () => {
     it('should handle rapid app switching', async () => {
       const { result } = renderHook(() => useWindowVisibility());
 
-      const apps = ['Visual Studio Code', 'Chrome', 'Code', 'Safari', 'Electron'];
+      const apps = [
+        'Visual Studio Code',
+        'Chrome',
+        'Code',
+        'Safari',
+        'Electron',
+      ];
       const expectedVisibility = [true, false, true, false, true];
 
       for (let i = 0; i < apps.length; i++) {
@@ -280,16 +288,16 @@ describe('useWindowVisibility Hook', () => {
 
     it('should continue polling after errors', async () => {
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-      
+
       // Clear the default mock and set up specific behavior
       mockVstab.getFrontmostApp.mockReset();
       mockVstab.getFrontmostApp.mockRejectedValue(new Error('Test error'));
-      
+
       const { result } = renderHook(() => useWindowVisibility());
-      
+
       // Initial state should be true
       expect(result.current.isVisible).toBe(true);
-      
+
       // Wait for initial async call to fail
       await act(async () => {
         jest.runOnlyPendingTimers();
@@ -361,7 +369,7 @@ describe('useWindowVisibility Hook', () => {
       unmount();
 
       expect(clearIntervalSpy).toHaveBeenCalled();
-      
+
       clearIntervalSpy.mockRestore();
     });
 
@@ -442,10 +450,11 @@ describe('useWindowVisibility Hook', () => {
       let resolveCount = 0;
       const resolvers: Array<(value: string) => void> = [];
 
-      mockVstab.getFrontmostApp.mockImplementation(() => 
-        new Promise(resolve => {
-          resolvers[resolveCount++] = resolve;
-        })
+      mockVstab.getFrontmostApp.mockImplementation(
+        () =>
+          new Promise(resolve => {
+            resolvers[resolveCount++] = resolve;
+          })
       );
 
       const { result } = renderHook(() => useWindowVisibility());

@@ -1,10 +1,10 @@
 import { createHash } from 'crypto';
-import { 
-  discoverVSCodeWindows, 
-  focusWindow, 
-  hideWindow, 
-  getFrontmostApp, 
-  resizeVSCodeWindows 
+import {
+  discoverVSCodeWindows,
+  focusWindow,
+  hideWindow,
+  getFrontmostApp,
+  resizeVSCodeWindows,
 } from '../../../src/main/windows';
 
 // Mock modules
@@ -18,11 +18,11 @@ const mockCreateHash = jest.mocked(createHash);
 describe('Windows Module', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Setup default crypto mock
     const mockHashInstance = {
       update: jest.fn().mockReturnThis(),
-      digest: jest.fn().mockReturnValue('abc12345')
+      digest: jest.fn().mockReturnValue('abc12345'),
     };
     mockCreateHash.mockReturnValue(mockHashInstance as any);
   });
@@ -50,7 +50,7 @@ describe('Windows Module', () => {
           display: 1,
           'has-focus': true,
           'is-visible': true,
-          'is-minimized': false
+          'is-minimized': false,
         },
         {
           id: 1002,
@@ -62,15 +62,18 @@ describe('Windows Module', () => {
           display: 1,
           'has-focus': false,
           'is-visible': true,
-          'is-minimized': false
-        }
+          'is-minimized': false,
+        },
       ];
 
       mockExec.mockImplementation((cmd: string, callback: Function) => {
         if (cmd.includes('which yabai')) {
           callback(null, { stdout: '/usr/local/bin/yabai', stderr: '' });
         } else if (cmd.includes('query --windows')) {
-          callback(null, { stdout: JSON.stringify(mockYabaiWindows), stderr: '' });
+          callback(null, {
+            stdout: JSON.stringify(mockYabaiWindows),
+            stderr: '',
+          });
         } else {
           callback(null, { stdout: '', stderr: '' });
         }
@@ -83,7 +86,7 @@ describe('Windows Module', () => {
         id: 'abc12345',
         title: 'main.ts — vstab',
         path: 'vstab',
-        isActive: true
+        isActive: true,
       });
     });
 
@@ -123,8 +126,8 @@ describe('Windows Module', () => {
         {
           id: 1001,
           app: 'Visual Studio Code',
-          'has-focus': true
-        }
+          'has-focus': true,
+        },
       ];
 
       mockExec.mockImplementation((cmd: string, callback: Function) => {
@@ -144,8 +147,8 @@ describe('Windows Module', () => {
         {
           id: 1001,
           app: 'Visual Studio Code',
-          'has-focus': false
-        }
+          'has-focus': false,
+        },
       ];
 
       mockExec.mockImplementation((cmd: string, callback: Function) => {

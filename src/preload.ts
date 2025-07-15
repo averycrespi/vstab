@@ -7,44 +7,46 @@ import { VSCodeWindow, AppSettings } from '@shared/types';
 contextBridge.exposeInMainWorld('vstab', {
   // Window management
   onWindowsUpdate: (callback: (windows: VSCodeWindow[]) => void) => {
-    ipcRenderer.on(IPC_CHANNELS.VSCODE_WINDOWS_LIST, (_, windows) => callback(windows));
+    ipcRenderer.on(IPC_CHANNELS.VSCODE_WINDOWS_LIST, (_, windows) =>
+      callback(windows)
+    );
   },
-  
+
   focusWindow: (windowId: string) => {
     return ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOW_FOCUS, windowId);
   },
-  
+
   // Tab management
   reorderTabs: (windowIds: string[]) => {
     return ipcRenderer.invoke(IPC_CHANNELS.TABS_REORDER, windowIds);
   },
-  
+
   getTabOrder: () => {
     return ipcRenderer.invoke(IPC_CHANNELS.TABS_GET_ORDER);
   },
-  
+
   // App visibility
   shouldShow: () => {
     return ipcRenderer.invoke(IPC_CHANNELS.APP_SHOULD_SHOW);
   },
-  
+
   getFrontmostApp: () => {
     return ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_FRONTMOST_APP);
   },
-  
+
   // Window resizing
   resizeWindows: (tabBarHeight: number) => {
     return ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_RESIZE, tabBarHeight);
   },
-  
+
   // Settings
   getSettings: () => {
     return ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_GET);
   },
-  
+
   updateSettings: (settings: AppSettings) => {
     return ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_UPDATE, settings);
-  }
+  },
 });
 
 // Type definitions for window.vstab
