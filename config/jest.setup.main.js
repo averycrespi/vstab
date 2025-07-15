@@ -59,5 +59,12 @@ jest.mock('crypto', () => ({
   })),
 }));
 
+// Silent all logging during tests to reduce noise
+beforeAll(() => {
+  // Import and configure logger to disable all output
+  const { configureLogger } = require('../src/shared/logger');
+  configureLogger({ logToConsole: false, logToFile: false });
+});
+
 // Global test timeout for main process tests
 jest.setTimeout(5000);

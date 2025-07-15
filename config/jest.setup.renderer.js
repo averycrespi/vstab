@@ -73,5 +73,12 @@ global.DragEvent = jest.fn().mockImplementation((type, init) => ({
   dataTransfer: mockDataTransfer,
 }));
 
+// Silent all logging during tests to reduce noise
+beforeAll(() => {
+  // Import and configure logger to disable all output
+  const { configureLogger } = require('../src/shared/logger');
+  configureLogger({ logToConsole: false, logToFile: false });
+});
+
 // Global test timeout for renderer tests
 jest.setTimeout(5000);

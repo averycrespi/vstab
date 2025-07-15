@@ -101,6 +101,13 @@ global.setMockYabaiWindows = windows => {
   mockYabaiWindows.splice(0, mockYabaiWindows.length, ...windows);
 };
 
+// Silent all logging during tests to reduce noise
+beforeAll(() => {
+  // Import and configure logger to disable all output
+  const { configureLogger } = require('../src/shared/logger');
+  configureLogger({ logToConsole: false, logToFile: false });
+});
+
 // Clean up after each test
 afterEach(() => {
   jest.clearAllMocks();
