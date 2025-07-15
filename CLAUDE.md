@@ -12,6 +12,7 @@ This file provides context for AI assistants working on the vstab project.
 - **TypeScript** - Main language for type safety
 - **React 19** - UI framework for renderer process
 - **Tailwind CSS v4** - Styling (using CSS custom properties)
+- **Prettier** - Code formatting and style enforcement
 - **Webpack** - Build system
 - **yabai** - macOS window management via JSON API
 - **Node.js/npm** - Package management
@@ -86,6 +87,8 @@ vstab/
 - `npm start` - Run Electron app
 - `npm run dev` - Build and run
 - `npm run compile` - TypeScript compilation check
+- `npm run format` - Format all files with Prettier
+- `npm run format:check` - Check formatting without changing files
 
 ### TypeScript Configuration
 - `tsconfig.json` - Base config
@@ -109,6 +112,13 @@ yabai -m window --focus 12345
 yabai -m window 12345 --move abs:0:55  # Adjusted for configurable tab bar height
 yabai -m window 12345 --resize abs:1920:1025
 ```
+
+### Code Formatting
+- **Prettier** configured for consistent code style across the project
+- Configuration in `.prettierrc.json` with settings for semicolons, quotes, spacing
+- Automatic formatting on file write via Claude Code hooks
+- Manual formatting available via `npm run format` command
+- Format checking for CI/CD via `npm run format:check`
 
 ### Styling Approach
 - Uses Tailwind CSS v4 with CSS custom properties
@@ -142,10 +152,11 @@ yabai -m window 12345 --resize abs:1920:1025
 ## Development Workflow
 
 ### Making Changes
-1. Edit source files in `src/`
+1. Edit source files in `src/` (files auto-format on write via hooks)
 2. Run `npm run build` to compile
 3. Run `npm start` to test
 4. Check console for errors
+5. Run `npm run format:check` to verify code formatting
 
 ### Adding Features
 1. Update types in `src/shared/types.ts`
@@ -279,12 +290,15 @@ npm run test:watch
 - `ts-loader` - TypeScript webpack loader
 - `css-loader`, `style-loader`, `postcss-loader` - CSS processing
 - `html-webpack-plugin` - HTML generation
+- `prettier` - Code formatting and style enforcement
+- `jest` + testing libraries - Test framework and utilities
 
 ## Best Practices for AI Assistants
 
 1. **Always build before testing**: Run `npm run build` after changes
 2. **Check TypeScript compilation**: Use `npm run compile` to verify types
-3. **Run tests for changes**: Use `npm test` to ensure functionality works
+3. **Verify code formatting**: Use `npm run format:check` to ensure consistent style
+4. **Run tests for changes**: Use `npm test` to ensure functionality works
 4. **Test with real VS Code windows**: Open multiple workspaces for testing
 5. **Respect the architecture**: Keep main/renderer separation clear
 6. **Update types first**: When adding features, update shared types
