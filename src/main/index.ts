@@ -12,8 +12,6 @@ let mainWindow: BrowserWindow | null = null;
 let pollInterval: ReturnType<typeof setInterval> | null = null;
 let tray: Tray | null = null;
 
-const TAB_BAR_HEIGHT = 35;
-
 // Helper functions for tray menu
 async function getYabaiStatus(): Promise<boolean> {
   const { exec } = require('child_process');
@@ -140,6 +138,50 @@ async function setLogLevel(level: LogLevel) {
   });
 }
 
+async function setTabBarHeight(height: number) {
+  logger.debug('Setting tab bar height', 'main', { height });
+  const settings = await loadSettings();
+  const newSettings = { ...settings, tabBarHeight: height };
+
+  await saveSettings(newSettings);
+
+  // Notify renderer about settings change
+  if (mainWindow) {
+    mainWindow.webContents.send(IPC_CHANNELS.SETTINGS_CHANGED, newSettings);
+    logger.info('Settings change notification sent to renderer', 'main');
+  }
+
+  // Resize main window to new height
+  if (mainWindow) {
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width } = primaryDisplay.workAreaSize;
+    mainWindow.setBounds({
+      x: 0,
+      y: 0,
+      width,
+      height,
+    });
+    logger.debug('Main window resized to new tab bar height', 'main', {
+      height,
+    });
+  }
+
+  // Trigger window resizing to apply new height immediately
+  try {
+    const { resizeVSCodeWindows } = await import('./windows');
+    await resizeVSCodeWindows(height);
+    logger.debug('VS Code windows resized for new tab bar height', 'main');
+  } catch (error) {
+    logger.error('Failed to resize VS Code windows', 'main', error);
+  }
+
+  await updateTrayMenu();
+  logger.info('Tab bar height changed', 'main', {
+    from: settings.tabBarHeight,
+    to: newSettings.tabBarHeight,
+  });
+}
+
 async function openLogsFolder() {
   logger.debug('Opening logs folder', 'main');
   try {
@@ -200,10 +242,56 @@ async function updateTrayMenu() {
         },
         {
           label: `Tab Bar Height: ${settings.tabBarHeight}px`,
-          click: () => {
-            // TODO: Open settings
-            logger.debug('Tab bar height setting clicked', 'main');
-          },
+          submenu: [
+            {
+              label: '25px',
+              type: 'radio',
+              checked: settings.tabBarHeight === 25,
+              click: () => setTabBarHeight(25),
+            },
+            {
+              label: '30px',
+              type: 'radio',
+              checked: settings.tabBarHeight === 30,
+              click: () => setTabBarHeight(30),
+            },
+            {
+              label: '35px',
+              type: 'radio',
+              checked: settings.tabBarHeight === 35,
+              click: () => setTabBarHeight(35),
+            },
+            {
+              label: '40px',
+              type: 'radio',
+              checked: settings.tabBarHeight === 40,
+              click: () => setTabBarHeight(40),
+            },
+            {
+              label: '45px',
+              type: 'radio',
+              checked: settings.tabBarHeight === 45,
+              click: () => setTabBarHeight(45),
+            },
+            {
+              label: '50px',
+              type: 'radio',
+              checked: settings.tabBarHeight === 50,
+              click: () => setTabBarHeight(50),
+            },
+            {
+              label: '55px',
+              type: 'radio',
+              checked: settings.tabBarHeight === 55,
+              click: () => setTabBarHeight(55),
+            },
+            {
+              label: '60px',
+              type: 'radio',
+              checked: settings.tabBarHeight === 60,
+              click: () => setTabBarHeight(60),
+            },
+          ],
         },
         { type: 'separator' },
         {
@@ -285,11 +373,16 @@ async function createWindow() {
   logger.info('Creating main window', 'main');
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width } = primaryDisplay.workAreaSize;
-  logger.debug('Screen dimensions', 'main', { width, height: TAB_BAR_HEIGHT });
+
+  // Get current tab bar height from settings
+  const settings = await loadSettings();
+  const tabBarHeight = settings.tabBarHeight;
+
+  logger.debug('Screen dimensions', 'main', { width, height: tabBarHeight });
 
   mainWindow = new BrowserWindow({
     width,
-    height: TAB_BAR_HEIGHT,
+    height: tabBarHeight,
     x: 0,
     y: 0,
     frame: false,

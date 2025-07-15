@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { VSCodeWindow } from '@shared/types';
 import { logger } from '../logger';
 
@@ -9,6 +9,9 @@ export function useTabOrder(windows: VSCodeWindow[]) {
   const [tabOrder, setTabOrder] = useState<string[]>([]);
 
   useEffect(() => {
+    // Only load on mount, not when windows change
+    if (tabOrder.length > 0) return; // Already loaded
+
     // Load saved tab order on mount
     logger.debug('Loading saved tab order', 'useTabOrder');
     window.vstab
@@ -40,9 +43,9 @@ export function useTabOrder(windows: VSCodeWindow[]) {
         console.error('Error loading tab order:', error);
         // Keep default empty array on error
       });
-  }, [windows]);
+  }, [windows, tabOrder.length]);
 
-  const orderedWindows = useCallback(() => {
+  const orderedWindows = useMemo(() => {
     logger.debug('Computing ordered windows', 'useTabOrder', {
       currentOrder: tabOrder,
     });
@@ -81,9 +84,17 @@ export function useTabOrder(windows: VSCodeWindow[]) {
       windowIds: result.map(w => w.id),
     });
 
-    // Update saved order if there are new windows
+    return result;
+  }, [windows, tabOrder]);
+
+  // Handle auto-saving when new windows are detected
+  useEffect(() => {
+    if (tabOrder.length === 0) return; // Skip if no saved order yet
+
+    const newWindows = windows.filter(window => !tabOrder.includes(window.id));
+
     if (newWindows.length > 0) {
-      const newOrder = result.map(w => w.id);
+      const newOrder = [...tabOrder, ...newWindows.map(w => w.id)];
       logger.debug('Auto-updating tab order with new windows', 'useTabOrder', {
         newOrder,
       });
@@ -94,8 +105,6 @@ export function useTabOrder(windows: VSCodeWindow[]) {
         console.error('Error auto-saving tab order:', err);
       });
     }
-
-    return result;
   }, [windows, tabOrder]);
 
   const reorderWindows = useCallback(async (newOrder: string[]) => {
@@ -112,7 +121,7 @@ export function useTabOrder(windows: VSCodeWindow[]) {
   }, []);
 
   return {
-    orderedWindows: orderedWindows(),
+    orderedWindows,
     reorderWindows,
   };
 }
