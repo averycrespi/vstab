@@ -277,14 +277,19 @@ async function openLogsFolder() {
   }
 }
 
-async function openSettingsDirectory() {
-  logger.debug('Opening settings directory', 'main');
+async function openSettingsFile() {
+  logger.debug('Opening settings file', 'main');
   try {
-    const settingsDir = path.join(require('os').homedir(), '.config', 'vstab');
-    await shell.openPath(settingsDir);
-    logger.info('Settings directory opened', 'main', { settingsDir });
+    const settingsFile = path.join(
+      require('os').homedir(),
+      '.config',
+      'vstab',
+      'settings.json'
+    );
+    await shell.openPath(settingsFile);
+    logger.info('Settings file opened', 'main', { settingsFile });
   } catch (error) {
-    logger.error('Failed to open settings directory', 'main', error);
+    logger.error('Failed to open settings file', 'main', error);
   }
 }
 
@@ -313,7 +318,7 @@ async function updateTrayMenu() {
     },
     { type: 'separator' },
     {
-      label: 'Settings',
+      label: 'Quick Settings',
       submenu: [
         {
           label: 'Auto Hide Tab Bar',
@@ -333,7 +338,11 @@ async function updateTrayMenu() {
           checked: settings.autoResizeHorizontal,
           click: toggleAutoResizeHorizontal,
         },
-        { type: 'separator' },
+      ],
+    },
+    {
+      label: 'Appearance',
+      submenu: [
         {
           label: `Theme: ${toProperCase(settings.theme)}`,
           submenu: [
@@ -492,35 +501,34 @@ async function updateTrayMenu() {
             },
           ],
         },
-        { type: 'separator' },
+      ],
+    },
+    {
+      label: `Log Level: ${toProperCase(settings.logLevel)}`,
+      submenu: [
         {
-          label: `Log Level: ${toProperCase(settings.logLevel)}`,
-          submenu: [
-            {
-              label: 'Error',
-              type: 'radio',
-              checked: settings.logLevel === 'error',
-              click: () => setLogLevel('error'),
-            },
-            {
-              label: 'Warn',
-              type: 'radio',
-              checked: settings.logLevel === 'warn',
-              click: () => setLogLevel('warn'),
-            },
-            {
-              label: 'Info',
-              type: 'radio',
-              checked: settings.logLevel === 'info',
-              click: () => setLogLevel('info'),
-            },
-            {
-              label: 'Debug',
-              type: 'radio',
-              checked: settings.logLevel === 'debug',
-              click: () => setLogLevel('debug'),
-            },
-          ],
+          label: 'Debug',
+          type: 'radio',
+          checked: settings.logLevel === 'debug',
+          click: () => setLogLevel('debug'),
+        },
+        {
+          label: 'Info',
+          type: 'radio',
+          checked: settings.logLevel === 'info',
+          click: () => setLogLevel('info'),
+        },
+        {
+          label: 'Warn',
+          type: 'radio',
+          checked: settings.logLevel === 'warn',
+          click: () => setLogLevel('warn'),
+        },
+        {
+          label: 'Error',
+          type: 'radio',
+          checked: settings.logLevel === 'error',
+          click: () => setLogLevel('error'),
         },
       ],
     },
@@ -530,8 +538,8 @@ async function updateTrayMenu() {
       click: openLogsFolder,
     },
     {
-      label: 'Open Config Folder',
-      click: openSettingsDirectory,
+      label: 'Open Settings File',
+      click: openSettingsFile,
     },
     { type: 'separator' },
     {

@@ -177,6 +177,31 @@ class ElectronMock {
     ]),
   };
 
+  // Tray mock
+  Tray = jest.fn().mockImplementation((_iconPath: string) => ({
+    setToolTip: jest.fn(),
+    setContextMenu: jest.fn(),
+    popUpContextMenu: jest.fn(),
+    on: jest.fn(),
+    destroy: jest.fn(),
+  }));
+
+  // Menu mock
+  Menu = {
+    buildFromTemplate: jest.fn((_template: any[]) => ({
+      popup: jest.fn(),
+      closePopup: jest.fn(),
+    })),
+    setApplicationMenu: jest.fn(),
+  };
+
+  // Shell mock
+  shell = {
+    openPath: jest.fn().mockResolvedValue(''),
+    openExternal: jest.fn().mockResolvedValue(undefined),
+    showItemInFolder: jest.fn(),
+  };
+
   // Helper methods for testing
   setUserDataPath(path: string) {
     this.userData = path;
@@ -213,3 +238,6 @@ export const BrowserWindow = electronMock.BrowserWindow;
 export const ipcMain = electronMock.ipcMain;
 export const ipcRenderer = electronMock.ipcRenderer;
 export const screen = electronMock.screen;
+export const Tray = electronMock.Tray;
+export const Menu = electronMock.Menu;
+export const shell = electronMock.shell;

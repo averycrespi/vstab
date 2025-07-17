@@ -214,8 +214,8 @@ Settings are stored in `~/.config/vstab/settings.json` with automatic creation a
 - **Tray Icon**: Always-visible macOS menu bar tray icon with native context menu
 - **Click Behavior**: Configurable left-click action - toggle window visibility or show context menu
 - **Status Display**: Shows real-time yabai status and current settings values
-- **Menu Structure**: Hierarchical menu with header info, settings submenu, and actions
-- **Settings Integration**: Direct access to key settings (theme, height, auto-hide)
+- **Menu Structure**: Organized into logical groups - Quick Settings for common toggles, Appearance for visual options, and top-level Log Level access
+- **Settings Integration**: Direct access to all settings with improved organization and hierarchy
 - **Asset Management**: Uses template icons for proper macOS dark/light mode integration
 
 #### Tray Menu Layout
@@ -224,11 +224,12 @@ Settings are stored in `~/.config/vstab/settings.json` with automatic creation a
 vstab v1.0.0                           # Clickable header (opens GitHub)
 yabai: ✅ Running                      # Status indicator (clickable but no action)
 ─────────────────────────────────────
-Settings ▶                            # Submenu with comprehensive options
+Quick Settings ▶                      # Quick access to common toggles
 ├── ☑ Auto Hide Tab Bar               # Checkbox toggle
 ├── ☑ Auto Resize Windows Vertically  # Checkbox toggle
-├── ☑ Auto Resize Windows Horizontally # Checkbox toggle
-├── ──────────────────────────────    # Separator
+└── ☑ Auto Resize Windows Horizontally # Checkbox toggle
+─────────────────────────────────────
+Appearance ▶                          # Visual and layout settings
 ├── Theme: System ▶                   # Theme submenu
 │   ├── ○ Light                       # Radio button
 │   ├── ○ Dark                        # Radio button
@@ -250,17 +251,17 @@ Settings ▶                            # Submenu with comprehensive options
 │   ├── ○ 20px
 │   ├── ○ 25px
 │   └── ○ 30px
-├── Window Bottom Margin: 0px ▶       # Bottom margin submenu
-│   └── (Similar radio button structure)
-├── ──────────────────────────────    # Separator
-└── Log Level: Info ▶                 # Log level submenu
-    ├── ○ Error                       # Radio button options
-    ├── ○ Warn
-    ├── ● Info                        # Current selection
-    └── ○ Debug
+└── Window Bottom Margin: 0px ▶       # Bottom margin submenu
+    └── (Similar radio button structure)
+─────────────────────────────────────
+Log Level: Info ▶                     # Top-level log level submenu
+├── ● Debug                           # Radio button (first position)
+├── ○ Info                            # Radio button
+├── ○ Warn                            # Radio button
+└── ○ Error                           # Radio button (last position)
 ─────────────────────────────────────
 Open Logs Folder                      # Opens log directory in Finder
-Open Config Folder                    # Opens settings directory in Finder
+Open Settings File                    # Opens settings.json file directly
 ─────────────────────────────────────
 Quit vstab                            # Terminate app
 ```
