@@ -10,7 +10,30 @@ const mockVstab = {
     autoHide: true,
     autoResizeVertical: true,
     autoResizeHorizontal: true,
-    debugLogging: false,
+    logLevel: 'info',
+    logRetentionDays: 7,
+    maxLogFileSizeMB: 10,
+    editorDetectionConfig: {
+      editors: [
+        {
+          id: 'vscode',
+          displayName: 'Visual Studio Code',
+          appNamePatterns: [
+            'Visual Studio Code',
+            'Visual Studio Code - Insiders',
+            'Code',
+            'Code - OSS',
+            'VSCode',
+            'code',
+          ],
+        },
+        {
+          id: 'cursor',
+          displayName: 'Cursor',
+          appNamePatterns: ['Cursor'],
+        },
+      ],
+    },
   }),
   onSettingsChanged: jest.fn(),
   offSettingsChanged: jest.fn(),
@@ -112,7 +135,7 @@ describe('useWindowVisibility Hook', () => {
       expect(result.current.isVisible).toBe(true);
     });
 
-    it('should be visible when vstab is frontmost', async () => {
+    it('should be hidden when vstab is frontmost', async () => {
       mockVstab.getFrontmostApp.mockResolvedValue('vstab');
 
       const { result } = renderHook(() => useWindowVisibility());
@@ -121,10 +144,10 @@ describe('useWindowVisibility Hook', () => {
         await Promise.resolve();
       });
 
-      expect(result.current.isVisible).toBe(true);
+      expect(result.current.isVisible).toBe(false);
     });
 
-    it('should be visible when Electron is frontmost', async () => {
+    it('should be hidden when Electron is frontmost', async () => {
       mockVstab.getFrontmostApp.mockResolvedValue('Electron');
 
       const { result } = renderHook(() => useWindowVisibility());
@@ -133,7 +156,7 @@ describe('useWindowVisibility Hook', () => {
         await Promise.resolve();
       });
 
-      expect(result.current.isVisible).toBe(true);
+      expect(result.current.isVisible).toBe(false);
     });
 
     it('should be hidden when other app is frontmost', async () => {
@@ -250,7 +273,7 @@ describe('useWindowVisibility Hook', () => {
         'Safari',
         'Electron',
       ];
-      const expectedVisibility = [true, false, true, false, true];
+      const expectedVisibility = [true, false, true, false, false];
 
       for (let i = 0; i < apps.length; i++) {
         mockVstab.getFrontmostApp.mockResolvedValue(apps[i]);

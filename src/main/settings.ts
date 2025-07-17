@@ -17,6 +17,27 @@ const DEFAULT_SETTINGS: AppSettings = {
   logLevel: 'info',
   logRetentionDays: 7,
   maxLogFileSizeMB: 10,
+  editorDetectionConfig: {
+    editors: [
+      {
+        id: 'vscode',
+        displayName: 'Visual Studio Code',
+        appNamePatterns: [
+          'Visual Studio Code',
+          'Visual Studio Code - Insiders',
+          'Code',
+          'Code - OSS',
+          'VSCode',
+          'code',
+        ],
+      },
+      {
+        id: 'cursor',
+        displayName: 'Cursor',
+        appNamePatterns: ['Cursor'],
+      },
+    ],
+  },
 };
 
 export async function loadSettings(): Promise<AppSettings> {

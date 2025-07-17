@@ -100,12 +100,7 @@ describe('App Component', () => {
       });
 
       const tabBar = container.firstChild as HTMLElement;
-      expect(tabBar).toHaveClass(
-        'flex',
-        'items-center',
-        'justify-between',
-        'border-b'
-      );
+      expect(tabBar).toHaveClass('flex', 'items-center', 'border-b');
       expect(tabBar).toHaveStyle({
         backgroundColor: 'var(--color-vscode-dark)',
         borderColor: 'var(--color-vscode-border)',

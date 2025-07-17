@@ -63,22 +63,23 @@ export function useWindowVisibility() {
         }
 
         const frontmostApp = await window.vstab.getFrontmostApp();
-        const appLower = frontmostApp.toLowerCase();
 
-        // Improved app name matching for VS Code variations
-        const shouldShow =
-          appLower.includes('code') ||
-          appLower.includes('vstab') ||
-          appLower.includes('electron') ||
-          appLower.includes('vscode') ||
-          appLower.includes('visual studio code') ||
-          frontmostApp.includes('Code') || // Case-sensitive check for "Code"
-          frontmostApp.includes('VSCode');
+        // Check if frontmost app matches any supported editor
+        const matchesEditor =
+          settings?.editorDetectionConfig?.editors.some(editor =>
+            editor.appNamePatterns.some(pattern =>
+              frontmostApp.includes(pattern)
+            )
+          ) || false;
+
+        const shouldShow = matchesEditor;
 
         logger.debug('Visibility check', 'useWindowVisibility', {
           frontmostApp,
           shouldShow,
+          matchesEditor,
           autoHide: settings?.autoHide,
+          editorConfig: settings?.editorDetectionConfig,
         });
         setIsVisible(shouldShow);
       } catch (error) {

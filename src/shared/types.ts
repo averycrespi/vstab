@@ -28,6 +28,17 @@ export interface TabOrder {
 export type Theme = 'light' | 'dark' | 'system';
 export type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 
+export interface EditorPattern {
+  id: string;
+  displayName: string;
+  appNamePatterns: string[];
+  titlePatterns?: string[];
+}
+
+export interface EditorDetectionConfig {
+  editors: EditorPattern[];
+}
+
 export interface AppSettings {
   theme: Theme;
   tabBarHeight: number;
@@ -39,4 +50,5 @@ export interface AppSettings {
   logLevel: LogLevel;
   logRetentionDays: number;
   maxLogFileSizeMB: number;
+  editorDetectionConfig: EditorDetectionConfig;
 }

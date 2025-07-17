@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { createHash } from 'crypto';
-import { VSCodeWindow } from '@shared/types';
+import { VSCodeWindow, EditorDetectionConfig } from '@shared/types';
 import { logger } from '@shared/logger';
 import { loadSettings } from './settings';
 
@@ -43,6 +43,15 @@ function generateStableWindowId(title: string, pid: number): string {
   return hash.substring(0, 8); // Use first 8 characters for readability
 }
 
+function isEditorWindow(
+  window: YabaiWindow,
+  editorConfig: EditorDetectionConfig
+): boolean {
+  return editorConfig.editors.some(editor =>
+    editor.appNamePatterns.some(pattern => window.app.includes(pattern))
+  );
+}
+
 async function isYabaiAvailable(): Promise<boolean> {
   try {
     await execAsync('which yabai');
@@ -53,25 +62,26 @@ async function isYabaiAvailable(): Promise<boolean> {
 }
 
 async function discoverVSCodeWindowsYabai(): Promise<VSCodeWindow[]> {
-  logger.debug('Starting yabai VS Code window discovery', 'windows');
+  logger.debug('Starting yabai editor window discovery', 'windows');
 
   try {
+    const settings = await loadSettings();
     const { stdout } = await execAsync('yabai -m query --windows');
     const windows: YabaiWindow[] = JSON.parse(stdout);
 
-    // Filter for VS Code windows
-    const vscodeWindows = windows.filter(
-      window =>
-        window.app.includes('Visual Studio Code') || window.app.includes('Code')
+    // Filter for supported editor windows
+    const editorWindows = windows.filter(window =>
+      isEditorWindow(window, settings.editorDetectionConfig)
     );
 
-    logger.debug('Found VS Code windows via yabai', 'windows', {
-      windowCount: vscodeWindows.length,
+    logger.debug('Found editor windows via yabai', 'windows', {
+      windowCount: editorWindows.length,
+      editorConfig: settings.editorDetectionConfig,
     });
 
-    const result: VSCodeWindow[] = vscodeWindows.map(window => {
+    const result: VSCodeWindow[] = editorWindows.map(window => {
       // Extract workspace path from title
-      let path = window.title || 'VS Code';
+      let path = window.title || window.app;
       if (window.title.includes(' — ')) {
         path = window.title.split(' — ')[1] || window.title;
       }
@@ -114,7 +124,7 @@ async function discoverVSCodeWindowsYabai(): Promise<VSCodeWindow[]> {
 }
 
 export async function discoverVSCodeWindows(): Promise<VSCodeWindow[]> {
-  logger.debug('Starting VS Code window discovery', 'windows');
+  logger.debug('Starting editor window discovery', 'windows');
 
   if (!(await isYabaiAvailable())) {
     throw new Error(
@@ -179,7 +189,7 @@ export async function getFrontmostApp(): Promise<string> {
 }
 
 export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
-  logger.info('Resizing VS Code windows', 'windows', { tabBarHeight });
+  logger.info('Resizing editor windows', 'windows', { tabBarHeight });
 
   try {
     // Load settings to check if resizing is enabled
@@ -191,17 +201,17 @@ export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
       return;
     }
 
-    // Get all VS Code windows via yabai
+    // Get all editor windows via yabai
     const { stdout } = await execAsync('yabai -m query --windows');
     const windows: YabaiWindow[] = JSON.parse(stdout);
 
-    const vscodeWindows = windows.filter(
-      window =>
-        window.app.includes('Visual Studio Code') || window.app.includes('Code')
+    const editorWindows = windows.filter(window =>
+      isEditorWindow(window, settings.editorDetectionConfig)
     );
 
-    logger.debug('Found VS Code windows to resize', 'windows', {
-      windowCount: vscodeWindows.length,
+    logger.debug('Found editor windows to resize', 'windows', {
+      windowCount: editorWindows.length,
+      editorConfig: settings.editorDetectionConfig,
     });
 
     // Get display bounds to ensure proper positioning
@@ -210,14 +220,14 @@ export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
     );
     const displays = JSON.parse(displaysOutput);
 
-    // Resize each VS Code window to account for tab bar
-    for (const window of vscodeWindows) {
+    // Resize each editor window to account for tab bar
+    for (const window of editorWindows) {
       // Find the display this window is on
       const display = displays.find((d: any) => d.index === window.display);
       if (!display) continue;
 
       // Calculate new position and size
-      // VS Code windows should start below the tab bar with configurable top margin
+      // Editor windows should start below the tab bar with configurable top margin
       const totalOffset = tabBarHeight + settings.topMargin;
 
       // Calculate dimensions based on settings
@@ -289,7 +299,7 @@ export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
       }
     }
 
-    logger.info('VS Code window resize process completed', 'windows');
+    logger.info('Editor window resize process completed', 'windows');
   } catch (error) {
     logger.error('Error resizing windows via yabai', 'windows', error);
     console.error('Error resizing windows via yabai:', error);
