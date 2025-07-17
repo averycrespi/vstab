@@ -32,23 +32,64 @@ vstab/
 │   │   └── logger-init.ts # Logging system initialization
 │   ├── renderer/       # React UI (browser environment)
 │   │   ├── App.tsx     # Main component with logging
+│   │   ├── index.tsx   # Renderer entry point
+│   │   ├── index.html  # HTML template
 │   │   ├── logger.ts   # Renderer-specific logger configuration
-│   │   ├── components/ # UI components (Tab, Settings with logging UI)
-│   │   └── hooks/      # React hooks (useTabOrder, useTheme, useWindowVisibility)
+│   │   ├── types.d.ts  # Renderer type definitions
+│   │   ├── components/ # UI components
+│   │   │   └── Tab.tsx # Tab component
+│   │   ├── hooks/      # React hooks
+│   │   │   ├── useTabOrder.ts # Tab order management hook
+│   │   │   ├── useTheme.ts # Theme management hook
+│   │   │   └── useWindowVisibility.ts # Window visibility hook
+│   │   └── styles/     # Styling
+│   │       └── index.css # Main stylesheet
 │   ├── shared/         # Shared types and constants
-│   │   ├── types.ts    # Includes logging settings types
+│   │   ├── types.ts    # Type definitions including logging settings
 │   │   ├── logger.ts   # Core structured logging system
-│   │   └── ipc-channels.ts # Includes logging IPC channels
+│   │   └── ipc-channels.ts # IPC channel definitions
+│   ├── types/          # Global type definitions
+│   │   └── jest-dom.d.ts # Jest DOM types
 │   └── preload.ts      # Secure IPC bridge with logging methods
-├── assets/            # Tray icon assets
-│   ├── tray-icon.png      # Main tray icon
-│   ├── tray-icon@2x.png   # High-resolution tray icon
-│   ├── tray-icon.svg      # Vector tray icon
-│   └── tray-icon-template.svg # Template icon for macOS
+├── __tests__/          # Test suites
+│   ├── __mocks__/      # Mock implementations
+│   │   ├── electron.ts # Electron API mocks
+│   │   ├── fs.ts       # File system mocks
+│   │   └── yabai.ts    # yabai command mocks
+│   ├── unit/           # Unit tests
+│   │   ├── main/       # Main process unit tests
+│   │   ├── renderer/   # Renderer process unit tests
+│   │   └── shared/     # Shared module unit tests
+│   ├── integration/    # Integration tests
+│   │   ├── ipc-communication.test.ts
+│   │   └── yabai-integration.test.ts
+│   └── e2e/           # End-to-end tests
+│       └── app.e2e.test.ts
+├── config/            # Configuration files
+│   ├── jest.config.js      # Jest test configuration
+│   ├── jest.setup.integration.js
+│   ├── jest.setup.main.js
+│   ├── jest.setup.renderer.js
+│   ├── postcss.config.js   # PostCSS configuration
+│   ├── tailwind.config.js  # Tailwind CSS configuration
+│   ├── tsconfig.main.json  # TypeScript config for main process
+│   ├── tsconfig.renderer.json # TypeScript config for renderer
+│   ├── tsconfig.test.json  # TypeScript config for tests
+│   └── webpack.config.js   # Webpack build configuration
+├── assets/            # Application assets
+│   ├── entitlements.plist     # macOS entitlements for signing
+│   ├── tray-icon.png          # Main tray icon
+│   ├── tray-icon@2x.png       # High-resolution tray icon
+│   ├── tray-icon.svg          # Vector tray icon
+│   └── tray-icon-template.svg # Template icon for macOS theming
+├── coverage/          # Test coverage reports (generated)
 ├── dist/              # Built files (webpack output)
+├── release/           # Built app packages (generated)
+├── node_modules/      # Dependencies (generated)
+├── jest.config.js     # Jest config wrapper
 ├── package.json       # Dependencies and scripts
-├── tsconfig.*.json    # TypeScript configs (main/renderer)
-└── webpack.config.js  # Build configuration
+├── package-lock.json  # Dependency lock file
+└── tsconfig.json      # Base TypeScript configuration
 ```
 
 ## Core Concepts
@@ -125,9 +166,12 @@ Settings are stored in `~/.config/vstab/settings.json` with automatic creation a
 
 - **theme**: 'light' | 'dark' | 'system' - default: `'system'`
 - **tabBarHeight**: number (25-60px) - default: `45`
-- **topMargin**: number - default: `10`
-- **bottomMargin**: number - default: `0`
 - **autoHide**: boolean - Show tab bar only when supported editors are active - default: `true`
+
+**Window Positioning:**
+
+- **topMargin**: number (0-30px) - Space above repositioned windows - default: `10`
+- **bottomMargin**: number (0-30px) - Space below repositioned windows - default: `0`
 
 **Window Management:**
 
@@ -177,22 +221,48 @@ Settings are stored in `~/.config/vstab/settings.json` with automatic creation a
 #### Tray Menu Layout
 
 ```
-vstab v1.0.0                    # Clickable header (opens GitHub)
-yabai: ✅ Running               # Status indicator
-─────────────────────────────
-Settings ▶                     # Submenu
-├── Theme: System               # Current theme display
-├── Tab Bar Height: 45px        # Current height display
-├── Auto Hide: On               # Auto-hide status
-├── ─────────────────          # Separator
-├── Log Level: INFO ▶           # Submenu for precise level selection
-│   ├── ○ Error
-│   ├── ○ Warn
-│   ├── ● Info                  # Current level checked
-│   └── ○ Debug
-└── Open Logs Folder            # Opens log directory in Finder
-─────────────────────────────
-Quit vstab                      # Terminate app
+vstab v1.0.0                           # Clickable header (opens GitHub)
+yabai: ✅ Running                      # Status indicator (clickable but no action)
+─────────────────────────────────────
+Settings ▶                            # Submenu with comprehensive options
+├── ☑ Auto Hide Tab Bar               # Checkbox toggle
+├── ☑ Auto Resize Windows Vertically  # Checkbox toggle
+├── ☑ Auto Resize Windows Horizontally # Checkbox toggle
+├── ──────────────────────────────    # Separator
+├── Theme: System ▶                   # Theme submenu
+│   ├── ○ Light                       # Radio button
+│   ├── ○ Dark                        # Radio button
+│   └── ● System                      # Current selection
+├── Tab Bar Height: 45px ▶            # Height submenu
+│   ├── ○ 25px                        # Radio button options
+│   ├── ○ 30px
+│   ├── ○ 35px
+│   ├── ○ 40px
+│   ├── ● 45px                        # Current selection
+│   ├── ○ 50px
+│   ├── ○ 55px
+│   └── ○ 60px
+├── Window Top Margin: 10px ▶         # Margin submenu
+│   ├── ○ 0px                         # Radio button options
+│   ├── ○ 5px
+│   ├── ● 10px                        # Current selection
+│   ├── ○ 15px
+│   ├── ○ 20px
+│   ├── ○ 25px
+│   └── ○ 30px
+├── Window Bottom Margin: 0px ▶       # Bottom margin submenu
+│   └── (Similar radio button structure)
+├── ──────────────────────────────    # Separator
+└── Log Level: Info ▶                 # Log level submenu
+    ├── ○ Error                       # Radio button options
+    ├── ○ Warn
+    ├── ● Info                        # Current selection
+    └── ○ Debug
+─────────────────────────────────────
+Open Logs Folder                      # Opens log directory in Finder
+Open Config Folder                    # Opens settings directory in Finder
+─────────────────────────────────────
+Quit vstab                            # Terminate app
 ```
 
 ### IPC Communication
@@ -290,25 +360,43 @@ logger.warn('Invalid settings detected', 'settings', {
 
 ### Scripts
 
+**Development & Build:**
+
 - `npm run build` - Webpack build (development)
 - `npm run build:prod` - Production build
 - `npm start` - Run Electron app
 - `npm run dev` - Build and run
 - `npm run compile` - TypeScript compilation check
+- `npm run clean` - Remove dist directory
+
+**Distribution:**
+
+- `npm run pack` - Build and package app without installer
+- `npm run dist` - Build and create installer packages
+- `npm run dist:mac` - Build macOS-specific distribution
+- `npm run quickstart` - Install dependencies, build prod, and start
+
+**Testing & Quality:**
+
+- `npm test` - Run all tests
+- `npm run test:*` - Various test commands (see Testing section)
 - `npm run format` - Format all files with Prettier
 - `npm run format:check` - Check formatting without changing files
 
 ### TypeScript Configuration
 
-- `tsconfig.json` - Base config
-- `tsconfig.main.json` - Main process (Node.js target)
-- `tsconfig.renderer.json` - Renderer process (browser target)
+- `tsconfig.json` - Base configuration in project root
+- `config/tsconfig.main.json` - Main process (Node.js target)
+- `config/tsconfig.renderer.json` - Renderer process (browser target)
+- `config/tsconfig.test.json` - Test environment configuration
 
 ### Webpack Setup
 
+- Configuration located at `config/webpack.config.js`
 - Three separate bundles: main, preload, renderer
 - CSS processing with PostCSS and Tailwind
 - TypeScript compilation with ts-loader
+- Production and development build modes
 
 ## Key Implementation Details
 
@@ -328,8 +416,8 @@ yabai -m window 12345 --resize abs:1920:1025
 
 #### Menu Creation and Lifecycle
 
-- **Tray Icon Creation**: `createTrayIcon()` in `src/main/index.ts:34-77`
-- **Menu Updates**: `updateTrayMenu()` in `src/main/index.ts:79-171`
+- **Tray Icon Creation**: `createTrayIcon()` in `src/main/index.ts:38-63`
+- **Menu Updates**: `updateTrayMenu()` in `src/main/index.ts:291-550`
 - **Always Created**: Tray icon is always created when the app starts
 - **Icon Assets**: Uses `assets/tray-icon.png` with template variants for macOS theming
 - **Tooltip**: Shows "vstab - VS Code Tab Switcher" on hover
@@ -367,17 +455,19 @@ yabai -m window 12345 --resize abs:1920:1025
 - **Menu Updates**: `TRAY_UPDATE_MENU` channel triggers menu refresh
 - **Process Events**: Internal `tray-update-menu` event for cross-process communication
 
-#### Current Limitations
+#### Interactive Features
 
-- **Settings Interactivity**: Most settings items are display-only (TODO: implement direct manipulation)
-- **Theme Cycling**: Header shows current theme but doesn't cycle on click
-- **Height Adjustment**: Shows current height but no direct adjustment
-- **Toggle Actions**: Auto-hide and click action items need implementation
+- **Full Settings Interactivity**: All settings are fully interactive with checkboxes, radio buttons, and immediate effect
+- **Theme Selection**: Theme submenu provides radio button selection between Light, Dark, and System themes
+- **Height Adjustment**: Tab bar height submenu offers radio button selection from 25px to 60px with instant window resizing
+- **Toggle Settings**: Boolean settings (auto-hide, auto-resize) use interactive checkboxes for instant toggling
+- **Window Margin Controls**: Interactive radio button submenus for precise top margin adjustment (0-30px)
+- **Log Level Controls**: Comprehensive log level submenu with radio button selection for runtime log adjustment
 
 ### Code Formatting
 
 - **Prettier** configured for consistent code style across the project
-- Configuration in `.prettierrc.json` with settings for semicolons, quotes, spacing
+- Uses default configuration with automatic formatting enforcement
 - Automatic formatting on file write via Claude Code hooks
 - Manual formatting available via `npm run format` command
 - Format checking for CI/CD via `npm run format:check`
@@ -463,32 +553,33 @@ __tests__/
 - `npm run test:coverage` - Run tests with coverage report
 - `npm run test:main` - Run main process tests only
 - `npm run test:renderer` - Run renderer process tests only
+- `npm run test:shared` - Run shared module tests only
 - `npm run test:integration` - Run integration tests only
-- `npm run test:unit` - Run all unit tests
+- `npm run test:unit` - Run all unit tests (main, renderer, shared)
 - `npm run test:ci` - Run tests for CI (no watch, with coverage)
 
 #### Test Types
 
-**Unit Tests (40+ tests)**
+**Unit Tests**
 
-- Main process: Window discovery, persistence, IPC handlers
-- Renderer process: React components, hooks, UI interactions
-- Shared modules: Type definitions and utilities
-- Test individual functions and components in isolation
+- **Main process**: Window discovery, persistence, IPC handlers, settings management
+- **Renderer process**: React components, hooks, UI interactions, theme management
+- **Shared modules**: Type definitions, logger functionality, and utility functions
+- Test individual functions and components in isolation with mocked dependencies
 
-**Integration Tests (15+ tests)**
+**Integration Tests**
 
 - IPC communication between main and renderer processes
-- yabai integration with mocked commands
-- File persistence workflows
-- Error handling and recovery scenarios
+- yabai integration with mocked commands and window operations
+- File persistence workflows and settings synchronization
+- Error handling and recovery scenarios across process boundaries
 
-**End-to-End Tests (5+ tests)**
+**End-to-End Tests**
 
-- Complete user workflows (tab switching, reordering)
+- Complete user workflows (tab switching, reordering) - included in integration test suite
 - Application lifecycle (startup, shutdown, restart)
-- Auto-hide behavior based on frontmost application
-- Window management across different scenarios
+- Auto-hide behavior based on frontmost application detection
+- Window management across different editor scenarios
 
 #### Test Coverage
 
@@ -514,13 +605,20 @@ npm test
 # Run specific test suites
 npm run test:main
 npm run test:renderer
+npm run test:shared
 npm run test:integration
+
+# Run all unit tests
+npm run test:unit
 
 # Run with coverage
 npm run test:coverage
 
 # Run in watch mode during development
 npm run test:watch
+
+# Run for CI (no watch, with coverage)
+npm run test:ci
 ```
 
 ## Common Issues & Solutions
@@ -576,21 +674,24 @@ npm run test:watch
 
 ### Key Dependencies
 
-- `electron` - Desktop app framework
-- `react` + `react-dom` - UI framework
-- `typescript` - Type safety
-- `webpack` + loaders - Build system
-- `tailwindcss` + `@tailwindcss/postcss` - Styling
-- `yabai` - External dependency for window management
+- `electron` (37.2.1) - Desktop app framework
+- `react` (19.1.0) + `react-dom` (19.1.0) - UI framework
+- `typescript` (5.8.3) - Type safety
+- `webpack` (5.100.1) + loaders - Build system
+- `tailwindcss` (4.1.11) + `@tailwindcss/postcss` (4.1.11) - Styling with CSS custom properties
+- `postcss` (8.5.6) + `autoprefixer` (10.4.21) - CSS processing
+- `yabai` - External macOS window management dependency
 
 ### Dev Dependencies
 
-- `@types/*` - TypeScript definitions
-- `ts-loader` - TypeScript webpack loader
-- `css-loader`, `style-loader`, `postcss-loader` - CSS processing
-- `html-webpack-plugin` - HTML generation
-- `prettier` - Code formatting and style enforcement
-- `jest` + testing libraries - Test framework and utilities
+- `@types/*` - TypeScript definitions for Node.js, React, Jest
+- `ts-loader` (9.5.2) - TypeScript webpack loader
+- `css-loader` (7.1.2), `style-loader` (4.0.0), `postcss-loader` (8.1.1) - CSS processing pipeline
+- `html-webpack-plugin` (5.6.3) - HTML template generation
+- `prettier` (3.6.2) - Code formatting and style enforcement
+- `jest` (29.7.0) + testing libraries - Test framework with coverage reporting
+- `electron-builder` (26.0.12) - Application packaging and distribution
+- `@testing-library/react` (15.0.7) - React component testing utilities
 
 ## Best Practices for AI Assistants
 
