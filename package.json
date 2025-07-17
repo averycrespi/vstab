@@ -13,6 +13,7 @@
     "pack": "npm run build:prod && electron-builder --dir",
     "dist": "npm run build:prod && electron-builder",
     "dist:mac": "npm run build:prod && electron-builder --mac",
+    "quickstart": "npm install --legacy-peer-deps && npm run build:prod && npm start",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

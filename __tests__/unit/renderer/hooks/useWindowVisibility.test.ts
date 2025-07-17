@@ -135,7 +135,7 @@ describe('useWindowVisibility Hook', () => {
       expect(result.current.isVisible).toBe(true);
     });
 
-    it('should be hidden when vstab is frontmost', async () => {
+    it('should be visible when vstab is frontmost', async () => {
       mockVstab.getFrontmostApp.mockResolvedValue('vstab');
 
       const { result } = renderHook(() => useWindowVisibility());
@@ -144,7 +144,7 @@ describe('useWindowVisibility Hook', () => {
         await Promise.resolve();
       });
 
-      expect(result.current.isVisible).toBe(false);
+      expect(result.current.isVisible).toBe(true);
     });
 
     it('should be hidden when Electron is frontmost', async () => {

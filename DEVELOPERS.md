@@ -44,7 +44,7 @@ vstab/
 
 ## Development Setup
 
-Follow the installation instructions in the [README](README.md).
+Follow the quickstart instructions in the [README](README.md#quickstart).
 
 ### Development Scripts
 
@@ -86,36 +86,6 @@ function isEditorWindow(window: YabaiWindow, settings: AppSettings): boolean {
 }
 ```
 
-#### Default Configuration
-
-```typescript
-const DEFAULT_EDITORS = [
-  {
-    id: 'vscode',
-    displayName: 'Visual Studio Code',
-    appNamePatterns: [
-      'Visual Studio Code',
-      'Visual Studio Code - Insiders',
-      'Code',
-      'Code - OSS',
-      'VSCode',
-      'code',
-    ],
-  },
-  {
-    id: 'cursor',
-    displayName: 'Cursor',
-    appNamePatterns: ['Cursor'],
-  },
-];
-```
-
-#### Adding New Editors
-
-1. **Settings Configuration**: Add new editor patterns to `editorDetectionConfig` in settings
-2. **Pattern Matching**: Each editor can have multiple app name patterns for reliable detection
-3. **Extensible Design**: No code changes required to support new editors
-
 ### Window Discovery
 
 - Uses yabai JSON API to find supported editor windows every 1 second
@@ -130,19 +100,7 @@ const DEFAULT_EDITORS = [
 - Drag-and-drop reordering with HTML5 API
 - Stable tab order maintained across window switches and closures
 - Tab order automatically persisted to `userData/tab-order.json`
-- No automatic reordering on tab switches or window focus changes
-- **Tab Click Behavior**: Clicking tabs now triggers window resizing when auto-resize settings are enabled
-- **Window Positioning**: Editor windows are automatically repositioned and resized on every tab click (respects auto-resize settings)
-
-### Auto-Hide Behavior
-
-- Polls frontmost app every 250ms via yabai window focus detection for improved responsiveness
-- Shows tab bar only when supported editors are active (when `autoHide` setting is enabled)
-- Automatically shows tab bar when `autoHide` setting is disabled
-- Hides when switching to other applications
-- Windows remain visible (no minimizing) for fast tab switching
-- Enhanced error handling with retry logic for failed yabai queries
-- **Pattern-Based Detection**: Uses configurable patterns to detect supported editors
+- Clicking tabs triggers window resizing when auto-resize settings are enabled
 
 ### Logging System
 
@@ -193,9 +151,9 @@ logger.debug('Window discovered', 'windows', { windowId, title });
 - Main process handles yabai operations and file persistence
 - Renderer process handles UI and user interactions
 - Preload script provides secure IPC bridge
-- **Real-time Settings**: `SETTINGS_CHANGED` event broadcasts setting updates across the app for immediate application
-- **Settings Synchronization**: All components automatically update when settings change via IPC notifications
-- **Logging IPC**: Dedicated channels for log file access and management
+- Settings changes are broadcast across the app for immediate application
+- All components automatically update when settings change via IPC notifications
+- Dedicated channels for log file access and management
 
 ### Settings Architecture
 
@@ -223,7 +181,7 @@ export interface AppSettings {
 
 #### Settings Management (`src/main/settings.ts`)
 
-- **Storage Location**: `~/.config/vstab/settings.json` (XDG Base Directory compliant)
+- **Storage Location**: `~/.config/vstab/settings.json`
 - **Default Values**: Comprehensive defaults defined in `DEFAULT_SETTINGS` constant
 - **Automatic Creation**: Settings file created on first app launch if it doesn't exist
 - **Graceful Loading**: Falls back to defaults if file is missing or corrupted
@@ -313,21 +271,21 @@ __tests__/
 
 ### Test Types
 
-**Unit Tests (40+ tests)**
+**Unit Tests**
 
 - Main process: Window discovery, persistence, IPC handlers
 - Renderer process: React components, hooks, UI interactions
 - Shared modules: Type definitions and utilities
 - Test individual functions and components in isolation
 
-**Integration Tests (15+ tests)**
+**Integration Tests**
 
 - IPC communication between main and renderer processes
 - yabai integration with mocked commands
 - File persistence workflows
 - Error handling and recovery scenarios
 
-**End-to-End Tests (5+ tests)**
+**End-to-End Tests**
 
 - Complete user workflows (tab switching, reordering)
 - Application lifecycle (startup, shutdown, restart)
@@ -339,39 +297,6 @@ __tests__/
 - Minimum 80% code coverage for functions, lines, and statements
 - 70% branch coverage for conditional logic
 - Critical paths (window management, persistence) have 100% coverage
-
-### Manual Testing Checklist
-
-**Core Functionality:**
-
-- Manual testing with multiple editor workspaces (VS Code, Cursor, etc.)
-- Test drag-and-drop reordering
-- Verify tab order stability during window switches
-- Verify persistence across app restarts
-
-**Settings Testing:**
-
-- Test settings changes apply immediately without restart
-- **Theme Settings**: Test theme switching (Light/Dark/System) with immediate visual feedback
-- **Tab Bar Height**: Test height adjustment slider (25-60px range) with immediate resize
-- **Margin Settings**: Test topMargin and bottomMargin (visual spacing verification)
-- **Auto-Hide Toggle**: Test auto-hide setting (disabled should always show tab bar)
-- **Window Resizing**: Test autoResizeVertical and autoResizeHorizontal toggles on tab clicks
-- **Logging Settings**: Change log level, retention days (1-30), max file size (1-100MB)
-
-**Window Management:**
-
-- Check auto-hide behavior by switching apps (verify improved responsiveness)
-- Test window resizing on tab clicks (when auto-resize settings are enabled)
-- Test full-screen window resizing
-- Verify margin settings affect window positioning
-
-**Logging Verification:**
-
-- **Test logging functionality**: Verify logs are written to `~/.config/vstab/logs/`
-- **Test log settings**: Verify log level changes affect log output verbosity
-- **Test log rotation**: Verify file rotation based on size and retention settings
-- **Test tray logging controls**: Log level submenu selection, "Open Logs Folder"
 
 ## Styling
 
@@ -401,24 +326,6 @@ __tests__/
 - Context isolation enabled in preload script
 - Secure IPC bridge pattern
 - No direct Node.js access from renderer
-
-## Development Workflow
-
-### Making Changes
-
-1. Edit source files in `src/`
-2. Run `npm run build` to compile
-3. Run `npm start` to test
-4. Check console for errors
-
-### Adding Features
-
-1. Update types in `src/shared/types.ts`
-2. Add IPC channels in `src/shared/ipc-channels.ts`
-3. Implement in main process (`src/main/`)
-4. Update UI in renderer process (`src/renderer/`)
-5. Write tests for new functionality
-6. Test with multiple editor windows (VS Code, Cursor, etc.)
 
 ## Common Issues & Solutions
 
@@ -466,57 +373,3 @@ __tests__/
 - Group related functionality in modules
 - Use barrel exports where appropriate
 - Follow existing naming conventions
-
-## Best Practices
-
-1. **Always build before testing**: Run `npm run build` after changes
-2. **Check TypeScript compilation**: Use `npm run compile` to verify types
-3. **Run tests for changes**: Use `npm test` to ensure functionality works
-4. **Test with real editor windows**: Open multiple workspaces in supported editors for testing
-5. **Respect the architecture**: Keep main/renderer separation clear
-6. **Update types first**: When adding features, update shared types
-7. **Follow existing patterns**: Use established IPC channels and hooks
-8. **Consider yabai requirements**: Ensure yabai service is running
-9. **Test window operations**: Verify yabai commands work as expected
-10. **Maintain tab order stability**: Don't reorder on focus changes
-11. **Maintain security**: Keep contextIsolation enabled in preload
-12. **Use structured logging**: Import logger from `@shared/logger` and use appropriate levels with context
-13. **Monitor logs during development**: Use appropriate log levels and check `~/.config/vstab/logs/` for issues
-14. **Write tests for new features**: Add unit, integration, and E2E tests as appropriate
-
-## Contributing
-
-### Pull Request Process
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes with tests
-4. Ensure all tests pass: `npm test`
-5. Check TypeScript compilation: `npm run compile`
-6. Test manually with multiple editor windows (VS Code, Cursor, etc.)
-7. Commit with conventional commits: `git commit -m "feat: add new feature"`
-8. Push and create a Pull Request
-
-### Code Review Guidelines
-
-- Ensure changes maintain type safety
-- Verify yabai integration still works
-- Check that tab order remains stable
-- Test auto-hide behavior
-- Validate window management operations
-
-## Future Enhancements
-
-### Planned Features (Low Priority)
-
-- UI polish and animations
-- Settings UI for configuration options
-- Multi-monitor optimization
-- Custom themes and styling options
-
-### Potential Improvements
-
-- Performance optimizations for many windows
-- Enhanced yabai configuration options
-- Keyboard shortcuts for tab switching
-- Better window state persistence
