@@ -1,20 +1,20 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc-channels';
-import { VSCodeWindow, AppSettings } from '@shared/types';
+import { EditorWindow, AppSettings } from '@shared/types';
 import { LogEntry } from '@shared/logger';
 
 // Expose protected methods that allow the renderer process to use
 // ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('vstab', {
   // Window management
-  onWindowsUpdate: (callback: (windows: VSCodeWindow[]) => void) => {
-    ipcRenderer.on(IPC_CHANNELS.VSCODE_WINDOWS_LIST, (_, windows) =>
+  onWindowsUpdate: (callback: (windows: EditorWindow[]) => void) => {
+    ipcRenderer.on(IPC_CHANNELS.EDITOR_WINDOWS_LIST, (_, windows) =>
       callback(windows)
     );
   },
 
   focusWindow: (windowId: string) => {
-    return ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOW_FOCUS, windowId);
+    return ipcRenderer.invoke(IPC_CHANNELS.EDITOR_WINDOW_FOCUS, windowId);
   },
 
   // Tab management
@@ -37,7 +37,7 @@ contextBridge.exposeInMainWorld('vstab', {
 
   // Window resizing
   resizeWindows: (tabBarHeight: number) => {
-    return ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_RESIZE, tabBarHeight);
+    return ipcRenderer.invoke(IPC_CHANNELS.EDITOR_WINDOWS_RESIZE, tabBarHeight);
   },
 
   // Settings
@@ -90,7 +90,7 @@ contextBridge.exposeInMainWorld('vstab', {
 
 // Type definitions for window.vstab
 export interface VstabAPI {
-  onWindowsUpdate: (callback: (windows: VSCodeWindow[]) => void) => void;
+  onWindowsUpdate: (callback: (windows: EditorWindow[]) => void) => void;
   focusWindow: (windowId: string) => Promise<void>;
   reorderTabs: (windowIds: string[]) => Promise<void>;
   getTabOrder: () => Promise<string[]>;

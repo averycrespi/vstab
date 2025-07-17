@@ -1,7 +1,7 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { createHash } from 'crypto';
-import { VSCodeWindow, EditorDetectionConfig } from '@shared/types';
+import { EditorWindow, EditorDetectionConfig } from '@shared/types';
 import { logger } from '@shared/logger';
 import { loadSettings } from './settings';
 
@@ -61,7 +61,7 @@ async function isYabaiAvailable(): Promise<boolean> {
   }
 }
 
-async function discoverVSCodeWindowsYabai(): Promise<VSCodeWindow[]> {
+async function discoverEditorWindowsYabai(): Promise<EditorWindow[]> {
   logger.debug('Starting yabai editor window discovery', 'windows');
 
   try {
@@ -79,7 +79,7 @@ async function discoverVSCodeWindowsYabai(): Promise<VSCodeWindow[]> {
       editorConfig: settings.editorDetectionConfig,
     });
 
-    const result: VSCodeWindow[] = editorWindows.map(window => {
+    const result: EditorWindow[] = editorWindows.map(window => {
       // Extract workspace path from title
       let path = window.title || window.app;
       if (window.title.includes(' — ')) {
@@ -123,7 +123,7 @@ async function discoverVSCodeWindowsYabai(): Promise<VSCodeWindow[]> {
   }
 }
 
-export async function discoverVSCodeWindows(): Promise<VSCodeWindow[]> {
+export async function discoverEditorWindows(): Promise<EditorWindow[]> {
   logger.debug('Starting editor window discovery', 'windows');
 
   if (!(await isYabaiAvailable())) {
@@ -133,7 +133,7 @@ export async function discoverVSCodeWindows(): Promise<VSCodeWindow[]> {
   }
 
   logger.debug('Using yabai for window discovery', 'windows');
-  return await discoverVSCodeWindowsYabai();
+  return await discoverEditorWindowsYabai();
 }
 
 export async function focusWindow(windowId: string): Promise<void> {
@@ -188,7 +188,7 @@ export async function getFrontmostApp(): Promise<string> {
   }
 }
 
-export async function resizeVSCodeWindows(tabBarHeight: number): Promise<void> {
+export async function resizeEditorWindows(tabBarHeight: number): Promise<void> {
   logger.info('Resizing editor windows', 'windows', { tabBarHeight });
 
   try {

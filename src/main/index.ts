@@ -1,7 +1,7 @@
 import { app, BrowserWindow, screen, Tray, Menu, shell } from 'electron';
 import * as path from 'path';
 import { IPC_CHANNELS } from '@shared/ipc-channels';
-import { discoverVSCodeWindows } from './windows';
+import { discoverEditorWindows } from './windows';
 import { setupIPCHandlers } from './ipc';
 import { logger } from '@shared/logger';
 import { initializeLogging, updateLoggingSettings } from './logger-init';
@@ -192,11 +192,11 @@ async function setTabBarHeight(height: number) {
 
   // Trigger window resizing to apply new height immediately
   try {
-    const { resizeVSCodeWindows } = await import('./windows');
-    await resizeVSCodeWindows(height);
-    logger.debug('VS Code windows resized for new tab bar height', 'main');
+    const { resizeEditorWindows } = await import('./windows');
+    await resizeEditorWindows(height);
+    logger.debug('Editor windows resized for new tab bar height', 'main');
   } catch (error) {
-    logger.error('Failed to resize VS Code windows', 'main', error);
+    logger.error('Failed to resize editor windows', 'main', error);
   }
 
   await updateTrayMenu();
@@ -221,11 +221,11 @@ async function setTopMargin(margin: number) {
 
   // Trigger window resizing to apply new margin immediately
   try {
-    const { resizeVSCodeWindows } = await import('./windows');
-    await resizeVSCodeWindows(settings.tabBarHeight);
-    logger.debug('VS Code windows resized for new top margin', 'main');
+    const { resizeEditorWindows } = await import('./windows');
+    await resizeEditorWindows(settings.tabBarHeight);
+    logger.debug('Editor windows resized for new top margin', 'main');
   } catch (error) {
-    logger.error('Failed to resize VS Code windows', 'main', error);
+    logger.error('Failed to resize editor windows', 'main', error);
   }
 
   await updateTrayMenu();
@@ -250,11 +250,11 @@ async function setBottomMargin(margin: number) {
 
   // Trigger window resizing to apply new margin immediately
   try {
-    const { resizeVSCodeWindows } = await import('./windows');
-    await resizeVSCodeWindows(settings.tabBarHeight);
-    logger.debug('VS Code windows resized for new bottom margin', 'main');
+    const { resizeEditorWindows } = await import('./windows');
+    await resizeEditorWindows(settings.tabBarHeight);
+    logger.debug('Editor windows resized for new bottom margin', 'main');
   } catch (error) {
-    logger.error('Failed to resize VS Code windows', 'main', error);
+    logger.error('Failed to resize editor windows', 'main', error);
   }
 
   await updateTrayMenu();
@@ -593,7 +593,7 @@ async function createWindow() {
     mainWindow = null;
   });
 
-  // Start polling for VS Code windows
+  // Start polling for editor windows
   logger.info('Starting window polling', 'main');
   startWindowPolling();
 
@@ -610,12 +610,12 @@ function startWindowPolling() {
     }
 
     try {
-      logger.debug('Polling for VS Code windows', 'main');
-      const windows = await discoverVSCodeWindows();
+      logger.debug('Polling for editor windows', 'main');
+      const windows = await discoverEditorWindows();
       logger.debug('Sending windows to renderer', 'main', {
         windowCount: windows.length,
       });
-      mainWindow.webContents.send(IPC_CHANNELS.VSCODE_WINDOWS_LIST, windows);
+      mainWindow.webContents.send(IPC_CHANNELS.EDITOR_WINDOWS_LIST, windows);
 
       // Update tray menu with current status
       if (tray) {

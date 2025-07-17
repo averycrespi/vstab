@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../../../../src/renderer/App';
-import { VSCodeWindow } from '../../../../src/shared/types';
+import { EditorWindow } from '../../../../src/shared/types';
 
 // Mock the hooks
 jest.mock('../../../../src/renderer/hooks/useWindowVisibility');
@@ -18,7 +18,7 @@ const mockUseTabOrder = jest.mocked(useTabOrder);
 const mockUseTheme = jest.mocked(useTheme);
 
 describe('App Component', () => {
-  const mockWindows: VSCodeWindow[] = [
+  const mockWindows: EditorWindow[] = [
     {
       id: 'window1',
       title: 'main.ts — vstab',
@@ -102,8 +102,8 @@ describe('App Component', () => {
       const tabBar = container.firstChild as HTMLElement;
       expect(tabBar).toHaveClass('flex', 'items-center', 'border-b');
       expect(tabBar).toHaveStyle({
-        backgroundColor: 'var(--color-vscode-dark)',
-        borderColor: 'var(--color-vscode-border)',
+        backgroundColor: 'var(--color-editor-dark)',
+        borderColor: 'var(--color-editor-border)',
       });
     });
 

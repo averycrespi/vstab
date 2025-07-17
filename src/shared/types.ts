@@ -1,4 +1,4 @@
-export interface VSCodeWindow {
+export interface EditorWindow {
   id: string;
   title: string;
   path: string;

@@ -194,11 +194,19 @@ class YabaiMock {
     return this.windows.find(w => w['has-focus']);
   }
 
-  // Get VS Code windows
-  getVSCodeWindows(): MockYabaiWindow[] {
+  // Get editor windows (VS Code, Cursor, etc.)
+  getEditorWindows(): MockYabaiWindow[] {
     return this.windows.filter(
-      w => w.app.includes('Visual Studio Code') || w.app.includes('Code')
+      w =>
+        w.app.includes('Visual Studio Code') ||
+        w.app.includes('Code') ||
+        w.app.includes('Cursor')
     );
+  }
+
+  // Backward compatibility
+  getVSCodeWindows(): MockYabaiWindow[] {
+    return this.getEditorWindows();
   }
 }
 

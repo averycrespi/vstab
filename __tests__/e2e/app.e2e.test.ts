@@ -7,7 +7,7 @@
 
 import { ipcMain, ipcRenderer } from 'electron-mock-ipc';
 import { setupIPCHandlers } from '../../src/main/ipc';
-import { VSCodeWindow } from '../../src/shared/types';
+import { EditorWindow } from '../../src/shared/types';
 import { IPC_CHANNELS } from '../../src/shared/ipc-channels';
 import { yabaiMock } from '../__mocks__/yabai';
 import { fsMock } from '../__mocks__/fs';
@@ -67,7 +67,7 @@ describe('vstab E2E Workflows', () => {
     it('should discover windows, save order, and focus windows', async () => {
       // Step 1: Discover VS Code windows
       const windows = await ipcRenderer.invoke(
-        IPC_CHANNELS.VSCODE_WINDOWS_LIST
+        IPC_CHANNELS.EDITOR_WINDOWS_LIST
       );
 
       expect(windows).toHaveLength(2);
@@ -85,7 +85,7 @@ describe('vstab E2E Workflows', () => {
       });
 
       // Step 2: Save initial tab order
-      const initialOrder = windows.map((w: VSCodeWindow) => w.id);
+      const initialOrder = windows.map((w: EditorWindow) => w.id);
       await ipcRenderer.invoke(IPC_CHANNELS.TABS_REORDER, initialOrder);
 
       // Verify order was saved to file system
@@ -96,7 +96,7 @@ describe('vstab E2E Workflows', () => {
       expect(JSON.parse(savedContent as string)).toEqual(initialOrder);
 
       // Step 3: Focus second window
-      await ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOW_FOCUS, windows[1].id);
+      await ipcRenderer.invoke(IPC_CHANNELS.EDITOR_WINDOW_FOCUS, windows[1].id);
 
       // Verify window was focused in yabai
       expect(yabaiMock.getFocusedWindow()?.id).toBe(1002);
@@ -122,18 +122,18 @@ describe('vstab E2E Workflows', () => {
 
     it('should handle window closure and reopening workflow', async () => {
       // Initial discovery
-      let windows = await ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_LIST);
+      let windows = await ipcRenderer.invoke(IPC_CHANNELS.EDITOR_WINDOWS_LIST);
       expect(windows).toHaveLength(2);
 
       // Save initial order
-      const initialOrder = windows.map((w: VSCodeWindow) => w.id);
+      const initialOrder = windows.map((w: EditorWindow) => w.id);
       await ipcRenderer.invoke(IPC_CHANNELS.TABS_REORDER, initialOrder);
 
       // Simulate window closure (remove from yabai)
       yabaiMock.removeWindow(1002);
 
       // Discover windows again
-      windows = await ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_LIST);
+      windows = await ipcRenderer.invoke(IPC_CHANNELS.EDITOR_WINDOWS_LIST);
       expect(windows).toHaveLength(1);
       expect(windows[0].id).toBe('hash0'); // Only first window remains
 
@@ -156,7 +156,7 @@ describe('vstab E2E Workflows', () => {
       });
 
       // Discover windows again
-      windows = await ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_LIST);
+      windows = await ipcRenderer.invoke(IPC_CHANNELS.EDITOR_WINDOWS_LIST);
       expect(windows).toHaveLength(2);
     });
   });
@@ -187,7 +187,7 @@ describe('vstab E2E Workflows', () => {
       };
 
       // Update yabai state
-      const currentWindows = yabaiMock.getVSCodeWindows();
+      const currentWindows = yabaiMock.getEditorWindows();
       currentWindows.forEach(w => (w['has-focus'] = false));
       yabaiMock.addWindow(chromeWindow);
 
@@ -222,7 +222,7 @@ describe('vstab E2E Workflows', () => {
 
       for (const variant of vsCodeVariants) {
         // Update frontmost app
-        const windows = yabaiMock.getVSCodeWindows();
+        const windows = yabaiMock.getEditorWindows();
         windows[0].app = variant;
         windows[0]['has-focus'] = true;
         windows.forEach((w, i) => (w['has-focus'] = i === 0));
@@ -247,7 +247,7 @@ describe('vstab E2E Workflows', () => {
       for (const height of tabBarHeights) {
         yabaiMock.clearCommandHistory();
 
-        await ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_RESIZE, height);
+        await ipcRenderer.invoke(IPC_CHANNELS.EDITOR_WINDOWS_RESIZE, height);
 
         const commands = yabaiMock.getCommandHistory();
 
@@ -294,7 +294,7 @@ describe('vstab E2E Workflows', () => {
           callback(null, { stdout: '/usr/local/bin/yabai', stderr: '' });
         } else if (command.includes('query --windows')) {
           callback(null, {
-            stdout: JSON.stringify(yabaiMock.getVSCodeWindows()),
+            stdout: JSON.stringify(yabaiMock.getEditorWindows()),
             stderr: '',
           });
         } else if (command.includes('query --displays')) {
@@ -320,7 +320,7 @@ describe('vstab E2E Workflows', () => {
 
       // Should complete without throwing
       await expect(
-        ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_RESIZE, 35)
+        ipcRenderer.invoke(IPC_CHANNELS.EDITOR_WINDOWS_RESIZE, 35)
       ).resolves.toBeUndefined();
     });
   });
@@ -383,7 +383,7 @@ describe('vstab E2E Workflows', () => {
             callback(new Error('Temporary failure'));
           } else {
             callback(null, {
-              stdout: JSON.stringify(yabaiMock.getVSCodeWindows()),
+              stdout: JSON.stringify(yabaiMock.getEditorWindows()),
               stderr: '',
             });
           }
@@ -393,28 +393,28 @@ describe('vstab E2E Workflows', () => {
       });
 
       // First call should return empty array
-      let windows = await ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_LIST);
+      let windows = await ipcRenderer.invoke(IPC_CHANNELS.EDITOR_WINDOWS_LIST);
       expect(windows).toEqual([]);
 
       // Reset call count for second call
       callCount = 0;
 
       // Second call should also fail
-      windows = await ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_LIST);
+      windows = await ipcRenderer.invoke(IPC_CHANNELS.EDITOR_WINDOWS_LIST);
       expect(windows).toEqual([]);
 
       // Reset call count for third call
       callCount = 0;
 
       // Third call should succeed
-      windows = await ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_LIST);
+      windows = await ipcRenderer.invoke(IPC_CHANNELS.EDITOR_WINDOWS_LIST);
       expect(windows).toHaveLength(2);
     });
 
     it('should handle mixed success/failure scenarios', async () => {
       // Test where some IPC calls succeed and others fail
       const results = await Promise.allSettled([
-        ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_LIST), // Should succeed
+        ipcRenderer.invoke(IPC_CHANNELS.EDITOR_WINDOWS_LIST), // Should succeed
         ipcRenderer.invoke(IPC_CHANNELS.TABS_GET_ORDER), // Should succeed (empty array)
         ipcRenderer.invoke(IPC_CHANNELS.APP_SHOULD_SHOW), // Should succeed
         ipcRenderer.invoke(IPC_CHANNELS.SYSTEM_FRONTMOST_APP), // Should succeed
@@ -436,12 +436,12 @@ describe('vstab E2E Workflows', () => {
     it('should simulate complete app usage session', async () => {
       // 1. App startup - discover windows
       const initialWindows = await ipcRenderer.invoke(
-        IPC_CHANNELS.VSCODE_WINDOWS_LIST
+        IPC_CHANNELS.EDITOR_WINDOWS_LIST
       );
       expect(initialWindows).toHaveLength(2);
 
       // 2. Initial resize on startup
-      await ipcRenderer.invoke(IPC_CHANNELS.VSCODE_WINDOWS_RESIZE, 35);
+      await ipcRenderer.invoke(IPC_CHANNELS.EDITOR_WINDOWS_RESIZE, 35);
 
       // 3. Check if app should be visible
       let shouldShow = await ipcRenderer.invoke(IPC_CHANNELS.APP_SHOULD_SHOW);
@@ -449,7 +449,7 @@ describe('vstab E2E Workflows', () => {
 
       // 4. User clicks on second tab
       await ipcRenderer.invoke(
-        IPC_CHANNELS.VSCODE_WINDOW_FOCUS,
+        IPC_CHANNELS.EDITOR_WINDOW_FOCUS,
         initialWindows[1].id
       );
 
@@ -470,7 +470,7 @@ describe('vstab E2E Workflows', () => {
         display: 1,
         pid: 88888,
       });
-      yabaiMock.getVSCodeWindows().forEach(w => (w['has-focus'] = false));
+      yabaiMock.getEditorWindows().forEach(w => (w['has-focus'] = false));
 
       shouldShow = await ipcRenderer.invoke(IPC_CHANNELS.APP_SHOULD_SHOW);
       expect(shouldShow).toBe(false);
@@ -497,7 +497,7 @@ describe('vstab E2E Workflows', () => {
       });
 
       const updatedWindows = await ipcRenderer.invoke(
-        IPC_CHANNELS.VSCODE_WINDOWS_LIST
+        IPC_CHANNELS.EDITOR_WINDOWS_LIST
       );
       expect(updatedWindows).toHaveLength(3);
 

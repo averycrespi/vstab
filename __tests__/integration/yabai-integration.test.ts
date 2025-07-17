@@ -1,5 +1,5 @@
 import {
-  discoverVSCodeWindows,
+  discoverEditorWindows,
   focusWindow,
   getFrontmostApp,
 } from '../../src/main/windows';
@@ -15,7 +15,7 @@ describe('Yabai Integration Tests', () => {
   });
 
   describe('Window Discovery Integration', () => {
-    it('should discover VS Code windows through yabai', async () => {
+    it('should discover editor windows through yabai', async () => {
       const mockWindows = [
         {
           id: 1001,
@@ -41,7 +41,7 @@ describe('Yabai Integration Tests', () => {
         }
       });
 
-      const windows = await discoverVSCodeWindows();
+      const windows = await discoverEditorWindows();
 
       expect(windows).toHaveLength(1);
       expect(windows[0]).toMatchObject({
@@ -61,7 +61,7 @@ describe('Yabai Integration Tests', () => {
         }
       });
 
-      await expect(discoverVSCodeWindows()).rejects.toThrow(
+      await expect(discoverEditorWindows()).rejects.toThrow(
         'yabai is required but not available'
       );
     });
@@ -75,7 +75,7 @@ describe('Yabai Integration Tests', () => {
         }
       });
 
-      const windows = await discoverVSCodeWindows();
+      const windows = await discoverEditorWindows();
       expect(windows).toEqual([]);
     });
   });
@@ -93,7 +93,7 @@ describe('Yabai Integration Tests', () => {
       );
 
       // The error is expected because we haven't set up the window map
-      // In real usage, discoverVSCodeWindows would populate the map first
+      // In real usage, discoverEditorWindows would populate the map first
     });
   });
 
@@ -168,7 +168,7 @@ describe('Yabai Integration Tests', () => {
         }
       });
 
-      await discoverVSCodeWindows();
+      await discoverEditorWindows();
 
       // Verify yabai commands were called
       expect(mockExec).toHaveBeenCalledWith(

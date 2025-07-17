@@ -6,7 +6,6 @@ jest.mock('../../src/main/persistence');
 import { ipcMain } from 'electron';
 import { IPC_CHANNELS } from '../../src/shared/ipc-channels';
 import { setupIPCHandlers } from '../../src/main/ipc';
-import { VSCodeWindow } from '../../src/shared/types';
 
 // Import modules to mock
 import * as windows from '../../src/main/windows';
@@ -50,39 +49,18 @@ describe('IPC Communication Integration', () => {
   const createMockEvent = () => ({ sender: { send: jest.fn() } });
 
   describe('Window Focus Flow', () => {
-    it('should focus window and hide others through IPC', async () => {
+    it('should focus window through IPC', async () => {
       const targetWindowId = 'window1';
-      const mockWindowList: VSCodeWindow[] = [
-        {
-          id: 'window1',
-          title: 'main.ts — vstab',
-          path: 'vstab',
-          isActive: false,
-          position: { x: 0, y: 45, width: 1920, height: 1035 },
-        },
-        {
-          id: 'window2',
-          title: 'App.tsx — project',
-          path: 'project',
-          isActive: false,
-          position: { x: 0, y: 45, width: 1920, height: 1035 },
-        },
-      ];
 
       // Setup mocks
       mockWindows.focusWindow.mockResolvedValue(undefined);
-      mockWindows.discoverVSCodeWindows.mockResolvedValue(mockWindowList);
-      mockWindows.hideWindow.mockResolvedValue(undefined);
 
       // Call IPC handler directly
-      const focusHandler = ipcHandlers.get(IPC_CHANNELS.VSCODE_WINDOW_FOCUS)!;
+      const focusHandler = ipcHandlers.get(IPC_CHANNELS.EDITOR_WINDOW_FOCUS)!;
       const result = await focusHandler(createMockEvent(), targetWindowId);
 
       // Verify the flow
       expect(mockWindows.focusWindow).toHaveBeenCalledWith(targetWindowId);
-      expect(mockWindows.discoverVSCodeWindows).toHaveBeenCalled();
-      expect(mockWindows.hideWindow).toHaveBeenCalledWith('window2');
-      expect(mockWindows.hideWindow).not.toHaveBeenCalledWith('window1');
       expect(result).toBeUndefined();
     });
 
@@ -92,14 +70,13 @@ describe('IPC Communication Integration', () => {
 
       mockWindows.focusWindow.mockRejectedValue(focusError);
 
-      const focusHandler = ipcHandlers.get(IPC_CHANNELS.VSCODE_WINDOW_FOCUS)!;
+      const focusHandler = ipcHandlers.get(IPC_CHANNELS.EDITOR_WINDOW_FOCUS)!;
 
       await expect(
         focusHandler(createMockEvent(), targetWindowId)
       ).rejects.toThrow('Window not found');
 
       expect(mockWindows.focusWindow).toHaveBeenCalledWith(targetWindowId);
-      expect(mockWindows.discoverVSCodeWindows).not.toHaveBeenCalled();
     });
   });
 
@@ -184,14 +161,14 @@ describe('IPC Communication Integration', () => {
   describe('Window Resize Flow', () => {
     it('should resize windows with specified tab bar height', async () => {
       const tabBarHeight = 35;
-      mockWindows.resizeVSCodeWindows.mockResolvedValue(undefined);
+      mockWindows.resizeEditorWindows.mockResolvedValue(undefined);
 
       const resizeHandler = ipcHandlers.get(
-        IPC_CHANNELS.VSCODE_WINDOWS_RESIZE
+        IPC_CHANNELS.EDITOR_WINDOWS_RESIZE
       )!;
       await resizeHandler(createMockEvent(), tabBarHeight);
 
-      expect(mockWindows.resizeVSCodeWindows).toHaveBeenCalledWith(
+      expect(mockWindows.resizeEditorWindows).toHaveBeenCalledWith(
         tabBarHeight
       );
     });
@@ -199,10 +176,10 @@ describe('IPC Communication Integration', () => {
     it('should handle resize errors', async () => {
       const tabBarHeight = 35;
       const resizeError = new Error('Resize failed');
-      mockWindows.resizeVSCodeWindows.mockRejectedValue(resizeError);
+      mockWindows.resizeEditorWindows.mockRejectedValue(resizeError);
 
       const resizeHandler = ipcHandlers.get(
-        IPC_CHANNELS.VSCODE_WINDOWS_RESIZE
+        IPC_CHANNELS.EDITOR_WINDOWS_RESIZE
       )!;
 
       await expect(
@@ -214,12 +191,12 @@ describe('IPC Communication Integration', () => {
   describe('IPC Handler Registration', () => {
     it('should register all required IPC handlers', () => {
       const expectedChannels = [
-        IPC_CHANNELS.VSCODE_WINDOW_FOCUS,
+        IPC_CHANNELS.EDITOR_WINDOW_FOCUS,
         IPC_CHANNELS.TABS_REORDER,
         IPC_CHANNELS.TABS_GET_ORDER,
         IPC_CHANNELS.APP_SHOULD_SHOW,
         IPC_CHANNELS.SYSTEM_FRONTMOST_APP,
-        IPC_CHANNELS.VSCODE_WINDOWS_RESIZE,
+        IPC_CHANNELS.EDITOR_WINDOWS_RESIZE,
       ];
 
       for (const channel of expectedChannels) {

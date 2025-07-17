@@ -1,10 +1,10 @@
 import { createHash } from 'crypto';
 import {
-  discoverVSCodeWindows,
+  discoverEditorWindows,
   focusWindow,
   hideWindow,
   getFrontmostApp,
-  resizeVSCodeWindows,
+  resizeEditorWindows,
 } from '../../../src/main/windows';
 
 // Mock modules
@@ -27,18 +27,18 @@ describe('Windows Module', () => {
     mockCreateHash.mockReturnValue(mockHashInstance as any);
   });
 
-  describe('discoverVSCodeWindows', () => {
+  describe('discoverEditorWindows', () => {
     it('should throw error when yabai is not available', async () => {
       mockExec.mockImplementation((_cmd: string, callback: Function) => {
         callback(new Error('yabai: command not found'));
       });
 
-      await expect(discoverVSCodeWindows()).rejects.toThrow(
+      await expect(discoverEditorWindows()).rejects.toThrow(
         'yabai is required but not available'
       );
     });
 
-    it('should discover VS Code windows successfully', async () => {
+    it('should discover editor windows successfully', async () => {
       const mockYabaiWindows = [
         {
           id: 1001,
@@ -79,7 +79,7 @@ describe('Windows Module', () => {
         }
       });
 
-      const result = await discoverVSCodeWindows();
+      const result = await discoverEditorWindows();
 
       expect(result).toHaveLength(2);
       expect(result[0]).toMatchObject({
@@ -101,7 +101,7 @@ describe('Windows Module', () => {
         }
       });
 
-      const result = await discoverVSCodeWindows();
+      const result = await discoverEditorWindows();
       expect(result).toEqual([]);
     });
   });
@@ -173,7 +173,7 @@ describe('Windows Module', () => {
     });
   });
 
-  describe('resizeVSCodeWindows', () => {
+  describe('resizeEditorWindows', () => {
     it('should complete without error', async () => {
       mockExec.mockImplementation((cmd: string, callback: Function) => {
         if (cmd.includes('query --windows')) {
@@ -185,7 +185,7 @@ describe('Windows Module', () => {
         }
       });
 
-      await expect(resizeVSCodeWindows(35)).resolves.toBeUndefined();
+      await expect(resizeEditorWindows(35)).resolves.toBeUndefined();
     });
   });
 });

@@ -12,21 +12,17 @@ import * as persistence from '../../../src/main/persistence';
 const mockIpcMain = jest.mocked(ipcMain);
 
 // Create proper mocks for the modules
-const mockDiscoverVSCodeWindows = jest.fn();
 const mockFocusWindow = jest.fn();
-const mockHideWindow = jest.fn();
 const mockGetFrontmostApp = jest.fn();
-const mockResizeVSCodeWindows = jest.fn();
+const mockResizeEditorWindows = jest.fn();
 const mockLoadTabOrder = jest.fn();
 const mockSaveTabOrder = jest.fn();
 
 // Setup the mocks on the modules
 Object.assign(windows, {
-  discoverVSCodeWindows: mockDiscoverVSCodeWindows,
   focusWindow: mockFocusWindow,
-  hideWindow: mockHideWindow,
   getFrontmostApp: mockGetFrontmostApp,
-  resizeVSCodeWindows: mockResizeVSCodeWindows,
+  resizeEditorWindows: mockResizeEditorWindows,
 });
 
 Object.assign(persistence, {
@@ -56,7 +52,7 @@ describe('IPC Module', () => {
   describe('setupIPCHandlers', () => {
     it('should register all IPC handlers', () => {
       expect(mockIpcMain.handle).toHaveBeenCalledWith(
-        IPC_CHANNELS.VSCODE_WINDOW_FOCUS,
+        IPC_CHANNELS.EDITOR_WINDOW_FOCUS,
         expect.any(Function)
       );
       expect(mockIpcMain.handle).toHaveBeenCalledWith(
@@ -70,31 +66,23 @@ describe('IPC Module', () => {
     });
   });
 
-  describe('VSCODE_WINDOW_FOCUS handler', () => {
+  describe('EDITOR_WINDOW_FOCUS handler', () => {
     let focusHandler: Function;
 
     beforeEach(() => {
-      focusHandler = ipcHandlers.get(IPC_CHANNELS.VSCODE_WINDOW_FOCUS)!;
+      focusHandler = ipcHandlers.get(IPC_CHANNELS.EDITOR_WINDOW_FOCUS)!;
     });
 
-    it('should focus window and hide others successfully', async () => {
+    it('should focus window successfully', async () => {
       const targetWindowId = 'window1';
-      const mockWindowList = [
-        { id: 'window1', title: 'Window 1' },
-        { id: 'window2', title: 'Window 2' },
-      ];
 
       mockFocusWindow.mockResolvedValue(undefined);
-      mockDiscoverVSCodeWindows.mockResolvedValue(mockWindowList);
-      mockHideWindow.mockResolvedValue(undefined);
 
       const mockEvent = { sender: { send: jest.fn() } };
 
       await focusHandler(mockEvent, targetWindowId);
 
       expect(mockFocusWindow).toHaveBeenCalledWith(targetWindowId);
-      expect(mockDiscoverVSCodeWindows).toHaveBeenCalled();
-      expect(mockHideWindow).toHaveBeenCalledWith('window2');
     });
 
     it('should handle focus errors', async () => {
@@ -110,7 +98,6 @@ describe('IPC Module', () => {
       );
 
       expect(mockFocusWindow).toHaveBeenCalledWith(targetWindowId);
-      expect(mockDiscoverVSCodeWindows).not.toHaveBeenCalled();
     });
   });
 
@@ -185,7 +172,7 @@ describe('IPC Module', () => {
       shouldShowHandler = ipcHandlers.get(IPC_CHANNELS.APP_SHOULD_SHOW)!;
     });
 
-    it('should return true when VS Code is frontmost', async () => {
+    it('should return true when editor is frontmost', async () => {
       mockGetFrontmostApp.mockResolvedValue('Visual Studio Code');
 
       const mockEvent = { sender: { send: jest.fn() } };
@@ -207,28 +194,28 @@ describe('IPC Module', () => {
     });
   });
 
-  describe('VSCODE_WINDOWS_RESIZE handler', () => {
+  describe('EDITOR_WINDOWS_RESIZE handler', () => {
     let resizeHandler: Function;
 
     beforeEach(() => {
-      resizeHandler = ipcHandlers.get(IPC_CHANNELS.VSCODE_WINDOWS_RESIZE)!;
+      resizeHandler = ipcHandlers.get(IPC_CHANNELS.EDITOR_WINDOWS_RESIZE)!;
     });
 
     it('should resize windows successfully', async () => {
       const tabBarHeight = 30;
-      mockResizeVSCodeWindows.mockResolvedValue(undefined);
+      mockResizeEditorWindows.mockResolvedValue(undefined);
 
       const mockEvent = { sender: { send: jest.fn() } };
 
       await resizeHandler(mockEvent, tabBarHeight);
 
-      expect(mockResizeVSCodeWindows).toHaveBeenCalledWith(tabBarHeight);
+      expect(mockResizeEditorWindows).toHaveBeenCalledWith(tabBarHeight);
     });
 
     it('should handle resize error', async () => {
       const tabBarHeight = 30;
       const resizeError = new Error('Resize failed');
-      mockResizeVSCodeWindows.mockRejectedValue(resizeError);
+      mockResizeEditorWindows.mockRejectedValue(resizeError);
 
       const mockEvent = { sender: { send: jest.fn() } };
 
@@ -236,7 +223,7 @@ describe('IPC Module', () => {
         'Resize failed'
       );
 
-      expect(mockResizeVSCodeWindows).toHaveBeenCalledWith(tabBarHeight);
+      expect(mockResizeEditorWindows).toHaveBeenCalledWith(tabBarHeight);
     });
   });
 });

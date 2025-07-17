@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { VSCodeWindow } from '@shared/types';
+import { EditorWindow } from '@shared/types';
 import { logger } from '../logger';
 
-export function useTabOrder(windows: VSCodeWindow[]) {
+export function useTabOrder(windows: EditorWindow[]) {
   logger.debug('Initializing tab order hook', 'useTabOrder', {
     windowCount: windows.length,
   });
@@ -60,8 +60,8 @@ export function useTabOrder(windows: VSCodeWindow[]) {
     }
 
     // Sort windows based on saved order, maintaining order for closed windows
-    const ordered: VSCodeWindow[] = [];
-    const newWindows: VSCodeWindow[] = [];
+    const ordered: EditorWindow[] = [];
+    const newWindows: EditorWindow[] = [];
 
     // First, add windows in saved order (skip closed windows)
     for (const windowId of tabOrder) {

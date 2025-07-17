@@ -2,42 +2,42 @@
 
 :root {
   /* Dark theme (default) */
-  --color-vscode-dark: #1e1e1e;
-  --color-vscode-light: #cccccc;
-  --color-vscode-tab-active: #2d2d2d;
-  --color-vscode-tab-inactive: #252526;
-  --color-vscode-border: #464647;
-  --color-vscode-text: #cccccc;
-  --color-vscode-text-inactive: #969696;
+  --color-editor-dark: #1e1e1e;
+  --color-editor-light: #cccccc;
+  --color-editor-tab-active: #2d2d2d;
+  --color-editor-tab-inactive: #252526;
+  --color-editor-border: #464647;
+  --color-editor-text: #cccccc;
+  --color-editor-text-inactive: #969696;
 }
 
 /* Light theme */
 [data-theme='light'] {
-  --color-vscode-dark: #f3f3f3;
-  --color-vscode-light: #424242;
-  --color-vscode-tab-active: #ffffff;
-  --color-vscode-tab-inactive: #ececec;
-  --color-vscode-border: #e7e7e7;
-  --color-vscode-text: #333333;
-  --color-vscode-text-inactive: #616161;
+  --color-editor-dark: #f3f3f3;
+  --color-editor-light: #424242;
+  --color-editor-tab-active: #ffffff;
+  --color-editor-tab-inactive: #ececec;
+  --color-editor-border: #e7e7e7;
+  --color-editor-text: #333333;
+  --color-editor-text-inactive: #616161;
 }
 
 /* System theme (follows macOS preference) */
 @media (prefers-color-scheme: light) {
   [data-theme='system'] {
-    --color-vscode-dark: #f3f3f3;
-    --color-vscode-light: #424242;
-    --color-vscode-tab-active: #ffffff;
-    --color-vscode-tab-inactive: #ececec;
-    --color-vscode-border: #e7e7e7;
-    --color-vscode-text: #333333;
-    --color-vscode-text-inactive: #616161;
+    --color-editor-dark: #f3f3f3;
+    --color-editor-light: #424242;
+    --color-editor-tab-active: #ffffff;
+    --color-editor-tab-inactive: #ececec;
+    --color-editor-border: #e7e7e7;
+    --color-editor-text: #333333;
+    --color-editor-text-inactive: #616161;
   }
 }
 
 body {
-  background-color: var(--color-vscode-dark);
-  color: var(--color-vscode-text);
+  background-color: var(--color-editor-dark);
+  color: var(--color-editor-text);
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
     'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;

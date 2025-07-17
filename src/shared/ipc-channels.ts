@@ -1,9 +1,8 @@
 export const IPC_CHANNELS = {
   // Window management
-  VSCODE_WINDOWS_LIST: 'vscode:windows:list',
-  VSCODE_WINDOW_FOCUS: 'vscode:window:focus',
-  VSCODE_WINDOW_HIDE: 'vscode:window:hide',
-  VSCODE_WINDOWS_RESIZE: 'vscode:windows:resize',
+  EDITOR_WINDOWS_LIST: 'editor:windows:list',
+  EDITOR_WINDOW_FOCUS: 'editor:window:focus',
+  EDITOR_WINDOWS_RESIZE: 'editor:windows:resize',
 
   // Tab management
   TABS_REORDER: 'tabs:reorder',
@@ -20,7 +19,6 @@ export const IPC_CHANNELS = {
   SETTINGS_CHANGED: 'settings:changed',
 
   // Tray
-  TRAY_TOGGLE_VISIBILITY: 'tray:toggle-visibility',
   TRAY_UPDATE_MENU: 'tray:update-menu',
 
   // Logging

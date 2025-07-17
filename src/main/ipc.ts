@@ -1,12 +1,6 @@
 import { ipcMain, BrowserWindow } from 'electron';
 import { IPC_CHANNELS } from '@shared/ipc-channels';
-import {
-  focusWindow,
-  hideWindow,
-  getFrontmostApp,
-  resizeVSCodeWindows,
-  discoverVSCodeWindows,
-} from './windows';
+import { focusWindow, getFrontmostApp, resizeEditorWindows } from './windows';
 import { loadTabOrder, saveTabOrder } from './persistence';
 import { loadSettings, saveSettings } from './settings';
 import { logger } from '@shared/logger';
@@ -19,21 +13,11 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
 
   // Window focus
   ipcMain.handle(
-    IPC_CHANNELS.VSCODE_WINDOW_FOCUS,
+    IPC_CHANNELS.EDITOR_WINDOW_FOCUS,
     async (_, windowId: string) => {
       logger.debug('Focus window request', 'ipc', { windowId });
       try {
         await focusWindow(windowId);
-
-        // Hide all other VS Code windows
-        logger.debug('Hiding other VS Code windows', 'ipc');
-        const windows = await discoverVSCodeWindows();
-        for (const window of windows) {
-          if (window.id !== windowId) {
-            logger.debug('Hiding window', 'ipc', { windowId: window.id });
-            await hideWindow(window.id);
-          }
-        }
         logger.info('Window focus completed successfully', 'ipc');
       } catch (error) {
         logger.error('Error handling window focus', 'ipc', error);
@@ -85,13 +69,13 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
     }
   });
 
-  // Resize VS Code windows
+  // Resize editor windows
   ipcMain.handle(
-    IPC_CHANNELS.VSCODE_WINDOWS_RESIZE,
+    IPC_CHANNELS.EDITOR_WINDOWS_RESIZE,
     async (_, tabBarHeight: number) => {
       logger.debug('Resize windows request', 'ipc', { tabBarHeight });
       try {
-        await resizeVSCodeWindows(tabBarHeight);
+        await resizeEditorWindows(tabBarHeight);
         logger.info('Windows resized successfully', 'ipc');
       } catch (error) {
         logger.error('Error resizing windows', 'ipc', error);

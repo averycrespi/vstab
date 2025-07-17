@@ -2,10 +2,10 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import Tab from '../../../../src/renderer/components/Tab';
-import { VSCodeWindow } from '../../../../src/shared/types';
+import { EditorWindow } from '../../../../src/shared/types';
 
 describe('Tab Component', () => {
-  const mockWindow: VSCodeWindow = {
+  const mockWindow: EditorWindow = {
     id: 'test-window-1',
     title: 'main.ts — vstab',
     path: 'vstab',
@@ -45,8 +45,8 @@ describe('Tab Component', () => {
 
       const tabElement = screen.getByText('vstab').closest('.tab');
       expect(tabElement).toHaveStyle({
-        backgroundColor: 'var(--color-vscode-tab-inactive)',
-        color: 'var(--color-vscode-text-inactive)',
+        backgroundColor: 'var(--color-editor-tab-inactive)',
+        color: 'var(--color-editor-text-inactive)',
       });
     });
 
@@ -56,8 +56,8 @@ describe('Tab Component', () => {
 
       const tabElement = screen.getByText('vstab').closest('.tab');
       expect(tabElement).toHaveStyle({
-        backgroundColor: 'var(--color-vscode-tab-active)',
-        color: 'var(--color-vscode-text)',
+        backgroundColor: 'var(--color-editor-tab-active)',
+        color: 'var(--color-editor-text)',
       });
     });
 
@@ -172,8 +172,8 @@ describe('Tab Component', () => {
       fireEvent.mouseEnter(tabElement);
 
       expect(tabElement).toHaveStyle({
-        backgroundColor: 'var(--color-vscode-tab-active)',
-        color: 'var(--color-vscode-text)',
+        backgroundColor: 'var(--color-editor-tab-active)',
+        color: 'var(--color-editor-text)',
       });
     });
 
@@ -189,8 +189,8 @@ describe('Tab Component', () => {
       fireEvent.mouseLeave(tabElement);
 
       expect(tabElement).toHaveStyle({
-        backgroundColor: 'var(--color-vscode-tab-inactive)',
-        color: 'var(--color-vscode-text-inactive)',
+        backgroundColor: 'var(--color-editor-tab-inactive)',
+        color: 'var(--color-editor-text-inactive)',
       });
     });
 
@@ -207,8 +207,8 @@ describe('Tab Component', () => {
       fireEvent.mouseLeave(tabElement);
 
       expect(tabElement).toHaveStyle({
-        backgroundColor: 'var(--color-vscode-tab-active)',
-        color: 'var(--color-vscode-text)',
+        backgroundColor: 'var(--color-editor-tab-active)',
+        color: 'var(--color-editor-text)',
       });
     });
 
@@ -225,8 +225,8 @@ describe('Tab Component', () => {
 
       // Should end up in inactive state
       expect(tabElement).toHaveStyle({
-        backgroundColor: 'var(--color-vscode-tab-inactive)',
-        color: 'var(--color-vscode-text-inactive)',
+        backgroundColor: 'var(--color-editor-tab-inactive)',
+        color: 'var(--color-editor-text-inactive)',
       });
     });
   });
@@ -343,16 +343,16 @@ describe('Tab Component', () => {
 
       // Initially inactive
       expect(tabElement).toHaveStyle({
-        backgroundColor: 'var(--color-vscode-tab-inactive)',
-        color: 'var(--color-vscode-text-inactive)',
+        backgroundColor: 'var(--color-editor-tab-inactive)',
+        color: 'var(--color-editor-text-inactive)',
       });
 
       // Update to active
       rerender(<Tab {...mockProps} isActive={true} />);
 
       expect(tabElement).toHaveStyle({
-        backgroundColor: 'var(--color-vscode-tab-active)',
-        color: 'var(--color-vscode-text)',
+        backgroundColor: 'var(--color-editor-tab-active)',
+        color: 'var(--color-editor-text)',
       });
     });
 
@@ -383,8 +383,8 @@ describe('Tab Component', () => {
       fireEvent.mouseLeave(tabElement);
 
       expect(tabElement).toHaveStyle({
-        backgroundColor: 'var(--color-vscode-tab-active)',
-        color: 'var(--color-vscode-text)',
+        backgroundColor: 'var(--color-editor-tab-active)',
+        color: 'var(--color-editor-text)',
       });
     });
   });

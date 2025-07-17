@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { VSCodeWindow, AppSettings } from '@shared/types';
+import { EditorWindow, AppSettings } from '@shared/types';
 import Tab from './components/Tab';
 import { useWindowVisibility } from './hooks/useWindowVisibility';
 import { useTabOrder } from './hooks/useTabOrder';
@@ -8,7 +8,7 @@ import { logger } from './logger';
 
 function App() {
   logger.info('App component initializing', 'renderer');
-  const [windows, setWindows] = useState<VSCodeWindow[]>([]);
+  const [windows, setWindows] = useState<EditorWindow[]>([]);
   const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const { isVisible } = useWindowVisibility();
@@ -175,8 +175,8 @@ function App() {
       <div
         className="flex items-center border-b"
         style={{
-          backgroundColor: 'var(--color-vscode-dark)',
-          borderColor: 'var(--color-vscode-border)',
+          backgroundColor: 'var(--color-editor-dark)',
+          borderColor: 'var(--color-editor-border)',
           height: `${tabBarHeight}px`,
         }}
       >

@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { useTabOrder } from '../../../../src/renderer/hooks/useTabOrder';
-import { VSCodeWindow } from '../../../../src/shared/types';
+import { EditorWindow } from '../../../../src/shared/types';
 
 // Mock the global window.vstab API
 const mockVstab = {
@@ -14,7 +14,7 @@ Object.defineProperty(window, 'vstab', {
 });
 
 describe('useTabOrder Hook', () => {
-  const mockWindows: VSCodeWindow[] = [
+  const mockWindows: EditorWindow[] = [
     {
       id: 'window1',
       title: 'main.ts — vstab',
@@ -130,7 +130,7 @@ describe('useTabOrder Hook', () => {
       });
 
       // Add a new window
-      const newWindow: VSCodeWindow = {
+      const newWindow: EditorWindow = {
         id: 'window4',
         title: 'new.ts — new-project',
         path: 'new-project',
@@ -163,7 +163,7 @@ describe('useTabOrder Hook', () => {
       jest.clearAllMocks();
 
       // Add a new window
-      const newWindow: VSCodeWindow = {
+      const newWindow: EditorWindow = {
         id: 'window4',
         title: 'new.ts — new-project',
         path: 'new-project',
