@@ -4,16 +4,18 @@
   "description": "A macOS workspace tab switcher for VS Code",
   "main": "dist/main.js",
   "scripts": {
-    "dev": "npm run build && electron .",
     "build": "webpack --config config/webpack.config.js --mode development",
     "build:prod": "webpack --config config/webpack.config.js --mode production",
-    "start": "electron .",
-    "compile": "tsc -p config/tsconfig.main.json && tsc -p config/tsconfig.renderer.json",
     "clean": "rm -rf dist",
-    "pack": "npm run build:prod && electron-builder --dir",
+    "compile": "tsc -p config/tsconfig.main.json && tsc -p config/tsconfig.renderer.json",
+    "dev": "npm run build && electron .",
     "dist": "npm run build:prod && electron-builder",
     "dist:mac": "npm run build:prod && electron-builder --mac",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "pack": "npm run build:prod && electron-builder --dir",
     "quickstart": "npm install --legacy-peer-deps && npm run build:prod && npm start",
+    "start": "electron .",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -22,9 +24,7 @@
     "test:shared": "jest --selectProjects shared",
     "test:integration": "jest --selectProjects integration",
     "test:unit": "jest --selectProjects main renderer shared",
-    "test:ci": "jest --ci --coverage --watchAll=false",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "test:ci": "jest --ci --coverage --watchAll=false"
   },
   "repository": {
     "type": "git",
