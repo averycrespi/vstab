@@ -89,6 +89,15 @@ Settings can be modified from the tray menu and are persisted to `~/.config/vsta
 - **Log Retention**: Number of days to keep log files, 1-30 days (default: 7 days). Must be changed in settings file.
 - **Max Log File Size**: Maximum size before rotation, 1-100MB (default: 10MB). Must be changed in settings file.
 
+**Editor Support:**
+
+vstab supports multiple code editors through configurable detection patterns:
+
+- **VS Code**: All variants (standard, Insiders, OSS, portable) supported by default
+- **Cursor**: AI-powered code editor supported by default
+- **Extensible**: Add support for other editors by modifying the `editorDetectionConfig` in settings
+- **Pattern Matching**: Each editor can have multiple app name patterns for reliable detection
+
 All log files are stored in `~/.config/vstab/logs/` and can be accessed via the tray menu "Open Logs Folder" option.
 
 ## Troubleshooting

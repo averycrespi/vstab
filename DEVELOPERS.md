@@ -56,12 +56,73 @@ Follow the installation instructions in the [README](README.md).
 
 ## Core Implementation Details
 
+### Editor Detection System
+
+vstab supports multiple code editors through a flexible, pattern-based detection system implemented in `src/main/windows.ts`.
+
+#### Architecture
+
+```typescript
+interface EditorPattern {
+  id: string;
+  displayName: string;
+  appNamePatterns: string[];
+}
+
+interface EditorDetectionConfig {
+  editors: EditorPattern[];
+}
+```
+
+#### Detection Logic
+
+The `isEditorWindow()` function matches yabai window data against configured editor patterns:
+
+```typescript
+function isEditorWindow(window: YabaiWindow, settings: AppSettings): boolean {
+  return settings.editorDetectionConfig.editors.some(editor =>
+    editor.appNamePatterns.some(pattern => window.app.includes(pattern))
+  );
+}
+```
+
+#### Default Configuration
+
+```typescript
+const DEFAULT_EDITORS = [
+  {
+    id: 'vscode',
+    displayName: 'Visual Studio Code',
+    appNamePatterns: [
+      'Visual Studio Code',
+      'Visual Studio Code - Insiders',
+      'Code',
+      'Code - OSS',
+      'VSCode',
+      'code',
+    ],
+  },
+  {
+    id: 'cursor',
+    displayName: 'Cursor',
+    appNamePatterns: ['Cursor'],
+  },
+];
+```
+
+#### Adding New Editors
+
+1. **Settings Configuration**: Add new editor patterns to `editorDetectionConfig` in settings
+2. **Pattern Matching**: Each editor can have multiple app name patterns for reliable detection
+3. **Extensible Design**: No code changes required to support new editors
+
 ### Window Discovery
 
-- Uses yabai JSON API to find VS Code windows every 1 second
+- Uses yabai JSON API to find supported editor windows every 1 second
 - Generates stable hash-based window IDs from workspace paths + PID
-- Tracks all VS Code instances with rich metadata (space, display, focus state)
+- Tracks all supported editor instances with rich metadata (space, display, focus state)
 - Maintains window ID mapping for reliable operations
+- **Multi-Editor Support**: Configurable detection patterns for VS Code, Cursor, and other editors
 
 ### Tab Management
 
@@ -71,17 +132,17 @@ Follow the installation instructions in the [README](README.md).
 - Tab order automatically persisted to `userData/tab-order.json`
 - No automatic reordering on tab switches or window focus changes
 - **Tab Click Behavior**: Clicking tabs now triggers window resizing when auto-resize settings are enabled
-- **Window Positioning**: VS Code windows are automatically repositioned and resized on every tab click (respects auto-resize settings)
+- **Window Positioning**: Editor windows are automatically repositioned and resized on every tab click (respects auto-resize settings)
 
 ### Auto-Hide Behavior
 
 - Polls frontmost app every 250ms via yabai window focus detection for improved responsiveness
-- Shows tab bar only when VS Code is active (when `autoHide` setting is enabled)
+- Shows tab bar only when supported editors are active (when `autoHide` setting is enabled)
 - Automatically shows tab bar when `autoHide` setting is disabled
 - Hides when switching to other applications
 - Windows remain visible (no minimizing) for fast tab switching
 - Enhanced error handling with retry logic for failed yabai queries
-- Improved app name matching for various VS Code process names
+- **Pattern-Based Detection**: Uses configurable patterns to detect supported editors
 
 ### Logging System
 
@@ -150,7 +211,8 @@ export interface AppSettings {
   tabBarHeight: number; // 25-60px range
   topMargin: number; // Spacing above tab bar
   bottomMargin: number; // Spacing below tab bar
-  autoHide: boolean; // Auto-hide when VS Code inactive
+  autoHide: boolean; // Auto-hide when editors inactive
+  editorDetectionConfig: EditorDetectionConfig; // Multi-editor support
   autoResizeVertical: boolean; // Enable vertical window resizing
   autoResizeHorizontal: boolean; // Enable horizontal window resizing
   logLevel: LogLevel; // 'error' | 'warn' | 'info' | 'debug'
@@ -207,8 +269,8 @@ export interface AppSettings {
 ### Window Operations
 
 ```bash
-# Window discovery pattern
-yabai -m query --windows | jq '.[] | select(.app | contains("Code"))'
+# Window discovery pattern (supports multiple editors)
+yabai -m query --windows | jq '.[] | select(.app | test("Visual Studio Code|Code|Cursor"; "i"))'
 
 # Window operations
 yabai -m window --focus 12345
@@ -282,7 +344,7 @@ __tests__/
 
 **Core Functionality:**
 
-- Manual testing with multiple VS Code workspaces
+- Manual testing with multiple editor workspaces (VS Code, Cursor, etc.)
 - Test drag-and-drop reordering
 - Verify tab order stability during window switches
 - Verify persistence across app restarts
@@ -316,8 +378,9 @@ __tests__/
 ### Tailwind CSS v4
 
 - Uses CSS custom properties instead of traditional Tailwind classes
-- CSS variables defined in `:root` for VS Code theme colors
+- CSS variables defined in `:root` for editor theme colors (VS Code-inspired)
 - Inline styles for dynamic states (hover, active)
+- **Generic Theming**: CSS variables use `--color-editor-*` prefix for editor-agnostic styling
 
 ### Theme Integration
 
@@ -355,7 +418,7 @@ __tests__/
 3. Implement in main process (`src/main/`)
 4. Update UI in renderer process (`src/renderer/`)
 5. Write tests for new functionality
-6. Test with multiple VS Code windows
+6. Test with multiple editor windows (VS Code, Cursor, etc.)
 
 ## Common Issues & Solutions
 
@@ -367,7 +430,7 @@ __tests__/
 
 ### Runtime Issues
 
-- **No tab bar**: Check VS Code is running and yabai service is active
+- **No tab bar**: Check supported editors are running and yabai service is active
 - **yabai errors**: Verify yabai installation and Accessibility permissions
 - **Window operations fail**: Check yabai can query and control windows
 - **IPC errors**: Check channel names match between main/renderer
@@ -379,7 +442,7 @@ __tests__/
 - **macOS only**: yabai is macOS-specific
 - **yabai required**: Must be installed and running
 - **Accessibility permissions**: Required for window control
-- **VS Code**: Must be installed and running
+- **Supported Editors**: VS Code, Cursor, or other configured editors must be installed and running
 
 ## Code Style Guidelines
 
@@ -409,7 +472,7 @@ __tests__/
 1. **Always build before testing**: Run `npm run build` after changes
 2. **Check TypeScript compilation**: Use `npm run compile` to verify types
 3. **Run tests for changes**: Use `npm test` to ensure functionality works
-4. **Test with real VS Code windows**: Open multiple workspaces for testing
+4. **Test with real editor windows**: Open multiple workspaces in supported editors for testing
 5. **Respect the architecture**: Keep main/renderer separation clear
 6. **Update types first**: When adding features, update shared types
 7. **Follow existing patterns**: Use established IPC channels and hooks
@@ -430,7 +493,7 @@ __tests__/
 3. Make your changes with tests
 4. Ensure all tests pass: `npm test`
 5. Check TypeScript compilation: `npm run compile`
-6. Test manually with multiple VS Code windows
+6. Test manually with multiple editor windows (VS Code, Cursor, etc.)
 7. Commit with conventional commits: `git commit -m "feat: add new feature"`
 8. Push and create a Pull Request
 

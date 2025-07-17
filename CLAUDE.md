@@ -4,7 +4,7 @@ This file provides context for AI assistants working on the vstab project.
 
 ## Project Overview
 
-**vstab** is a macOS workspace tab switcher for VS Code built with Electron, TypeScript, React, and yabai. It creates a persistent tab bar at the top of the screen that shows all VS Code workspaces and allows quick switching between them with stable window identification and full-screen management.
+**vstab** is a macOS workspace tab switcher for code editors (VS Code, Cursor, and more) built with Electron, TypeScript, React, and yabai. It creates a persistent tab bar at the top of the screen that shows all supported editor workspaces and allows quick switching between them with stable window identification and full-screen management.
 
 ## Key Technologies
 
@@ -53,12 +53,56 @@ vstab/
 
 ## Core Concepts
 
+### Editor Detection System
+
+vstab supports multiple code editors through a flexible, pattern-based detection system:
+
+#### Supported Editors (Default)
+
+- **Visual Studio Code**: All variants including standard, Insiders, OSS, and portable versions
+- **Cursor**: AI-powered code editor based on VS Code
+- **Extensible**: Add support for other editors via configuration
+
+#### Detection Configuration
+
+```typescript
+editorDetectionConfig: {
+  editors: [
+    {
+      id: 'vscode',
+      displayName: 'Visual Studio Code',
+      appNamePatterns: [
+        'Visual Studio Code',
+        'Visual Studio Code - Insiders',
+        'Code',
+        'Code - OSS',
+        'VSCode',
+        'code',
+      ],
+    },
+    {
+      id: 'cursor',
+      displayName: 'Cursor',
+      appNamePatterns: ['Cursor'],
+    },
+  ];
+}
+```
+
+#### Pattern Matching
+
+- **App Name Detection**: Matches against yabai's reported application names
+- **Multiple Patterns**: Each editor can have multiple app name variants
+- **Case Sensitive**: Exact string matching for reliable detection
+- **Configurable**: Users can modify patterns or add new editors in settings
+
 ### Window Discovery
 
-- Uses yabai JSON API to find VS Code windows every 1 second
+- Uses yabai JSON API to find supported editor windows every 1 second
 - Generates stable hash-based window IDs from workspace paths + PID
-- Tracks all VS Code instances with rich metadata (space, display, focus state)
+- Tracks all supported editor instances with rich metadata (space, display, focus state)
 - Maintains window ID mapping for reliable operations
+- **Multi-Editor Support**: Configurable detection patterns for VS Code, Cursor, and other editors
 
 ### Tab Management
 
@@ -69,7 +113,7 @@ vstab/
 - No automatic reordering on tab switches or window focus changes
 - Settings are accessible through the tray menu interface
 - **Tab Click Behavior**: Clicking tabs now triggers window resizing when auto-resize settings are enabled
-- **Window Positioning**: VS Code windows are automatically repositioned and resized on every tab click (respects auto-resize settings)
+- **Window Positioning**: Editor windows are automatically repositioned and resized on every tab click (respects auto-resize settings)
 
 ### User Settings
 
@@ -83,12 +127,19 @@ Settings are stored in `~/.config/vstab/settings.json` with automatic creation a
 - **tabBarHeight**: number (25-60px) - default: `45`
 - **topMargin**: number - default: `10`
 - **bottomMargin**: number - default: `0`
-- **autoHide**: boolean - Show tab bar only when VS Code is active - default: `true`
+- **autoHide**: boolean - Show tab bar only when supported editors are active - default: `true`
 
 **Window Management:**
 
 - **autoResizeVertical**: boolean - Toggle vertical window resizing - default: `true`
 - **autoResizeHorizontal**: boolean - Toggle horizontal window resizing - default: `true`
+
+**Editor Detection:**
+
+- **editorDetectionConfig**: Configuration for supported editors with pattern matching
+  - **editors**: Array of editor patterns with `id`, `displayName`, and `appNamePatterns`
+  - **Default Support**: VS Code (all variants) and Cursor enabled by default
+  - **Extensible**: Add support for additional editors via configuration
 
 **Logging Configuration:**
 
@@ -107,12 +158,12 @@ Settings are stored in `~/.config/vstab/settings.json` with automatic creation a
 ### Auto-Hide Behavior
 
 - Polls frontmost app every 250ms via yabai window focus detection for improved responsiveness
-- Shows tab bar only when VS Code is active (when `autoHide` setting is enabled)
+- Shows tab bar only when supported editors are active (when `autoHide` setting is enabled)
 - Automatically shows tab bar when `autoHide` setting is disabled
 - Hides when switching to other applications
 - Windows remain visible (no minimizing) for fast tab switching
 - Enhanced error handling with retry logic for failed yabai queries
-- Improved app name matching for various VS Code process names
+- **Pattern-Based Detection**: Uses configurable patterns to detect supported editors
 
 ### Tray Menu System
 
@@ -264,8 +315,8 @@ logger.warn('Invalid settings detected', 'settings', {
 ### yabai Integration
 
 ```bash
-# Window discovery pattern
-yabai -m query --windows | jq '.[] | select(.app | contains("Code"))'
+# Window discovery pattern (supports multiple editors)
+yabai -m query --windows | jq '.[] | select(.app | test("Visual Studio Code|Code|Cursor"; "i"))'
 
 # Window operations
 yabai -m window --focus 12345
@@ -334,7 +385,7 @@ yabai -m window 12345 --resize abs:1920:1025
 ### Styling Approach
 
 - Uses Tailwind CSS v4 with CSS custom properties
-- CSS variables defined in `:root` for VS Code theme colors
+- CSS variables defined in `:root` for editor theme colors (VS Code-inspired)
 - **Theme System**: Light and dark themes with system preference detection
 - Dynamic theme switching via `data-theme` attribute on document root
 - Inline styles for dynamic states (hover, active)
@@ -388,7 +439,7 @@ yabai -m window 12345 --resize abs:1920:1025
 3. Implement in main process (`src/main/`)
 4. Update UI in renderer process (`src/renderer/`)
 5. Write tests for new functionality
-6. Test with multiple VS Code windows
+6. Test with multiple editor windows (VS Code, Cursor, etc.)
 
 ### Testing
 
@@ -447,7 +498,7 @@ __tests__/
 
 #### Manual Testing Checklist
 
-- Manual testing with multiple VS Code workspaces
+- Manual testing with multiple editor workspaces (VS Code, Cursor, etc.)
 - Check auto-hide behavior by switching apps
 - Test drag-and-drop reordering
 - Verify tab order stability during window switches
@@ -482,7 +533,7 @@ npm run test:watch
 
 ### Runtime Issues
 
-- **No tab bar**: Check VS Code is running and yabai service is active
+- **No tab bar**: Check supported editors are running and yabai service is active
 - **Tab bar not reappearing**: Check `autoHide` setting - when disabled, tab bar should always be visible
 - **yabai errors**: Verify yabai installation and Accessibility permissions
 - **Window operations fail**: Check yabai can query and control windows
@@ -503,7 +554,7 @@ npm run test:watch
 - **macOS only**: yabai is macOS-specific
 - **yabai required**: Must be installed and running
 - **Accessibility permissions**: Required for window control
-- **VS Code**: Must be installed and running
+- **Supported Editors**: VS Code, Cursor, or other configured editors must be installed and running
 
 ## Future Enhancements
 
@@ -547,7 +598,7 @@ npm run test:watch
 2. **Check TypeScript compilation**: Use `npm run compile` to verify types
 3. **Verify code formatting**: Use `npm run format:check` to ensure consistent style
 4. **Run tests for changes**: Use `npm test` to ensure functionality works
-5. **Test with real VS Code windows**: Open multiple workspaces for testing
+5. **Test with real editor windows**: Open multiple workspaces in supported editors for testing
 6. **Respect the architecture**: Keep main/renderer separation clear
 7. **Update types first**: When adding features, update shared types
 8. **Follow existing patterns**: Use established IPC channels and hooks
