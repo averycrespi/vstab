@@ -1,5 +1,7 @@
 # vstab
 
+> ⚠️ WARNING: This project is under active development, and breaking changes may be released at any time.
+
 A macOS workspace tab switcher for VS Code (and more!).
 
 ## Why?
