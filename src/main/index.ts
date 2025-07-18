@@ -675,10 +675,6 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => {
   logger.info('All windows closed', 'main');
-  if (pollInterval) {
-    logger.info('Clearing polling interval', 'main');
-    clearInterval(pollInterval);
-  }
   if (process.platform !== 'darwin') {
     logger.info('Quitting app (non-macOS)', 'main');
     app.quit();
@@ -694,7 +690,12 @@ app.on('activate', () => {
 });
 
 app.on('before-quit', () => {
-  logger.info('App about to quit, cleaning up tray', 'main');
+  logger.info('App about to quit, cleaning up tray and polling', 'main');
+  if (pollInterval) {
+    logger.info('Clearing polling interval', 'main');
+    clearInterval(pollInterval);
+    pollInterval = null;
+  }
   if (tray) {
     tray.destroy();
     tray = null;
