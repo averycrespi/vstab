@@ -1,5 +1,5 @@
 {
-    "permissions": {
+  "permissions": {
     "allow": [
       "Bash(npm run build:*)",
       "Bash(npm run build:prod:*)",
@@ -21,7 +21,10 @@
       "Bash(npm run test:shared:*)",
       "Bash(npm run test:integration:*)",
       "Bash(npm run test:unit:*)",
-      "Bash(npm run test:ci:*)"
+      "Bash(npm run test:ci:*)",
+      "Bash(npm build:*)",
+      "Bash(npm start:*)",
+      "Bash(npm test:*)"
     ],
     "deny": []
   },
