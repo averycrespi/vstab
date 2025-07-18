@@ -160,8 +160,8 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
       logger.debug('Set window visibility request', 'ipc', { visible });
       try {
         if (visible) {
-          mainWindow.show();
-          logger.info('Main window shown', 'ipc');
+          mainWindow.showInactive();
+          logger.info('Main window shown inactive', 'ipc');
         } else {
           mainWindow.hide();
           logger.info('Main window hidden', 'ipc');
