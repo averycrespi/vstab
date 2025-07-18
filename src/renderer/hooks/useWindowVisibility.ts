@@ -73,7 +73,10 @@ export function useWindowVisibility() {
           ) || false;
 
         // To avoid looping, show the tab bar when vstab is the frontmost app
-        const shouldShow = matchesEditor || frontmostApp === 'vstab';
+        const shouldShow =
+          matchesEditor ||
+          frontmostApp === 'vstab' ||
+          frontmostApp === 'Electron';
 
         logger.debug('Visibility check', 'useWindowVisibility', {
           frontmostApp,
