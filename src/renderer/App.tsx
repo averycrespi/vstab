@@ -80,7 +80,8 @@ function App() {
   useEffect(() => {
     if (
       settings &&
-      (settings.autoResizeVertical || settings.autoResizeHorizontal)
+      (settings.autoResizeEditorsVertically ||
+        settings.autoResizeEditorsHorizontally)
     ) {
       logger.debug('Requesting window resize', 'renderer', {
         height: settings.tabBarHeight,
@@ -103,7 +104,8 @@ function App() {
         // Resize windows after focusing if auto-resize is enabled
         if (
           settings &&
-          (settings.autoResizeVertical || settings.autoResizeHorizontal)
+          (settings.autoResizeEditorsVertically ||
+            settings.autoResizeEditorsHorizontally)
         ) {
           logger.debug('Triggering window resize after tab click');
           await window.vstab.resizeWindows(settings.tabBarHeight);

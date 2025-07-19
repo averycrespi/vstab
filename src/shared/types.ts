@@ -42,11 +42,11 @@ export interface EditorDetectionConfig {
 export interface AppSettings {
   theme: Theme;
   tabBarHeight: number;
-  topMargin: number;
-  bottomMargin: number;
+  editorTopMargin: number;
+  editorBottomMargin: number;
   autoHide: boolean;
-  autoResizeVertical: boolean;
-  autoResizeHorizontal: boolean;
+  autoResizeEditorsVertically: boolean;
+  autoResizeEditorsHorizontally: boolean;
   logLevel: LogLevel;
   logRetentionDays: number;
   maxLogFileSizeMB: number;

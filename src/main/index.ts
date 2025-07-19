@@ -80,11 +80,11 @@ async function toggleAutoHide() {
 }
 
 async function toggleAutoResizeVertical() {
-  logger.debug('Toggling auto resize vertical setting', 'main');
+  logger.debug('Toggling auto resize editors vertically setting', 'main');
   const settings = await loadSettings();
   const newSettings = {
     ...settings,
-    autoResizeVertical: !settings.autoResizeVertical,
+    autoResizeEditorsVertically: !settings.autoResizeEditorsVertically,
   };
   await saveSettings(newSettings);
 
@@ -95,17 +95,17 @@ async function toggleAutoResizeVertical() {
   }
 
   await updateTrayMenu();
-  logger.info('Auto resize vertical toggled', 'main', {
-    autoResizeVertical: newSettings.autoResizeVertical,
+  logger.info('Auto resize editors vertically toggled', 'main', {
+    autoResizeEditorsVertically: newSettings.autoResizeEditorsVertically,
   });
 }
 
 async function toggleAutoResizeHorizontal() {
-  logger.debug('Toggling auto resize horizontal setting', 'main');
+  logger.debug('Toggling auto resize editors horizontally setting', 'main');
   const settings = await loadSettings();
   const newSettings = {
     ...settings,
-    autoResizeHorizontal: !settings.autoResizeHorizontal,
+    autoResizeEditorsHorizontally: !settings.autoResizeEditorsHorizontally,
   };
   await saveSettings(newSettings);
 
@@ -116,8 +116,8 @@ async function toggleAutoResizeHorizontal() {
   }
 
   await updateTrayMenu();
-  logger.info('Auto resize horizontal toggled', 'main', {
-    autoResizeHorizontal: newSettings.autoResizeHorizontal,
+  logger.info('Auto resize editors horizontally toggled', 'main', {
+    autoResizeEditorsHorizontally: newSettings.autoResizeEditorsHorizontally,
   });
 }
 
@@ -209,7 +209,7 @@ async function setTabBarHeight(height: number) {
 async function setTopMargin(margin: number) {
   logger.debug('Setting top margin', 'main', { margin });
   const settings = await loadSettings();
-  const newSettings = { ...settings, topMargin: margin };
+  const newSettings = { ...settings, editorTopMargin: margin };
 
   await saveSettings(newSettings);
 
@@ -229,16 +229,16 @@ async function setTopMargin(margin: number) {
   }
 
   await updateTrayMenu();
-  logger.info('Top margin changed', 'main', {
-    from: settings.topMargin,
-    to: newSettings.topMargin,
+  logger.info('Editor top margin changed', 'main', {
+    from: settings.editorTopMargin,
+    to: newSettings.editorTopMargin,
   });
 }
 
 async function setBottomMargin(margin: number) {
   logger.debug('Setting bottom margin', 'main', { margin });
   const settings = await loadSettings();
-  const newSettings = { ...settings, bottomMargin: margin };
+  const newSettings = { ...settings, editorBottomMargin: margin };
 
   await saveSettings(newSettings);
 
@@ -258,9 +258,9 @@ async function setBottomMargin(margin: number) {
   }
 
   await updateTrayMenu();
-  logger.info('Bottom margin changed', 'main', {
-    from: settings.bottomMargin,
-    to: newSettings.bottomMargin,
+  logger.info('Editor bottom margin changed', 'main', {
+    from: settings.editorBottomMargin,
+    to: newSettings.editorBottomMargin,
   });
 }
 
@@ -317,29 +317,6 @@ async function updateTrayMenu() {
       },
     },
     { type: 'separator' },
-    {
-      label: 'Quick Settings',
-      submenu: [
-        {
-          label: 'Auto Hide Tab Bar',
-          type: 'checkbox',
-          checked: settings.autoHide,
-          click: toggleAutoHide,
-        },
-        {
-          label: 'Auto Resize Windows Vertically',
-          type: 'checkbox',
-          checked: settings.autoResizeVertical,
-          click: toggleAutoResizeVertical,
-        },
-        {
-          label: 'Auto Resize Windows Horizontally',
-          type: 'checkbox',
-          checked: settings.autoResizeHorizontal,
-          click: toggleAutoResizeHorizontal,
-        },
-      ],
-    },
     {
       label: 'Appearance',
       submenu: [
@@ -420,86 +397,109 @@ async function updateTrayMenu() {
           ],
         },
         {
-          label: `Window Top Margin: ${settings.topMargin}px`,
+          label: `Editor Top Margin: ${settings.editorTopMargin}px`,
           submenu: [
             {
               label: '0px',
               type: 'radio',
-              checked: settings.topMargin === 0,
+              checked: settings.editorTopMargin === 0,
               click: () => setTopMargin(0),
             },
             {
               label: '5px',
               type: 'radio',
-              checked: settings.topMargin === 5,
+              checked: settings.editorTopMargin === 5,
               click: () => setTopMargin(5),
             },
             {
               label: '10px',
               type: 'radio',
-              checked: settings.topMargin === 10,
+              checked: settings.editorTopMargin === 10,
               click: () => setTopMargin(10),
             },
             {
               label: '15px',
               type: 'radio',
-              checked: settings.topMargin === 15,
+              checked: settings.editorTopMargin === 15,
               click: () => setTopMargin(15),
             },
             {
               label: '20px',
               type: 'radio',
-              checked: settings.topMargin === 20,
+              checked: settings.editorTopMargin === 20,
               click: () => setTopMargin(20),
             },
             {
               label: '25px',
               type: 'radio',
-              checked: settings.topMargin === 25,
+              checked: settings.editorTopMargin === 25,
               click: () => setTopMargin(25),
             },
           ],
         },
         {
-          label: `Window Bottom Margin: ${settings.bottomMargin}px`,
+          label: `Editor Bottom Margin: ${settings.editorBottomMargin}px`,
           submenu: [
             {
               label: '0px',
               type: 'radio',
-              checked: settings.bottomMargin === 0,
+              checked: settings.editorBottomMargin === 0,
               click: () => setBottomMargin(0),
             },
             {
               label: '10px',
               type: 'radio',
-              checked: settings.bottomMargin === 10,
+              checked: settings.editorBottomMargin === 10,
               click: () => setBottomMargin(10),
             },
             {
               label: '20px',
               type: 'radio',
-              checked: settings.bottomMargin === 20,
+              checked: settings.editorBottomMargin === 20,
               click: () => setBottomMargin(20),
             },
             {
               label: '30px',
               type: 'radio',
-              checked: settings.bottomMargin === 30,
+              checked: settings.editorBottomMargin === 30,
               click: () => setBottomMargin(30),
             },
             {
               label: '40px',
               type: 'radio',
-              checked: settings.bottomMargin === 40,
+              checked: settings.editorBottomMargin === 40,
               click: () => setBottomMargin(40),
             },
             {
               label: '50px',
               type: 'radio',
-              checked: settings.bottomMargin === 50,
+              checked: settings.editorBottomMargin === 50,
               click: () => setBottomMargin(50),
             },
           ],
+        },
+      ],
+    },
+    {
+      label: 'Behaviour',
+      submenu: [
+        {
+          label: 'Auto Hide Tab Bar',
+          type: 'checkbox',
+          checked: settings.autoHide,
+          click: toggleAutoHide,
+        },
+        {
+          label: 'Auto Resize Editors Vertically',
+          type: 'checkbox',
+          checked: settings.autoResizeEditorsVertically,
+          click: toggleAutoResizeVertical,
+        },
+        {
+          label: 'Auto Resize Editors Horizontally',
+          type: 'checkbox',
+          checked: settings.autoResizeEditorsHorizontally,
+          click: toggleAutoResizeHorizontal,
         },
       ],
     },

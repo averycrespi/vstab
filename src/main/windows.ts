@@ -196,7 +196,10 @@ export async function resizeEditorWindows(tabBarHeight: number): Promise<void> {
     const settings = await loadSettings();
 
     // If neither vertical nor horizontal resize is enabled, skip resizing
-    if (!settings.autoResizeVertical && !settings.autoResizeHorizontal) {
+    if (
+      !settings.autoResizeEditorsVertically &&
+      !settings.autoResizeEditorsHorizontally
+    ) {
       logger.info('Window resizing disabled in settings', 'windows');
       return;
     }
@@ -228,19 +231,19 @@ export async function resizeEditorWindows(tabBarHeight: number): Promise<void> {
 
       // Calculate new position and size
       // Editor windows should start below the tab bar with configurable top margin
-      const totalOffset = tabBarHeight + settings.topMargin;
+      const totalOffset = tabBarHeight + settings.editorTopMargin;
 
       // Calculate dimensions based on settings
-      const newY = settings.autoResizeVertical
+      const newY = settings.autoResizeEditorsVertically
         ? display.frame.y + totalOffset
         : window.frame.y;
-      const newHeight = settings.autoResizeVertical
-        ? display.frame.h - totalOffset - settings.bottomMargin
+      const newHeight = settings.autoResizeEditorsVertically
+        ? display.frame.h - totalOffset - settings.editorBottomMargin
         : window.frame.h;
-      const newX = settings.autoResizeHorizontal
+      const newX = settings.autoResizeEditorsHorizontally
         ? display.frame.x
         : window.frame.x;
-      const newWidth = settings.autoResizeHorizontal
+      const newWidth = settings.autoResizeEditorsHorizontally
         ? display.frame.w
         : window.frame.w;
 
@@ -251,7 +254,10 @@ export async function resizeEditorWindows(tabBarHeight: number): Promise<void> {
         });
 
         // Only move/resize if the respective setting is enabled
-        if (settings.autoResizeHorizontal || settings.autoResizeVertical) {
+        if (
+          settings.autoResizeEditorsHorizontally ||
+          settings.autoResizeEditorsVertically
+        ) {
           // First, move the window to the correct position
           await execAsync(
             `yabai -m window ${window.id} --move abs:${newX}:${newY}`
@@ -281,7 +287,10 @@ export async function resizeEditorWindows(tabBarHeight: number): Promise<void> {
           logger.debug('Trying grid fallback for window', 'windows', {
             windowId: window.id,
           });
-          if (settings.autoResizeVertical && settings.autoResizeHorizontal) {
+          if (
+            settings.autoResizeEditorsVertically &&
+            settings.autoResizeEditorsHorizontally
+          ) {
             await execAsync(`yabai -m window ${window.id} --grid 1:1:0:0:1:1`);
           }
           await execAsync(

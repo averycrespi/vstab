@@ -69,15 +69,15 @@ All settings have reasonable defaults, and will apply immediately without requir
 ### Behaviour
 
 - **Auto-Hide**: Toggle whether the tab bar hides when an editor is not active
-- **Auto Resize Vertically**: Toggles automatic vertical window resizing on focus
-- **Auto Resize Horizontally**: Toggles automatic horizontal window resizing on focus
+- **Auto Resize Editors Vertically**: Toggles automatic vertical editor window resizing
+- **Auto Resize Editors Horizontally**: Toggles automatic horizontal editor window resizing
 
 ### Appearance
 
 - **Theme**: Choose between light, dark, or system theme
 - **Tab Bar Height**: Customize the height of the tab bar
-- **Window Top Margin**: When resizing, customzie much margin to leave above editor windows
-- **Window Bottom Margin**: When resizing, customize how much margin to leave below editor windows
+- **Editor Top Margin**: When resizing, customize much margin to leave above editor windows
+- **Editor Bottom Margin**: When resizing, customize how much margin to leave below editor windows
 
 ### Logging
 

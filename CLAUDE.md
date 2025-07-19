@@ -168,15 +168,15 @@ Settings are stored in `~/.config/vstab/settings.json` with automatic creation a
 - **tabBarHeight**: number (25-60px) - default: `45`
 - **autoHide**: boolean - Show tab bar only when supported editors are active - default: `true`
 
-**Window Positioning:**
+**Editor Positioning:**
 
-- **topMargin**: number (0-30px) - Space above repositioned windows - default: `10`
-- **bottomMargin**: number (0-30px) - Space below repositioned windows - default: `0`
+- **editorTopMargin**: number (0-30px) - Space above repositioned editors - default: `10`
+- **editorBottomMargin**: number (0-30px) - Space below repositioned editors - default: `0`
 
-**Window Management:**
+**Editor Management:**
 
-- **autoResizeVertical**: boolean - Toggle vertical window resizing - default: `true`
-- **autoResizeHorizontal**: boolean - Toggle horizontal window resizing - default: `true`
+- **autoResizeEditorsVertically**: boolean - Toggle vertical editor resizing - default: `true`
+- **autoResizeEditorsHorizontally**: boolean - Toggle horizontal editor resizing - default: `true`
 
 **Editor Detection:**
 
@@ -214,7 +214,7 @@ Settings are stored in `~/.config/vstab/settings.json` with automatic creation a
 - **Tray Icon**: Always-visible macOS menu bar tray icon with native context menu
 - **Click Behavior**: Configurable left-click action - toggle window visibility or show context menu
 - **Status Display**: Shows real-time yabai status and current settings values
-- **Menu Structure**: Organized into logical groups - Quick Settings for common toggles, Appearance for visual options, and top-level Log Level access
+- **Menu Structure**: Organized into logical groups - Appearance for visual options, Behaviour for common toggles, and top-level Log Level access
 - **Settings Integration**: Direct access to all settings with improved organization and hierarchy
 - **Asset Management**: Uses template icons for proper macOS dark/light mode integration
 
@@ -223,11 +223,6 @@ Settings are stored in `~/.config/vstab/settings.json` with automatic creation a
 ```
 vstab v1.0.0                           # Clickable header (opens GitHub)
 yabai: ✅ Running                      # Status indicator (clickable but no action)
-─────────────────────────────────────
-Quick Settings ▶                      # Quick access to common toggles
-├── ☑ Auto Hide Tab Bar               # Checkbox toggle
-├── ☑ Auto Resize Windows Vertically  # Checkbox toggle
-└── ☑ Auto Resize Windows Horizontally # Checkbox toggle
 ─────────────────────────────────────
 Appearance ▶                          # Visual and layout settings
 ├── Theme: System ▶                   # Theme submenu
@@ -243,7 +238,7 @@ Appearance ▶                          # Visual and layout settings
 │   ├── ○ 50px
 │   ├── ○ 55px
 │   └── ○ 60px
-├── Window Top Margin: 10px ▶         # Margin submenu
+├── Editor Top Margin: 10px ▶         # Margin submenu
 │   ├── ○ 0px                         # Radio button options
 │   ├── ○ 5px
 │   ├── ● 10px                        # Current selection
@@ -251,8 +246,13 @@ Appearance ▶                          # Visual and layout settings
 │   ├── ○ 20px
 │   ├── ○ 25px
 │   └── ○ 30px
-└── Window Bottom Margin: 0px ▶       # Bottom margin submenu
+└── Editor Bottom Margin: 0px ▶       # Bottom margin submenu
     └── (Similar radio button structure)
+─────────────────────────────────────
+Behaviour ▶                           # Editor behavior settings
+├── ☑ Auto Hide Tab Bar               # Checkbox toggle
+├── ☑ Auto Resize Editors Vertically  # Checkbox toggle
+└── ☑ Auto Resize Editors Horizontally # Checkbox toggle
 ─────────────────────────────────────
 Log Level: Info ▶                     # Top-level log level submenu
 ├── ● Debug                           # Radio button (first position)
@@ -462,7 +462,7 @@ yabai -m window 12345 --resize abs:1920:1025
 - **Theme Selection**: Theme submenu provides radio button selection between Light, Dark, and System themes
 - **Height Adjustment**: Tab bar height submenu offers radio button selection from 25px to 60px with instant window resizing
 - **Toggle Settings**: Boolean settings (auto-hide, auto-resize) use interactive checkboxes for instant toggling
-- **Window Margin Controls**: Interactive radio button submenus for precise top margin adjustment (0-30px)
+- **Editor Margin Controls**: Interactive radio button submenus for precise top margin adjustment (0-30px)
 - **Log Level Controls**: Comprehensive log level submenu with radio button selection for runtime log adjustment
 
 ### Code Formatting
@@ -640,7 +640,7 @@ npm run test:ci
 - **Settings not persisting**: Check `~/.config/vstab/` directory permissions
 - **Settings not applying immediately**: Settings now apply in real-time without restart - check browser console for IPC errors
 - **Theme not applying**: Verify settings are loaded and theme hook is working
-- **Window resizing issues**: Check `autoResizeVertical` and `autoResizeHorizontal` settings - resizing now happens on every tab click
+- **Editor resizing issues**: Check `autoResizeEditorsVertically` and `autoResizeEditorsHorizontally` settings - resizing now happens on every tab click
 - **Tray icon not appearing**: Check icon assets exist in `assets/` directory
 - **Tray menu not updating**: Verify settings changes trigger `TRAY_UPDATE_MENU` IPC calls
 - **Logging issues**: Check `~/.config/vstab/logs/` directory exists and is writable

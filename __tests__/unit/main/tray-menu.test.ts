@@ -14,46 +14,47 @@ describe('Tray Menu Structure', () => {
   it('should have new tray menu structure with correct organization', () => {
     // Test verifies that the tray menu template contains the expected structure
     const expectedMenuItems = [
-      'Quick Settings',
       'Appearance',
+      'Behaviour',
       'Log Level: Info',
       'Open Settings File',
     ];
 
     // This test verifies the refactored menu structure exists
     // The actual menu building happens in updateTrayMenu function
-    expect(expectedMenuItems).toContain('Quick Settings');
+    expect(expectedMenuItems).toContain('Behaviour');
     expect(expectedMenuItems).toContain('Appearance');
+    expect(expectedMenuItems).not.toContain('Quick Settings'); // Renamed to Behaviour
     expect(expectedMenuItems).not.toContain('Settings'); // Old structure removed
     expect(expectedMenuItems).not.toContain('Open Config Folder'); // Changed to Open Settings File
   });
 
-  it('should have Quick Settings with three toggle options', () => {
-    const quickSettingsItems = [
+  it('should have Behaviour with three toggle options', () => {
+    const behaviourItems = [
       'Auto Hide Tab Bar',
-      'Auto Resize Windows Vertically',
-      'Auto Resize Windows Horizontally',
+      'Auto Resize Editors Vertically',
+      'Auto Resize Editors Horizontally',
     ];
 
-    expect(quickSettingsItems).toHaveLength(3);
-    expect(quickSettingsItems).toContain('Auto Hide Tab Bar');
-    expect(quickSettingsItems).toContain('Auto Resize Windows Vertically');
-    expect(quickSettingsItems).toContain('Auto Resize Windows Horizontally');
+    expect(behaviourItems).toHaveLength(3);
+    expect(behaviourItems).toContain('Auto Hide Tab Bar');
+    expect(behaviourItems).toContain('Auto Resize Editors Vertically');
+    expect(behaviourItems).toContain('Auto Resize Editors Horizontally');
   });
 
   it('should have Appearance submenu with visual settings', () => {
     const appearanceItems = [
       'Theme: System',
       'Tab Bar Height: 45px',
-      'Window Top Margin: 10px',
-      'Window Bottom Margin: 0px',
+      'Editor Top Margin: 10px',
+      'Editor Bottom Margin: 0px',
     ];
 
     expect(appearanceItems).toHaveLength(4);
     expect(appearanceItems).toContain('Theme: System');
     expect(appearanceItems).toContain('Tab Bar Height: 45px');
-    expect(appearanceItems).toContain('Window Top Margin: 10px');
-    expect(appearanceItems).toContain('Window Bottom Margin: 0px');
+    expect(appearanceItems).toContain('Editor Top Margin: 10px');
+    expect(appearanceItems).toContain('Editor Bottom Margin: 0px');
   });
 
   it('should have Log Level with Debug first and Error last', () => {

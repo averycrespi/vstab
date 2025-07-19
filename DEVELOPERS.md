@@ -171,8 +171,8 @@ export interface AppSettings {
   bottomMargin: number; // Spacing below tab bar
   autoHide: boolean; // Auto-hide when editors inactive
   editorDetectionConfig: EditorDetectionConfig; // Multi-editor support
-  autoResizeVertical: boolean; // Enable vertical window resizing
-  autoResizeHorizontal: boolean; // Enable horizontal window resizing
+  autoResizeEditorsVertically: boolean; // Enable vertical editor resizing
+  autoResizeEditorsHorizontally: boolean; // Enable horizontal editor resizing
   logLevel: LogLevel; // 'error' | 'warn' | 'info' | 'debug'
   logRetentionDays: number; // 1-30 days
   maxLogFileSizeMB: number; // 1-100MB
