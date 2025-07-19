@@ -7,6 +7,11 @@ export function useWindowVisibility() {
   const [isVisible, setIsVisible] = useState(true);
   const [settings, setSettings] = useState<AppSettings | null>(null);
 
+  // Error rate limiting state
+  const [errorCount, setErrorCount] = useState(0);
+  const [lastErrorTime, setLastErrorTime] = useState(0);
+  const [backoffDelay, setBackoffDelay] = useState(100);
+
   // Load settings when hook initializes
   useEffect(() => {
     logger.debug('Loading settings for visibility hook', 'useWindowVisibility');
@@ -59,6 +64,11 @@ export function useWindowVisibility() {
             'useWindowVisibility'
           );
           setIsVisible(true);
+          // Reset error tracking on successful operation
+          if (errorCount > 0) {
+            setErrorCount(0);
+            setBackoffDelay(100);
+          }
           return;
         }
 
@@ -86,26 +96,76 @@ export function useWindowVisibility() {
           editorConfig: settings?.editorDetectionConfig,
         });
         setIsVisible(shouldShow);
+
+        // Reset error tracking on successful operation
+        if (errorCount > 0) {
+          setErrorCount(0);
+          setBackoffDelay(100);
+        }
       } catch (error) {
+        const now = Date.now();
+        const timeSinceLastError = now - lastErrorTime;
+
+        // Update error tracking
+        setLastErrorTime(now);
+        const newErrorCount = errorCount + 1;
+        setErrorCount(newErrorCount);
+
         logger.error('Error checking visibility', 'useWindowVisibility', {
           attempt: retryCount + 1,
+          totalErrors: newErrorCount,
+          timeSinceLastError,
+          currentBackoff: backoffDelay,
           error,
         });
 
-        // Retry logic for failed yabai queries
-        if (retryCount < 2) {
-          logger.debug(
-            'Retrying visibility check in 100ms',
-            'useWindowVisibility',
-            { nextAttempt: retryCount + 2 }
+        // Implement exponential backoff with maximum retry limits
+        const maxRetries = 3;
+        const maxBackoffDelay = 5000; // 5 seconds max
+
+        if (retryCount < maxRetries && newErrorCount < 10) {
+          // Calculate exponential backoff delay: 100ms, 200ms, 400ms, etc.
+          const currentDelay = Math.min(
+            backoffDelay * Math.pow(2, retryCount),
+            maxBackoffDelay
           );
-          setTimeout(() => checkVisibility(retryCount + 1), 100);
+
+          logger.debug(
+            'Retrying visibility check with exponential backoff',
+            'useWindowVisibility',
+            {
+              nextAttempt: retryCount + 2,
+              delay: currentDelay,
+              totalErrors: newErrorCount,
+            }
+          );
+
+          setTimeout(() => checkVisibility(retryCount + 1), currentDelay);
         } else {
+          // Rate limiting: if too many errors in short time, increase base backoff
+          if (newErrorCount >= 5 && timeSinceLastError < 10000) {
+            const newBackoffDelay = Math.min(backoffDelay * 2, maxBackoffDelay);
+            setBackoffDelay(newBackoffDelay);
+            logger.warn(
+              'High error rate detected, increasing backoff delay',
+              'useWindowVisibility',
+              {
+                newBackoffDelay,
+                errorCount: newErrorCount,
+                timeSinceLastError,
+              }
+            );
+          }
+
           console.error('Error checking visibility after retries:', error);
           // On repeated failures, default to visible to avoid hiding the tab bar indefinitely
           logger.warn(
             'Defaulting to visible after failed retries',
-            'useWindowVisibility'
+            'useWindowVisibility',
+            {
+              finalErrorCount: newErrorCount,
+              finalRetryCount: retryCount + 1,
+            }
           );
           setIsVisible(true);
         }

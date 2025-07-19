@@ -79,6 +79,9 @@ async function discoverEditorWindowsYabai(): Promise<EditorWindow[]> {
       editorConfig: settings.editorDetectionConfig,
     });
 
+    // Track currently active window IDs for cleanup
+    const currentWindowIds = new Set<string>();
+
     const result: EditorWindow[] = editorWindows.map(window => {
       // Extract workspace path from title
       let path = window.title || window.app;
@@ -87,6 +90,7 @@ async function discoverEditorWindowsYabai(): Promise<EditorWindow[]> {
       }
 
       const stableId = generateStableWindowId(window.title, window.pid);
+      currentWindowIds.add(stableId);
 
       // Store mapping for window operations
       windowIdMap.set(stableId, window.id);
@@ -112,6 +116,26 @@ async function discoverEditorWindowsYabai(): Promise<EditorWindow[]> {
       };
     });
 
+    // Clean up stale entries from windowIdMap to prevent memory leaks
+    const mapSizeBefore = windowIdMap.size;
+    const staleIds: string[] = [];
+
+    for (const [stableId] of windowIdMap) {
+      if (!currentWindowIds.has(stableId)) {
+        staleIds.push(stableId);
+      }
+    }
+
+    staleIds.forEach(id => windowIdMap.delete(id));
+
+    if (staleIds.length > 0) {
+      logger.debug('Cleaned up stale window ID mappings', 'windows', {
+        removedCount: staleIds.length,
+        mapSizeBefore,
+        mapSizeAfter: windowIdMap.size,
+      });
+    }
+
     logger.debug('Discovered windows via yabai', 'windows', {
       windows: result,
     });
@@ -119,6 +143,13 @@ async function discoverEditorWindowsYabai(): Promise<EditorWindow[]> {
   } catch (error) {
     logger.error('Error executing yabai query', 'windows', error);
     console.error('Error executing yabai query:', error);
+    // Clear the map when error occurs to prevent stale data accumulation
+    if (windowIdMap.size > 0) {
+      logger.debug('Clearing window ID map due to discovery error', 'windows', {
+        clearedEntries: windowIdMap.size,
+      });
+      windowIdMap.clear();
+    }
     return [];
   }
 }
