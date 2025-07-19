@@ -9,5 +9,13 @@ export function useTheme() {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  return { theme, setTheme };
+  // Determine if the current resolved theme is dark
+  const isDarkTheme = () => {
+    if (theme === 'dark') return true;
+    if (theme === 'light') return false;
+    // For 'system', check the actual system preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  };
+
+  return { theme, setTheme, isDarkTheme: isDarkTheme() };
 }

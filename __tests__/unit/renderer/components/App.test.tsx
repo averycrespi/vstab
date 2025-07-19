@@ -87,6 +87,7 @@ describe('App Component', () => {
     mockUseTheme.mockReturnValue({
       theme: 'system',
       setTheme: jest.fn(),
+      isDarkTheme: true,
     });
   });
 

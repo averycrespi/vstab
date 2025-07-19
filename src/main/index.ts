@@ -38,12 +38,21 @@ function toProperCase(str: string): string {
 async function createTrayIcon() {
   logger.info('Creating tray icon', 'main');
 
-  // Create tray icon path - use proper vstab icon
-  const trayIconPath = path.join(process.cwd(), 'assets', 'tray-icon.png');
+  // Create tray icon path - use Template naming convention for macOS theme responsiveness
+  const trayIconPath = path.join(
+    process.cwd(),
+    'assets',
+    'tray-iconTemplate.png'
+  );
 
   try {
     tray = new Tray(trayIconPath);
-    logger.info('Tray icon created successfully', 'main');
+    // For macOS template behavior, we need the icon to be monochrome
+    // SVG icons with black/white content should automatically work as templates
+    logger.info(
+      'Tray icon created successfully with template behavior',
+      'main'
+    );
 
     // Update tray menu
     await updateTrayMenu();

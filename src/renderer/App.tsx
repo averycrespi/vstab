@@ -13,7 +13,7 @@ function App() {
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const { isVisible } = useWindowVisibility();
   const { orderedWindows, reorderWindows } = useTabOrder(windows);
-  const { setTheme } = useTheme();
+  const { setTheme, isDarkTheme } = useTheme();
 
   // Load settings on mount
   useEffect(() => {
@@ -182,6 +182,20 @@ function App() {
           height: `${tabBarHeight}px`,
         }}
       >
+        {/* Theme-aware icon on the left */}
+        <div className="flex items-center justify-center px-3">
+          <img
+            src={
+              isDarkTheme
+                ? '../assets/icon-white.svg'
+                : '../assets/icon-black.svg'
+            }
+            alt="vstab"
+            className="w-5 h-5"
+            style={{ filter: 'none' }}
+          />
+        </div>
+
         <div className="flex items-center flex-1">
           {orderedWindows.map(window => {
             logger.debug('Rendering tab for window', 'renderer', {
